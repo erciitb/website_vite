@@ -8,7 +8,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-  emptyOutDir: true,
+  build: {
+    emptyOutDir: true,
+  },
   server: {
     host: '0.0.0.0',
     port: 3000,
