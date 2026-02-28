@@ -4,3 +4,4 @@ node_modules
 out/
 .DS_Store
 dist/_redirects  # Auto-generated from public/_redirects during build
+/dist/
