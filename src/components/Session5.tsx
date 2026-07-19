@@ -1,92 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, Clock, ExternalLink, Presentation, Video, Loader2, Github } from "lucide-react";
+import React from "react";
+import { Calendar, Clock, ExternalLink, Presentation, Video, Github } from "lucide-react";
 import session5Image from "../assets/Mechatronics5_SOR.png"; 
-import { useAuth } from "../hooks/useAuth";
 
 const Session5 = () => {
-  const [submitted, setSubmitted] = useState(false);
-  const [driveLink, setDriveLink] = useState("");
-  const [githubLink, setGithubLink] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [funAnswer, setFunAnswer] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
-  const [errorMsg, setErrorMsg] = useState(""); 
-  
-  const { user } = useAuth();
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      if (!user?.roll) {
-        setIsChecking(false);
-        return;
-      }
-
-      try {
-        const scriptUrl = "https://script.google.com/macros/s/AKfycbxfGarPsay6hlIxhj4S2VMIt2KWCoa34iTblgiP8UN8304knYoHV_WppmBWz_OL79g3/exec";
-        const response = await fetch(`${scriptUrl}?roll=${user.roll}`);
-        const data = await response.json();
-
-        if (data.hasSubmitted) {
-          setSubmitted(true);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkStatus();
-  }, [user?.roll]);
-
-  const handleAssignmentSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    setErrorMsg("");
-
-    if (!user?.roll || user.roll.trim() === "" || user.roll === "N/A" || user.roll === "undefined") {
-      setErrorMsg("Submission failed: Missing Roll Number. Please log out and log in again to load your profile properly.");
-      return; 
-    }
-
-    try {
-      setSubmitting(true);
-
-      const submitData = new URLSearchParams();
-      submitData.append("name", user.name);
-      submitData.append("roll", user.roll);
-      submitData.append("driveLink", driveLink);
-      submitData.append("githubLink", githubLink);
-      submitData.append("feedback", feedback);
-      submitData.append("funAnswer", funAnswer);
-
-      await fetch(
-        "https://script.google.com/macros/s/AKfycbxfGarPsay6hlIxhj4S2VMIt2KWCoa34iTblgiP8UN8304knYoHV_WppmBWz_OL79g3/exec",
-        {
-          method: "POST",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: submitData.toString(),
-        }
-      );
-
-      setSubmitted(true);
-      setDriveLink("");
-      setGithubLink("");
-      setFeedback("");
-      setFunAnswer("");
-    } catch (error) {
-      setErrorMsg("Submission failed due to a network error. Please check your connection and try again.");
-      console.error(error);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-900 text-white py-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -188,137 +104,23 @@ const Session5 = () => {
               Click Here to Access Assignment
             </a>
 
-            {!user ? (
-              <div className="flex flex-col items-center justify-center py-10">
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center max-w-lg mx-auto">
-                  <h3 className="text-red-400 text-xl font-semibold mb-2">
-                    Authentication Required
-                  </h3>
-                  <p className="text-gray-300 mb-6">
-                    We couldn't detect your IITB SSO session. You must be logged in to submit assignments.
-                  </p>
-                  <a 
-                    href="/" 
-                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl transition-colors font-medium"
-                  >
-                    Go back to Login
-                  </a>
-                </div>
-              </div>
-            ) : isChecking ? (
-              <div className="flex flex-col items-center justify-center py-8 text-green-400">
-                <Loader2 className="animate-spin mb-4" size={32} />
-                <p>Checking submission status...</p>
-              </div>
-            ) : submitted ? (
-              <div className="max-w-xl mx-auto">
-                <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
-                  <h3 className="text-green-400 text-xl font-semibold mb-2">
-                    ✓ Assignment Submitted Successfully
-                  </h3>
-                  <p className="text-gray-300">
-                    Your submission has been recorded.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleAssignmentSubmit} className="max-w-2xl mx-auto space-y-6"> 
-                
-                {errorMsg && (
-                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-left">
-                    <h3 className="text-red-400 text-xl font-semibold mb-2">
-                      ⚠️ Submission Failed
-                    </h3>
-                    <p className="text-gray-300">
-                      {errorMsg}
-                    </p>
-                  </div>
-                )}
-
-                <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 text-left mb-6">
-                  <h4 className="text-green-400 font-medium mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Authenticated as
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Name</span>
-                      <span className="text-gray-200 font-medium">{user.name}</span>
-                    </div>
-                    <div>
-                      <span className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Roll Number</span>
-                      <span className="text-gray-200 font-medium uppercase">{user.roll}</span>
-                    </div>
-                    <div className="md:col-span-2">
-                      <span className="text-xs text-gray-500 uppercase tracking-wider block mb-1">Department</span>
-                      <span className="text-gray-200 font-medium">{user.department}</span>
-                    </div>
+            {/* DEADLINE PASSED BANNER */}
+            <div className="max-w-xl mx-auto">
+              <div className="bg-gray-800/80 border border-gray-700 rounded-xl p-8 shadow-lg">
+                <div className="flex justify-center mb-3">
+                  <div className="bg-red-500/20 p-3 rounded-full">
+                    <Clock size={28} className="text-red-400" />
                   </div>
                 </div>
+                <h3 className="text-gray-200 text-xl font-semibold mb-2">
+                  Submission Deadline Passed
+                </h3>
+                <p className="text-gray-400">
+                  We are no longer accepting submissions for this assignment. Thank you to everyone who participated!
+                </p>
+              </div>
+            </div>
 
-                <div className="text-left">
-                  <label className="block text-green-400 font-medium mb-2">
-                    Share your feedback regarding Session 5
-                  </label>
-                  <textarea
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    rows={4}
-                    placeholder="What did you enjoy? What could be improved?"
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 focus:border-green-500 focus:outline-none resize-none"
-                  />
-                </div>
-                
-                <div className="text-left">
-                  <label className="block text-green-400 font-medium mb-2">
-                    🦾 If your SLAM-enabled robotic arm was tasked with making you breakfast, what's the catastrophic-yet-hilarious way it would fail?
-                  </label>
-                  <textarea
-                    value={funAnswer}
-                    onChange={(e) => setFunAnswer(e.target.value)}
-                    rows={4}
-                    placeholder="Example: It maps the kitchen perfectly, but classifies my cat as a toaster..."
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 focus:border-green-500 focus:outline-none resize-none"
-                  />
-                </div>
-                
-                <div className="text-left">
-                  <label className="block text-green-400 font-medium mb-2">
-                    Drive Link
-                  </label>
-                  <input
-                    type="url"
-                    value={driveLink}
-                    onChange={(e) => setDriveLink(e.target.value)}
-                    placeholder="Paste Google Drive folder link here"
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 focus:border-green-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="text-left">
-                  <label className="block text-green-400 font-medium mb-2">
-                    GitHub Code Repository Link
-                  </label>
-                  <input
-                    type="url"
-                    value={githubLink}
-                    onChange={(e) => setGithubLink(e.target.value)}
-                    placeholder="Paste GitHub link here"
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 focus:border-green-500 focus:outline-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting || !user?.roll} 
-                  className="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "Submitting..." : "Submit Assignment"}
-                </button>
-              </form>
-            )}
           </div>
         </div>
       </div>

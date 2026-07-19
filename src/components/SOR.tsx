@@ -59,7 +59,7 @@ const timelineData: TimelineItem[] = [
     link: '/session5',
   },
   {
-    date: '30 June - 14 July',
+    date: '6th July - 20th July',
     title: 'Projects',
     description:
       'Apply everything learnt to build and deploy a comprehensive robotics project from scratch. Projects include an LLM-controlled bot, delivery drone, robotic arm sorting system, and spatial signal mapper.',
@@ -190,7 +190,7 @@ const SOR: React.FC = () => {
                   <li className="flex items-start gap-2">
                     <span className="text-emerald-400 mt-0.5">•</span>
                     <div>
-                      <strong className="text-gray-200">Advanced Certificate:</strong> Fulfill all requirements for the Basic Certificate and successfully deliver a final capstone project.
+                      <strong className="text-gray-200">Advanced Certificate:</strong> Successfully complete one of the six available project options.
                     </div>
                   </li>
                 </ul>
