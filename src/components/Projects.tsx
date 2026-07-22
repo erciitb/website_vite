@@ -177,12 +177,6 @@ const Projects: React.FC = () => {
               Thank you to everyone who participated in SOR and pushed their robotics skills to the absolute limit! Our evaluation team is currently reviewing your repositories and simulations.
             </p>
 
-            <div className="border-t border-white/10 pt-6">
-              <p className="text-gray-400 text-sm">
-                Missed the deadline or need to update a critical submission?{' '}
-                <span className="text-gray-200 font-medium">Please reach out directly to the ERC team.</span>
-              </p>
-            </div>
           </div>
         </div>
 
