@@ -89,7 +89,7 @@ const Events = () => {
               go head-to-head in an electrifying test of speed, precision, and engineering excellence.
               From razor-sharp turns to full-throttle straights, every lap pushes innovation to its limits. 
               Each year, the event attracts over <span className="font-bold">900 enthusiastic participants</span> 
-              from across the campus, transforming the arena into a celebration of robotics, creativity, and 
+               from across the campus, transforming the arena into a celebration of robotics, creativity, and 
               competition. Beyond the thrill of racing, participants leave with <span className="font-bold">new 
               skills, lasting friendships, and unforgettable memories</span>. As the <span className="font-bold">
               largest technical event in the institute</span>, XLR8 is more than a race—it's where passion meets
