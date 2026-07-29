@@ -56,7 +56,58 @@ const Events = () => {
             Join us for workshops, competitions, and social gatherings...
           </p>
         </div>
+         
+        <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
+          <div className="flex flex-col md:flex-row items-stretch">
+            <div className="md:w-1/2 p-8">
+              <div className="inline-flex items-center mb-4 px-3 py-1 bg-blue-500/20 rounded-full">
+                <Calendar size={16} className="text-blue-400 mr-2" />
+                <span className="text-sm text-blue-400">Featured Event</span>
+              </div>
 
+              <h3 className="text-2xl font-bold mb-3 font-heading">
+                XLR8 2026
+              </h3>
+
+              <div className="flex items-center text-gray-300 mb-2">
+                <Calendar size={16} className="mr-2 text-gray-400" />
+                <span>8 August</span>
+              </div>
+
+              <div className="flex items-center text-gray-300 mb-2">
+                <Clock size={16} className="mr-2 text-gray-400" />
+                <span>2 Weeks</span>
+              </div>
+
+              <div className="flex items-center text-gray-300 mb-4">
+                <MapPin size={16} className="mr-2 text-gray-400" />
+                <span>IIT Bombay</span>
+              </div>
+
+              <p className="text-gray-300 mb-6">
+XLR8 is our annual high-speed robotics competition, where student-built racing bots go head-to-head in an electrifying test of speed, precision, and engineering excellence. From razor-sharp turns to full-throttle straights, every lap pushes innovation to its limits. Each year, the event attracts over <span className="font-bold">900 enthusiastic participants</span> from across the campus, transforming the arena into a celebration of robotics, creativity, and competition. Beyond the thrill of racing, participants leave with <span className="font-bold">new skills, lasting friendships, and unforgettable memories</span>. As the <span className="font-bold">largest technical event in the institute</span>, XLR8 is more than a race—it's where passion meets performance, and every lap tells a story.
+              </p>
+
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  to="#"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
+                >
+                  Register Now
+                  <ArrowRight size={16} className="ml-2" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="md:w-1/2 h-64 md:h-auto relative bg-gray-950/50 flex items-center justify-center">
+              <img
+                src='..\src\assets\XLR8card.png'
+                alt="XLR8 2026"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
         <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
           <div className="flex flex-col md:flex-row items-stretch">
             <div className="md:w-1/2 p-8">
