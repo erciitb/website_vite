@@ -74,10 +74,6 @@ function useCoverflow(itemCount: number, autoplayDelay: number, autoplayEnabled:
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef<number | null>(null);
-  // How much time is left on the current slide's countdown. Reset to the
-  // full delay whenever the slide changes (auto-advance or manual nav);
-  // decremented — not reset — when the user pauses mid-countdown, so
-  // resuming continues from where it left off instead of restarting.
   const remainingRef = useRef(autoplayDelay);
   const segmentStartRef = useRef(0);
 
@@ -85,7 +81,6 @@ function useCoverflow(itemCount: number, autoplayDelay: number, autoplayEnabled:
   const next = useCallback(() => setActiveIndex((i) => wrapIndex(i + 1, itemCount)), [itemCount]);
   const prev = useCallback(() => setActiveIndex((i) => wrapIndex(i - 1, itemCount)), [itemCount]);
 
-  // A new slide always gets a full, fresh countdown.
   useEffect(() => {
     remainingRef.current = autoplayDelay;
   }, [activeIndex, autoplayDelay]);
@@ -94,8 +89,6 @@ function useCoverflow(itemCount: number, autoplayDelay: number, autoplayEnabled:
     if (!autoplayEnabled || itemCount <= 1) return;
 
     if (isPaused) {
-      // Freeze the clock: subtract however long the current segment has
-      // been running from what's left, then wait for unpause.
       if (segmentStartRef.current) {
         remainingRef.current = Math.max(0, remainingRef.current - (Date.now() - segmentStartRef.current));
       }
@@ -205,7 +198,6 @@ const GalleryCard: React.FC<{
   saturate: number;
 }> = React.memo(({ image, absOffset, onClick, brightness, saturate }) => {
   const isCenter = absOffset === 0;
-
   return (
     <div
       onClick={onClick}
@@ -220,7 +212,6 @@ const GalleryCard: React.FC<{
         transformStyle: 'preserve-3d',
       }}
     >
-      {/* Image container — no hover scaling, just the base image */}
       <div className="absolute inset-0 overflow-hidden rounded-2xl w-full h-full transform-gpu will-change-transform">
         <img
           src={image.url}
@@ -271,9 +262,6 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
   useSwipeAndDrag(trackRef, next, prev, setIsPaused);
   useKeyboardNav(trackRef, next, prev);
 
-  // Render exactly what's visible plus one buffer ring (no more) to keep
-  // the number of simultaneously-animated 3D layers low — fewer overlapping
-  // transformed/filtered elements = fewer dropped frames.
   const renderRange = cfg.visibleSide + 1;
   const visibleItems = useMemo(() => {
     const items: { image: GalleryImage; index: number; offset: number }[] = [];
@@ -286,10 +274,7 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
   }, [activeIndex, itemCount, images, renderRange]);
 
   const SMOOTH_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
-  const SMOOTH_DURATION = 780; // ms
-  // Only transform + opacity animate here — both are compositor-only
-  // properties the GPU can handle without triggering repaint/layout,
-  // unlike `filter`, which we no longer animate on the wrapping layer.
+  const SMOOTH_DURATION = 780;
   const transitionStyle = reducedMotion
     ? 'none'
     : `transform ${SMOOTH_DURATION}ms ${SMOOTH_EASE}, opacity ${SMOOTH_DURATION}ms ${SMOOTH_EASE}`;
@@ -330,7 +315,6 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
       >
         {visibleItems.map(({ image, index, offset }) => {
           const absOffset = Math.abs(offset);
-
           let opacity = 1.0;
           let scale = 1.12;
           let translateZ = 140;
@@ -338,9 +322,6 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
           let brightness = 1.0;
           let saturate = 1.0;
 
-          // No `blur` variable anymore — depth is conveyed with opacity/
-          // scale/brightness/saturate only, which are far cheaper to
-          // animate across several overlapping layers than filter blur.
           if (absOffset === 0) {
             opacity = 1.0; scale = 1.12; translateZ = 140; translateY = -10; brightness = 1.0; saturate = 1.0;
           } else if (absOffset === 1) {
@@ -487,7 +468,6 @@ const DailyFactWidget = () => {
   const [dailyFact, setDailyFact] = useState("");
 
   useEffect(() => {
-    // Calculate a unique index based on the current day of the year
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
     setDailyFact(roboticsFacts[dayOfYear % roboticsFacts.length]);
   }, []);
@@ -495,13 +475,12 @@ const DailyFactWidget = () => {
   const handleToggle = () => {
     setIsOpen(!isOpen);
     if (!hasBeenClicked) {
-      setHasBeenClicked(true); // Stop the bouncing permanently after first interaction
+      setHasBeenClicked(true); 
     }
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-      {/* The Popup Card */}
       <div
         className={`mb-4 w-72 md:w-80 bg-gray-900/90 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-5 shadow-[0_10px_40px_rgba(59,130,246,0.3)] transition-all duration-500 origin-bottom-right ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}
       >
@@ -522,7 +501,6 @@ const DailyFactWidget = () => {
         </p>
       </div>
 
-      {/* The Floating Toggle Button */}
       <button
         onClick={handleToggle}
         className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${isOpen ? 'bg-gray-800 border border-gray-600 text-gray-400' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-1'}`}
@@ -537,16 +515,15 @@ const DailyFactWidget = () => {
 const About = () => {
   const [splineLoaded, setSplineLoaded] = useState(false);
 
-  // Scroll-reveal for the header block
   const [isHeaderVisible, setIsHeaderVisible] = useState(false);
-  const headerRef = useRef(null);
+  const headerRef = useRef<HTMLDivElement>(null); // <-- FIXED TYPE HERE
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsHeaderVisible(true);
-          observer.disconnect(); // only animates once
+          observer.disconnect();
         }
       },
       { threshold: 0.2 }
@@ -562,12 +539,10 @@ const About = () => {
   return (
     <section id="about" className="py-20 bg-gray-900/70 relative overflow-hidden">
 
-      {/* Floating Daily Fact Widget */}
       <DailyFactWidget />
 
       <div className="container mx-auto px-4">
 
-        {/* ── Animated Heading Section ── */}
         <div ref={headerRef} className="text-center mb-16 flex flex-col items-center">
           <h1 className={`text-5xl mb-4 font-heading font-bold
             bg-gradient-to-r from-yellow-300 to-orange-500
@@ -590,7 +565,6 @@ const About = () => {
           </p>
         </div>
 
-        {/* Vision Section */}
         <div className="mt-16 bg-gradient-to-r from-blue-600/20 to-orange-600/20 p-8 rounded-xl border border-blue-500/20">
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-2/3 mb-6 md:mb-0 md:pr-8">
@@ -606,7 +580,6 @@ const About = () => {
             <div className="w-64 h-64 rounded-full bg-gray-900 overflow-hidden shadow-lg relative shrink-0">
               <div className="absolute inset-0 animate-spin-slow border border-yellow-400/30 rounded-full" />
               <SplineErrorBoundary>
-                {/* Spinner until Spline fires onLoad */}
                 {!splineLoaded && (
                   <div className="absolute inset-0 flex items-center justify-center z-20">
                     <div className="w-8 h-8 border-2 border-yellow-400/30 border-t-yellow-400 rounded-full animate-spin" />
@@ -622,13 +595,11 @@ const About = () => {
           </div>
         </div>
 
-        {/* Gallery — Coverflow */}
         <div className="mt-24">
           <h3 className="text-3xl font-heading text-center text-gray-100 mb-4">HIGHLIGHTS GALLERY</h3>
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
           <CoverflowGallery images={galleryImages} autoplayDelay={4000} />
         </div>
-
       </div>
     </section>
   );

@@ -377,7 +377,6 @@ const TimelineSection: React.FC = () => {
           <h2 className="text-4xl md:text-5xl font-extrabold font-heading tracking-tight mb-4 text-white">
             The <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-orange-400">XLR8</span> Roadmap
           </h2>
-          {/* Added requested Roadmap description here */}
           <p className="text-gray-400 text-base sm:text-lg">
             The technical schedule from initial team assembly to the high-speed arena finale.
           </p>
@@ -470,7 +469,8 @@ const ComingSoonSection: React.FC = () => {
   });
 
   useEffect(() => {
-    const targetDate = new Date('2026-08-07T00:00:00').getTime();
+    // FIXED: YYYY-MM-DD format (August 15, 2026)
+    const targetDate = new Date('2026-08-15T00:00:00').getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
@@ -506,7 +506,7 @@ const ComingSoonSection: React.FC = () => {
 
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono tracking-widest uppercase mb-6 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-orange-400 animate-spin" style={{ animationDuration: '4s' }} />
-            <span>TARGET DATE • AUGUST 07</span>
+            <span>TARGET DATE • AUGUST 15</span>
           </div>
 
           <h3 className="text-4xl sm:text-6xl md:text-7xl font-black font-heading tracking-tight mb-4 uppercase">
@@ -605,7 +605,6 @@ const XLR8 = () => {
         }}
       />
 
-      {/* Added -mt-20 sm:-mt-28 to lift logo, text, and button comfortably away from bottom edge */}
       <div className="container mx-auto px-4 z-10 font-body -mt-20 sm:-mt-28">
         <div className="max-w-2xl mx-auto text-center">
           
@@ -631,10 +630,8 @@ const XLR8 = () => {
       
     </section>
     
-    {/* Dynamic Scroll Gallery */}
     <SemicircularScrollGallery />
 
-    {/* XLR8 2025 AFTER MOVIE SECTION */}
     <section className="py-12 bg-[#0B1120] text-white">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl font-heading mb-6 border-b-4 border-blue-600 inline-block">XLR8 2025 After Movie</h2>
@@ -645,7 +642,6 @@ const XLR8 = () => {
           <div className="relative z-10 p-1 rounded-3xl bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 shadow-lg">
             <div className="rounded-2xl bg-[#0B1120] p-1">
               
-              {/* Added glitch animation classes to create the corrupted video effect */}
               <div className="aspect-video w-full rounded-xl overflow-hidden bg-[#0A101F] border border-white/5 flex flex-col items-center justify-center relative">
                 <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
                 <div className="relative z-10 flex flex-col items-center opacity-80 animate-[glitch_2.5s_infinite]">
@@ -661,7 +657,6 @@ const XLR8 = () => {
         </div>
       </div>
 
-      {/* CSS keyframes for the glitch effect */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes glitch {
           0%, 100% { transform: translate(0); opacity: 0.8; }
@@ -673,10 +668,8 @@ const XLR8 = () => {
       `}} />
     </section>
 
-    {/* Non-Linear PCB Timeline */}
     <TimelineSection />
 
-    {/* Enclosed Card "XLR8 COMING SOON" + August 7th Countdown Section */}
     <ComingSoonSection />
     </>
   );

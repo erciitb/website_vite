@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import HeaderLogo from '../assets/header.png';
-import HeaderVideo from '../assets/Animated_logo.mp4'; 
 import MobileMenu from '../MobileMenu';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,14 +16,6 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Playback controller: Reset and play when hovered
-  useEffect(() => {
-    if (isHovered && videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch((e) => console.log("Playback deferred:", e));
-    }
-  }, [isHovered]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const handleSorClick = () => { setIsMenuOpen(false); navigate('/sor'); };
@@ -45,37 +34,24 @@ const Header = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled || isHovered
+          isScrolled
             ? 'bg-black/70 backdrop-blur-md shadow-lg border-b border-white/10' 
             : 'bg-transparent border-b border-transparent'
         }`}
       >
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
 
-          {/* Logo / Video Swap Container - Locked to h-16 base */}
+          {/* Logo Container */}
           <Link 
             to="/" 
             className="flex items-center justify-center relative w-auto h-16"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             onClick={() => setIsMenuOpen(false)}
           >
-            {/* STATIC LOGO: h-16 (64px) */}
+            {/* STATIC LOGO */}
             <img 
               src={HeaderLogo} 
               alt="Header Logo" 
-              className={`w-auto h-20 transition-opacity duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`} 
-            />
-            
-            {/* ANIMATED VIDEO: h-20 (80px) - Just enough to compensate for video margins */}
-            <video
-              ref={videoRef}
-              src={HeaderVideo}
-              muted
-              playsInline
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-auto h-[62px] max-w-none object-contain transition-opacity duration-300 mix-blend-screen contrast-150 brightness-110 ${
-                isHovered ? 'opacity-100' : 'opacity-0'
-              }`}
+              className="w-auto h-20" 
             />
           </Link>
 
