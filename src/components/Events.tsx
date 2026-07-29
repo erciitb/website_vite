@@ -71,13 +71,13 @@ const Events = () => {
 
               <div className="flex items-center text-gray-300 mb-2">
                 <Calendar size={16} className="mr-2 text-gray-400" />
-                <span>8 August</span>
+                <span>3 Weeks Competition</span>
               </div>
 
-              <div className="flex items-center text-gray-300 mb-2">
+              {/* <div className="flex items-center text-gray-300 mb-2">
                 <Clock size={16} className="mr-2 text-gray-400" />
-                <span>2 Weeks</span>
-              </div>
+                <span>Coming Soon</span>
+              </div> */}
 
               <div className="flex items-center text-gray-300 mb-4">
                 <MapPin size={16} className="mr-2 text-gray-400" />
@@ -85,23 +85,31 @@ const Events = () => {
               </div>
 
               <p className="text-gray-300 mb-6">
-XLR8 is our annual high-speed robotics competition, where student-built racing bots go head-to-head in an electrifying test of speed, precision, and engineering excellence. From razor-sharp turns to full-throttle straights, every lap pushes innovation to its limits. Each year, the event attracts over <span className="font-bold">900 enthusiastic participants</span> from across the campus, transforming the arena into a celebration of robotics, creativity, and competition. Beyond the thrill of racing, participants leave with <span className="font-bold">new skills, lasting friendships, and unforgettable memories</span>. As the <span className="font-bold">largest technical event in the institute</span>, XLR8 is more than a race—it's where passion meets performance, and every lap tells a story.
+              XLR8 is our annual high-speed robotics competition, where student-built racing bots, 
+              go head-to-head in an electrifying test of speed, precision, and engineering excellence.
+              From razor-sharp turns to full-throttle straights, every lap pushes innovation to its limits. 
+              Each year, the event attracts over <span className="font-bold">900 enthusiastic participants</span> 
+              from across the campus, transforming the arena into a celebration of robotics, creativity, and 
+              competition. Beyond the thrill of racing, participants leave with <span className="font-bold">new 
+              skills, lasting friendships, and unforgettable memories</span>. As the <span className="font-bold">
+              largest technical event in the institute</span>, XLR8 is more than a race—it's where passion meets
+              performance, and every lap tells a story.
               </p>
 
               <div className="flex flex-wrap gap-4">
                 <Link
-                  to="#"
+                  to="/xlr8-registration"
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
                 >
-                  Register Now
-                  <ArrowRight size={16} className="ml-2" />
+                  Coming Soon...
+                  {/* <ArrowRight size={16} className="ml-2" /> */}
                 </Link>
               </div>
             </div>
 
             <div className="md:w-1/2 h-64 md:h-auto relative bg-gray-950/50 flex items-center justify-center">
               <img
-                src='..\src\assets\XLR8card.png'
+                src='https://res.cloudinary.com/djbm9dagt/image/upload/v1785300687/XLR8card.jpg'
                 alt="XLR8 2026"
                 className="w-full h-full object-cover"
               />
