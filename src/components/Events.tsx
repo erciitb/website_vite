@@ -49,14 +49,16 @@ const Events = () => {
     <section id="events" className="py-20 bg-gray-900">
       <div className="container mx-auto px-4">
 
+        {/* ── Section Header ── */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-heading mb-4">Events</h2>
+          <h2 className="text-4xl font-heading mb-4 text-white">Events</h2>
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
           <p className="max-w-3xl mx-auto text-gray-300 text-lg">
             Join us for workshops, competitions, and social gatherings...
           </p>
         </div>
          
+        {/* ── XLR8 Event ── */}
         <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
           <div className="flex flex-col md:flex-row items-stretch">
             <div className="md:w-1/2 p-8">
@@ -65,7 +67,7 @@ const Events = () => {
                 <span className="text-sm text-blue-400">Featured Event</span>
               </div>
 
-              <h3 className="text-2xl font-bold mb-3 font-heading">
+              <h3 className="text-2xl font-bold mb-3 font-heading text-white">
                 XLR8 2026
               </h3>
 
@@ -73,11 +75,6 @@ const Events = () => {
                 <Calendar size={16} className="mr-2 text-gray-400" />
                 <span>3 Weeks Competition</span>
               </div>
-
-              {/* <div className="flex items-center text-gray-300 mb-2">
-                <Clock size={16} className="mr-2 text-gray-400" />
-                <span>Coming Soon</span>
-              </div> */}
 
               <div className="flex items-center text-gray-300 mb-4">
                 <MapPin size={16} className="mr-2 text-gray-400" />
@@ -102,7 +99,6 @@ const Events = () => {
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
                 >
                   Coming Soon...
-                  {/* <ArrowRight size={16} className="ml-2" /> */}
                 </Link>
               </div>
             </div>
@@ -116,6 +112,8 @@ const Events = () => {
             </div>
           </div>
         </div>
+
+        {/* ── Summer of Robotics Event ── */}
         <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
           <div className="flex flex-col md:flex-row items-stretch">
             <div className="md:w-1/2 p-8">
@@ -123,7 +121,7 @@ const Events = () => {
                 <Calendar size={16} className="text-blue-400 mr-2" />
                 <span className="text-sm text-blue-400">Flagship Event</span>
               </div>
-              <h3 className="text-2xl font-bold mb-3 font-heading">Summer of Robotics</h3>
+              <h3 className="text-2xl font-bold mb-3 font-heading text-white">Summer of Robotics</h3>
               <div className="flex items-center text-gray-300 mb-2">
                 <Calendar size={16} className="mr-2 text-gray-400" />
                 <span>6 Weeks Bootcamp</span>
@@ -153,21 +151,15 @@ const Events = () => {
                 </Link>
               </div>
             </div>
-            <div className="md:w-1/2 h-64 md:h-auto relative bg-gray-950/50 flex items-center justify-center">
-              <img
-                src={sor}
-                alt="Summer of Robotics"
-                className="w-full h-full object-cover"
-              />
-            </div>
           </div>
         </div>
 
+        {/* ── Events Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {eventsData.map((event) => (
             <div
               key={event.id}
-              className={`rounded-xl overflow-hidden transition-all group ${
+              className={`h-full rounded-xl overflow-hidden transition-all group text-left ${
                 event.seats === 'Completed'
                   ? 'bg-white/10 backdrop-blur-md border border-white/20'
                   : 'bg-gray-900 hover:shadow-lg hover:shadow-blue-500/10'
@@ -180,22 +172,25 @@ const Events = () => {
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-3 font-heading">{event.title}</h3>
-                <div className="flex items-center text-gray-300 mb-2">
-                  <Calendar size={16} className="mr-2 text-gray-400" />
-                  <span>{event.date}</span>
+              <div className="p-6 flex flex-col justify-between h-[calc(100%-12rem)]">
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 font-heading text-white">{event.title}</h3>
+                  <div className="flex items-center text-gray-300 mb-2">
+                    <Calendar size={16} className="mr-2 text-gray-400" />
+                    <span>{event.date}</span>
+                  </div>
+                  <div className="flex items-center text-gray-300 mb-2">
+                    <Clock size={16} className="mr-2 text-gray-400" />
+                    <span>{event.time}</span>
+                  </div>
+                  <div className="flex items-center text-gray-300 mb-3">
+                    <MapPin size={16} className="mr-2 text-gray-400" />
+                    <span>{event.location}</span>
+                  </div>
+                  <p className="text-gray-400 mb-4">{event.description}</p>
                 </div>
-                <div className="flex items-center text-gray-300 mb-2">
-                  <Clock size={16} className="mr-2 text-gray-400" />
-                  <span>{event.time}</span>
-                </div>
-                <div className="flex items-center text-gray-300 mb-3">
-                  <MapPin size={16} className="mr-2 text-gray-400" />
-                  <span>{event.location}</span>
-                </div>
-                <p className="text-gray-400 mb-4">{event.description}</p>
-                <div className="flex items-center justify-between">
+                
+                <div className="flex items-center justify-between pt-4 mt-auto border-t border-white/5">
                   <div className="flex items-center text-gray-300">
                     <Users size={16} className="mr-2 text-gray-400" />
                     <span>{event.seats}</span>
@@ -207,7 +202,7 @@ const Events = () => {
                           href={event.slidesLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1"
+                          className="text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1 relative z-10"
                         >
                           Slides & Recordings
                           <ArrowRight size={14} />
@@ -215,7 +210,7 @@ const Events = () => {
                       )}
                     </div>
                   ) : (
-                    <button className="text-blue-400 hover:text-blue-300 transition-colors font-medium">
+                    <button className="text-blue-400 hover:text-blue-300 transition-colors font-medium relative z-10">
                       Register
                     </button>
                   )}
@@ -225,8 +220,9 @@ const Events = () => {
           ))}
         </div>
 
+        {/* ── Newsletter Section ── */}
         <div className="mt-12 p-6 bg-blue-900/30 rounded-xl border border-gray-700 text-center mb-20">
-          <h3 className="text-xl font-semibold mb-4">Stay Updated on All Events</h3>
+          <h3 className="text-xl font-semibold mb-4 text-white">Stay Updated on All Events</h3>
           <p className="text-gray-300 mb-6">
             Subscribe to our newsletter to receive notifications...
           </p>
@@ -236,12 +232,12 @@ const Events = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="px-4 py-3 bg-gray-900 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 border border-gray-700 mb-2 sm:mb-0 sm:flex-1"
+              className="px-4 py-3 bg-gray-900 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500 border border-gray-700 mb-2 sm:mb-0 sm:flex-1 text-white"
             />
             <button
               onClick={handleSubscribe}
               disabled={subscribed}
-              className={`px-6 py-3 transition-colors sm:rounded-l-none rounded-md ${
+              className={`px-6 py-3 transition-colors sm:rounded-l-none rounded-md font-medium ${
                 subscribed
                   ? 'bg-orange-600 text-white cursor-default'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'

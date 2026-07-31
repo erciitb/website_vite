@@ -17,14 +17,8 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleSorClick = () => {
-    setIsMenuOpen(false);
-    navigate('/sor');
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const handleSorClick = () => { setIsMenuOpen(false); navigate('/sor'); };
 
   const navItems = [
     { label: 'Home', path: '/' },
@@ -40,17 +34,28 @@ const Header = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-gray-900/95 backdrop-blur-sm shadow-lg' : 'bg-transparent'
+          isScrolled
+            ? 'bg-black/70 backdrop-blur-md shadow-lg border-b border-white/10' 
+            : 'bg-transparent border-b border-transparent'
         }`}
       >
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center" onClick={() => setIsMenuOpen(false)}>
-            <img src={HeaderLogo} alt="Header Logo" className="w-auto h-20 min-h-[24px] min-w-[24px]" />
+          {/* Logo Container */}
+          <Link 
+            to="/" 
+            className="flex items-center justify-center relative w-auto h-16"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {/* STATIC LOGO */}
+            <img 
+              src={HeaderLogo} 
+              alt="Header Logo" 
+              className="w-auto h-20" 
+            />
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navItems.map(({ label, path }) => (
               <Link
@@ -63,31 +68,15 @@ const Header = () => {
               </Link>
             ))}
 
-            {/* SOR Button */}
-            <button
-              onClick={handleSorClick}
-              className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
-            >
-              SOR
-            </button>
-
-            {/* XLR8 Button */}
-            <Link
-              to="/xlr8"
-              className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading"
-            >
-              XLR8
-            </Link>
-
+            <button onClick={handleSorClick} className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white">SOR</button>
+            <Link to="/xlr8" className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white">XLR8</Link>
           </nav>
 
-          {/* Mobile Menu Toggle */}
           <button className="md:hidden text-gray-300" onClick={toggleMenu}>
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </header>
-
       <MobileMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </>
   );

@@ -11,7 +11,8 @@ import Session2 from './components/Session2';
 import Session3 from './components/Session3';
 import Session4 from './components/Session4';
 import Session5 from './components/Session5.tsx';
-import Projects from './components/Projects.tsx'
+import Projects from './components/Projects.tsx';
+import Preloader from './components/Preloader.tsx'
 import Xlr8registration from './components/Xlr8registration.tsx';
 
 
@@ -30,6 +31,9 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      
+      <Preloader />
+      
       <div className="min-h-screen bg-gray-900 text-white">
         <Header />
         <main>

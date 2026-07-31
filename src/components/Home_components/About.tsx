@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, Component } from 'react';
 import Spline from '@splinetool/react-spline';
+import { Bot, X, Lightbulb } from 'lucide-react';
 
 /* ============================================================================
    COVERFLOW GALLERY — premium, smooth, hardware-accelerated presentation
@@ -72,21 +73,37 @@ function circularOffset(from: number, to: number, length: number): number {
 function useCoverflow(itemCount: number, autoplayDelay: number, autoplayEnabled: boolean) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+  const remainingRef = useRef(autoplayDelay);
+  const segmentStartRef = useRef(0);
 
   const goTo = useCallback((index: number) => setActiveIndex(wrapIndex(index, itemCount)), [itemCount]);
   const next = useCallback(() => setActiveIndex((i) => wrapIndex(i + 1, itemCount)), [itemCount]);
   const prev = useCallback(() => setActiveIndex((i) => wrapIndex(i - 1, itemCount)), [itemCount]);
 
   useEffect(() => {
-    if (!autoplayEnabled || isPaused || itemCount <= 1) return;
-    timerRef.current = window.setInterval(() => {
+    remainingRef.current = autoplayDelay;
+  }, [activeIndex, autoplayDelay]);
+
+  useEffect(() => {
+    if (!autoplayEnabled || itemCount <= 1) return;
+
+    if (isPaused) {
+      if (segmentStartRef.current) {
+        remainingRef.current = Math.max(0, remainingRef.current - (Date.now() - segmentStartRef.current));
+      }
+      return;
+    }
+
+    segmentStartRef.current = Date.now();
+    timeoutRef.current = window.setTimeout(() => {
       setActiveIndex((i) => wrapIndex(i + 1, itemCount));
-    }, autoplayDelay);
+    }, remainingRef.current);
+
     return () => {
-      if (timerRef.current) window.clearInterval(timerRef.current);
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
     };
-  }, [autoplayEnabled, isPaused, autoplayDelay, itemCount]);
+  }, [autoplayEnabled, isPaused, itemCount, activeIndex]);
 
   return { activeIndex, goTo, next, prev, isPaused, setIsPaused };
 }
@@ -173,15 +190,14 @@ function useKeyboardNav(ref: React.RefObject<HTMLElement>, onNext: () => void, o
 }
 
 // ─── GalleryCard ────────────────────────────────────────────────────────────
-const GalleryCard: React.FC<{ 
-  image: GalleryImage; 
-  absOffset: number; 
+const GalleryCard: React.FC<{
+  image: GalleryImage;
+  absOffset: number;
   onClick?: () => void;
   brightness: number;
   saturate: number;
 }> = React.memo(({ image, absOffset, onClick, brightness, saturate }) => {
   const isCenter = absOffset === 0;
-  
   return (
     <div
       onClick={onClick}
@@ -196,7 +212,6 @@ const GalleryCard: React.FC<{
         transformStyle: 'preserve-3d',
       }}
     >
-      {/* Image container — no hover scaling, just the base image */}
       <div className="absolute inset-0 overflow-hidden rounded-2xl w-full h-full transform-gpu will-change-transform">
         <img
           src={image.url}
@@ -205,8 +220,8 @@ const GalleryCard: React.FC<{
           draggable={false}
           className="h-full w-full object-cover transition-[filter] duration-[780ms] ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu"
           style={{
-            filter: isCenter 
-              ? 'brightness(1) saturate(1)' 
+            filter: isCenter
+              ? 'brightness(1) saturate(1)'
               : `brightness(${brightness}) saturate(${saturate})`,
           }}
         />
@@ -247,9 +262,6 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
   useSwipeAndDrag(trackRef, next, prev, setIsPaused);
   useKeyboardNav(trackRef, next, prev);
 
-  // Render exactly what's visible plus one buffer ring (no more) to keep
-  // the number of simultaneously-animated 3D layers low — fewer overlapping
-  // transformed/filtered elements = fewer dropped frames.
   const renderRange = cfg.visibleSide + 1;
   const visibleItems = useMemo(() => {
     const items: { image: GalleryImage; index: number; offset: number }[] = [];
@@ -262,10 +274,7 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
   }, [activeIndex, itemCount, images, renderRange]);
 
   const SMOOTH_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
-  const SMOOTH_DURATION = 780; // ms
-  // Only transform + opacity animate here — both are compositor-only
-  // properties the GPU can handle without triggering repaint/layout,
-  // unlike `filter`, which we no longer animate on the wrapping layer.
+  const SMOOTH_DURATION = 780;
   const transitionStyle = reducedMotion
     ? 'none'
     : `transform ${SMOOTH_DURATION}ms ${SMOOTH_EASE}, opacity ${SMOOTH_DURATION}ms ${SMOOTH_EASE}`;
@@ -306,7 +315,6 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
       >
         {visibleItems.map(({ image, index, offset }) => {
           const absOffset = Math.abs(offset);
-          
           let opacity = 1.0;
           let scale = 1.12;
           let translateZ = 140;
@@ -314,9 +322,6 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
           let brightness = 1.0;
           let saturate = 1.0;
 
-          // No `blur` variable anymore — depth is conveyed with opacity/
-          // scale/brightness/saturate only, which are far cheaper to
-          // animate across several overlapping layers than filter blur.
           if (absOffset === 0) {
             opacity = 1.0; scale = 1.12; translateZ = 140; translateY = -10; brightness = 1.0; saturate = 1.0;
           } else if (absOffset === 1) {
@@ -345,9 +350,9 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
                 WebkitBackfaceVisibility: 'hidden',
               }}
             >
-              <GalleryCard 
-                image={image} 
-                absOffset={absOffset} 
+              <GalleryCard
+                image={image}
+                absOffset={absOffset}
                 onClick={() => (offset === 0 ? undefined : goTo(index))}
                 brightness={brightness}
                 saturate={saturate}
@@ -397,9 +402,10 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
 };
 
 /* ============================================================================
-   ABOUT SECTION — wrapper container showcasing component implementation
+   ABOUT SECTION
    ========================================================================== */
 
+// ─── Error Boundary ──────────────────────────────────────────────────────────
 class SplineErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
@@ -417,6 +423,7 @@ class SplineErrorBoundary extends Component<{ children: React.ReactNode }, { has
   }
 }
 
+// ─── Gallery Images (numbered set) ──────────────────────────────────────────
 const galleryImages: GalleryImage[] = [
   { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/1.jpg', alt: 'ERC Event A' },
   { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/2.jpg', alt: 'ERC Event B' },
@@ -438,35 +445,122 @@ const galleryImages: GalleryImage[] = [
   { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/18.jpg', alt: 'ERC Event R' },
   { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/19.jpg', alt: 'ERC Event S' },
   { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/20.jpg', alt: 'ERC Event T' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/21.jpg', alt: 'ERC Event U' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/22.jpg', alt: 'ERC Event V' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/23.jpg', alt: 'ERC Event W' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/24.jpg', alt: 'ERC Event AA' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/25.jpg', alt: 'ERC Event AB' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/26.jpg', alt: 'ERC Event AC' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/27.jpg', alt: 'ERC Event AD' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/28.jpg', alt: 'ERC Event X' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/29.jpg', alt: 'ERC Event Y' },
-  // { url: 'https://res.cloudinary.com/djbm9dagt/image/upload/f_auto,q_auto,w_1200/v1780110702/30.jpg', alt: 'ERC Event Z' },
-
-
 ];
 
+// ─── Daily Robotics Facts ────────────────────────────────────────────────────
+const roboticsFacts = [
+  "The word 'robot' comes from the Czech word 'robota', which literally translates to 'forced labor' or 'drudgery'.",
+  "The first known design for a humanoid robot was created by Leonardo da Vinci around the year 1495.",
+  "Mars is entirely inhabited by robots! As of now, several rovers and landers are the only active 'residents' on the Red Planet.",
+  "The world's first industrial robot, Unimate, went to work on a General Motors assembly line in 1961.",
+  "In 2017, Saudi Arabia granted citizenship to a humanoid robot named Sophia, making her the first robot to receive legal personhood.",
+  "The smallest robot ever created is a 'crab' robot that is smaller than a flea. It walks using shape-memory alloys instead of motors.",
+  "Roomba, the popular robot vacuum, uses a SLAM (Simultaneous Localization and Mapping) algorithm similar to the ones used in autonomous cars.",
+  "The first recorded instance of a robot causing a human fatality occurred in 1979 at a Ford Motor plant.",
+  "Electro, a 7-foot tall robot built by Westinghouse in 1939, could walk by voice command, speak 700 words, and even smoke cigarettes!",
+  "Modern surgical robots are so precise they can successfully peel the skin off a grape and stitch it back together."
+];
+
+// ─── Floating Daily Fact Widget ──────────────────────────────────────────────
+const DailyFactWidget = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasBeenClicked, setHasBeenClicked] = useState(false);
+  const [dailyFact, setDailyFact] = useState("");
+
+  useEffect(() => {
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
+    setDailyFact(roboticsFacts[dayOfYear % roboticsFacts.length]);
+  }, []);
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+    if (!hasBeenClicked) {
+      setHasBeenClicked(true); 
+    }
+  };
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      <div
+        className={`mb-4 w-72 md:w-80 bg-gray-900/90 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-5 shadow-[0_10px_40px_rgba(59,130,246,0.3)] transition-all duration-500 origin-bottom-right ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}
+      >
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-center gap-2 text-yellow-400">
+            <Lightbulb size={18} className="animate-pulse" />
+            <h4 className="font-bold font-heading text-sm uppercase tracking-wider">Daily Robo-Fact</h4>
+          </div>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <p className="text-gray-300 text-sm leading-relaxed">
+          {dailyFact}
+        </p>
+      </div>
+
+      <button
+        onClick={handleToggle}
+        className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${isOpen ? 'bg-gray-800 border border-gray-600 text-gray-400' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-1'}`}
+      >
+        <Bot size={24} className={!hasBeenClicked ? "animate-bounce" : ""} />
+      </button>
+    </div>
+  );
+};
+
+// ─── About Component ─────────────────────────────────────────────────────────
 const About = () => {
   const [splineLoaded, setSplineLoaded] = useState(false);
 
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+  const headerRef = useRef<HTMLDivElement>(null); // <-- FIXED TYPE HERE
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsHeaderVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (headerRef.current) {
+      observer.observe(headerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="about" className="py-20 bg-gray-900/70">
+    <section id="about" className="py-20 bg-gray-900/70 relative overflow-hidden">
+
+      <DailyFactWidget />
+
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl mb-4 font-heading font-bold
+
+        <div ref={headerRef} className="text-center mb-16 flex flex-col items-center">
+          <h1 className={`text-5xl mb-4 font-heading font-bold
             bg-gradient-to-r from-yellow-300 to-orange-500
             bg-[length:200%_200%] bg-clip-text text-transparent
-            animate-gradient-x">
+            animate-gradient-x
+            transition-all duration-1000 ease-out
+            ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          >
             ELECTRIFY. CODE. INNOVATE.
           </h1>
-          <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
-          <p className="max-w-3xl mx-auto text-gray-300 text-lg">
+
+          <div className={`w-24 h-1 bg-blue-500 mb-8 transition-all duration-1000 delay-300 ease-out origin-center
+            ${isHeaderVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`}
+          ></div>
+
+          <p className={`max-w-3xl mx-auto text-gray-300 text-lg transition-all duration-1000 delay-500 ease-out
+            ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          >
             The Electronics & Robotics Club, IIT Bombay is a vibrant community of passionate students united by a love for circuits, robotics, and innovation. Open to all skill levels, the club hosts competitions, workshops, and discussions throughout the year to promote hands-on learning and creative problem-solving.
           </p>
         </div>
@@ -483,7 +577,7 @@ const About = () => {
               </p>
             </div>
 
-            <div className="w-64 h-64 rounded-full bg-gray-900 overflow-hidden shadow-lg relative">
+            <div className="w-64 h-64 rounded-full bg-gray-900 overflow-hidden shadow-lg relative shrink-0">
               <div className="absolute inset-0 animate-spin-slow border border-yellow-400/30 rounded-full" />
               <SplineErrorBoundary>
                 {!splineLoaded && (
