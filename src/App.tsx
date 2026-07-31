@@ -12,6 +12,7 @@ import Session3 from './components/Session3';
 import Session4 from './components/Session4';
 import Session5 from './components/Session5.tsx';
 import Projects from './components/Projects.tsx'
+import Xlr8registration from './components/Xlr8registration.tsx';
 
 
 const XLR8Page = lazy(() => import('./components/XLR8Page.tsx'));
@@ -23,6 +24,7 @@ const LegacyPage = lazy(() => import('./components/LegacyPage'));
 const BlogViewer = lazy(() => import('./components/BlogViewer.tsx'));
 const CertificatePortal = lazy(() => import('./components/CertificatePortal.tsx'));
 const Callback = lazy(() => import('./components/Callback.tsx'));
+
 
 function App() {
   return (
@@ -56,6 +58,7 @@ function App() {
               <Route path="/session4" element={<Session4 />} />
               <Route path="/session5" element={<Session5 />} />
               <Route path="/projects" element={<Projects />} />
+              <Route path="/xlr8registration" element={<Xlr8registration />} />
             </Routes>
           </Suspense>
         </main>

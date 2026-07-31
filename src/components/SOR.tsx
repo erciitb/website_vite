@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Download } from 'lucide-react';
 import { useAuth, logout } from '../hooks/useAuth';
 
 interface TimelineItem {
@@ -69,9 +69,66 @@ const timelineData: TimelineItem[] = [
   },
 ];
 
+// URL of your blank certificate template image
+const CERTIFICATE_TEMPLATE_URL =
+  'https://res.cloudinary.com/djbm9dagt/image/upload/v1785434036/blank_cert.png';
+
 const SOR: React.FC = () => {
   const { user } = useAuth();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Dynamic Canvas Drawing Function
+  const handleDownloadCertificate = () => {
+    if (!user?.name) return;
+
+    setIsGenerating(true);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // Prevents CORS issues when loading from Cloudinary
+    img.src = CERTIFICATE_TEMPLATE_URL;
+
+    img.onload = () => {
+      // 1. Create off-screen canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        setIsGenerating(false);
+        return;
+      }
+
+      // 2. Draw blank template onto canvas
+      ctx.drawImage(img, 0, 0);
+
+      // 3. Configure text styling: 54.1px size and #d29e01 color
+      ctx.font = 'bold 54.1px Inter, Arial, sans-serif';
+      ctx.fillStyle = '#d29e01';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // 4. Render student name in center
+      const xPos = canvas.width / 2;
+      const yPos = canvas.height / 2;
+      ctx.fillText(user.name, xPos, yPos);
+
+      // 5. Generate PNG data URL and trigger instant download
+      const sanitizedName = user.name.replace(/\s+/g, '_');
+      const link = document.createElement('a');
+      link.download = `${sanitizedName}_Summer_of_Robotics_Certificate.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      setIsGenerating(false);
+    };
+
+    img.onerror = () => {
+      console.error('Failed to load certificate template image.');
+      setIsGenerating(false);
+    };
+  };
 
   useEffect(() => {
     const closeMenu = () => setMenuOpen(false);
@@ -116,18 +173,18 @@ const SOR: React.FC = () => {
               </Link>
 
               <Link to="/session3" className="block px-5 py-3 hover:bg-white/10 transition">
-                Session 2 • Intro to ROS
+                Session 3 • Intro to ROS
               </Link>
 
-              <Link to = "/session4" className="block px-5 py-3 hover:bg-white/10 transition cursor-default">
+              <Link to="/session4" className="block px-5 py-3 hover:bg-white/10 transition cursor-default">
                 Session 4 • Sensors and Perception
               </Link>
 
-              <Link to = "/session5" className="block px-5 py-3 hover:bg-white/10 transition cursor-default">
+              <Link to="/session5" className="block px-5 py-3 hover:bg-white/10 transition cursor-default">
                 Session 5 • SLAM and Manipulation
               </Link>
 
-              <Link to = "/projects" className="block px-5 py-3 hover:bg-white/10 transition cursor-default">
+              <Link to="/projects" className="block px-5 py-3 hover:bg-white/10 transition cursor-default">
                 Project Phase • Final Build
               </Link>
             </div>
@@ -175,25 +232,31 @@ const SOR: React.FC = () => {
                 content throughout the program.
               </p>
 
-              {/* Certification Requirements Box */}
-              <div className="bg-blue-900/20 border border-blue-500/20 rounded-xl p-5 backdrop-blur-sm">
-                <h3 className="text-blue-300 font-semibold mb-3 flex items-center gap-2">
-                  🎓 Certification Tracks
-                </h3>
-                <ul className="space-y-3 text-sm text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-blue-400 mt-0.5">•</span>
-                    <div>
-                      <strong className="text-gray-200">Basic Certificate:</strong> Attend all 5 live sessions and successfully complete at least 4 of the 5 weekly assignments <span className="text-blue-300/80 italic">(Note: submissions must pass a minimum grading threshold to qualify)</span>.
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <div>
-                      <strong className="text-gray-200">Advanced Certificate:</strong> Successfully complete one of the six available project options.
-                    </div>
-                  </li>
-                </ul>
+              {/* Certificate Download CTA */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-5 backdrop-blur-sm">
+                <div>
+                  <h3 className="text-white font-semibold text-lg flex items-center gap-2 mb-1">
+                    🎓 Course Completion Certificate
+                  </h3>
+                  <p className="text-sm text-gray-300">
+                    {user?.name
+                      ? `Certificate ready for ${user.name}. Click below to generate and download.`
+                      : 'Your certificate is ready. Click below to view or download.'}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleDownloadCertificate}
+                  disabled={!user?.name || isGenerating}
+                  className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 shrink-0 ${
+                    user?.name && !isGenerating
+                      ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] cursor-pointer'
+                      : 'bg-blue-600/50 text-white/50 cursor-not-allowed'
+                  }`}
+                >
+                  <Download size={18} />
+                  {isGenerating ? 'Generating...' : 'Download Certificate'}
+                </button>
               </div>
             </div>
           </div>
