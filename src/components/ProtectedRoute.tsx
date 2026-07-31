@@ -1,20 +1,32 @@
 import React, { useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { SSO_URL } from '../config/sso'
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode
+  loginUrl: string
+  redirectPath: string
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  loginUrl,
+  redirectPath,
+}) => {
   const { isLoggedIn } = useAuth()
 
   useEffect(() => {
     if (!isLoggedIn) {
-      window.location.href = SSO_URL
+      sessionStorage.setItem('redirectAfterLogin', redirectPath)
+      window.location.href = loginUrl
     }
-  }, [])
+  }, [isLoggedIn, loginUrl, redirectPath])
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <p className="text-gray-400">Redirecting to IITB SSO...</p>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <p className="text-lg text-gray-300">
+          Redirecting to IITB SSO...
+        </p>
       </div>
     )
   }

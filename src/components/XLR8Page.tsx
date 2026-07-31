@@ -10,19 +10,35 @@ import {
   Calendar,
   Lock,
   Clock,
-  Video
+  Video,
+  CheckCircle2,
+  ShieldCheck,
+  User,
+  GraduationCap,
+  BookOpen,
+  Hash
 } from 'lucide-react';
 import CenterLogo from '../assets/newcenterlogo.png';
-import bgImage from '../assets/bg.jpeg'; // adjust relative path if needed
+import bgImage from '../assets/bg.jpeg';
 
-// Import the images for the scroll gallery (Adjust extensions to .png if needed!)
 import xlr81 from '../assets/xlr81.jpg'; 
 import xlr82 from '../assets/xlr82.jpg';
 import xlr83 from '../assets/xlr83.jpg';
 import xlr84 from '../assets/xlr84.jpg';
 
 import ProblemStatementSection from './ProblemStatement';
-import ResultsSection from './ResultsSection'; // adjust the path
+import ResultsSection from './ResultsSection';
+
+// Replace this path with the actual location of your useAuth hook
+import { useAuth } from '../hooks/useAuth';
+
+interface SSOUser {
+  name: string;
+  roll: string;
+  department: string;
+  degree: string;
+  passing_year: number;
+}
 
 interface ArcImageConfig {
   id: number;
@@ -110,7 +126,7 @@ const SemicircularScrollGallery: React.FC = () => {
 
   const getEffectiveProgress = (t: number): number => {
     const holdStart = 0.30;  
-    const holdEnd = 0.70;   
+    const holdEnd = 0.70;    
     if (t < holdStart) {
       return (t / holdStart) * 0.5;
     } else if (t <= holdEnd) {
@@ -247,7 +263,7 @@ const SemicircularScrollGallery: React.FC = () => {
             width: `${radius * 2}px`,
             height: `${radius * 2}px`,
             borderWidth: '2px',
-            borderColor: '#facc15', 
+            borderColor: '#3b82f6', 
             borderStyle: 'dashed',
           }}
         />
@@ -272,7 +288,7 @@ const SemicircularScrollGallery: React.FC = () => {
               
               <div
                 style={getImageStyle(item)}
-                className="w-[320px] sm:w-[460px] md:w-[580px] h-[220px] sm:h-[320px] md:h-[380px] bg-gray-800/95 border-2 border-blue-500/60 rounded-2xl shadow-2xl shadow-blue-950/50 p-2 sm:p-3 pointer-events-auto overflow-hidden backdrop-blur-md"
+                className="w-[320px] sm:w-[460px] md:w-[580px] h-[220px] sm:h-[320px] md:h-[380px] bg-slate-900 border-2 border-blue-500/60 rounded-2xl shadow-2xl p-2 sm:p-3 pointer-events-auto overflow-hidden backdrop-blur-md"
               >
                 <img 
                   src={item.image} 
@@ -283,15 +299,15 @@ const SemicircularScrollGallery: React.FC = () => {
 
               <div
                 style={getTextStyle(item)}
-                className="w-[280px] sm:w-[340px] md:w-[420px] p-6 rounded-2xl bg-gray-900/90 border border-white/10 backdrop-blur-md shadow-2xl pointer-events-auto"
+                className="w-[280px] sm:w-[340px] md:w-[420px] p-6 rounded-2xl bg-slate-900 border border-slate-700/60 backdrop-blur-md shadow-2xl pointer-events-auto"
               >
-                <div className="inline-block px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-3 border border-blue-500/30">
+                <div className="inline-block px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-semibold tracking-wider uppercase mb-3 border border-blue-500/20">
                   TRACK PROTOCOL • 0{item.id}
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold font-heading text-white mb-3 tracking-wide">
                   {item.title}
                 </h3>
-                <p className="text-gray-300 text-sm md:text-base leading-relaxed">
+                <p className="text-slate-300 text-sm md:text-base leading-relaxed">
                   {item.description}
                 </p>
               </div>
@@ -323,43 +339,43 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     description: 'Form your team and register through the official portal to participate in XLR8.',
     icon: <Users className="w-6 h-6 text-blue-400" />,
     status: 'upcoming',
-    accentColor: 'from-blue-500 to-cyan-400',
+    accentColor: 'from-blue-600 to-blue-400',
   },
   {
     id: 2,
     phase: 'PHASE 02',
     title: 'Hardware Session',
     description: 'Session to design, build, and wire the hardware that brings your bot to life. (Electrical and mechanical).',
-    icon: <Cpu className="w-6 h-6 text-purple-400" />,
+    icon: <Cpu className="w-6 h-6 text-blue-400" />,
     status: 'upcoming',
-    accentColor: 'from-purple-500 to-indigo-400',
+    accentColor: 'from-blue-600 to-blue-400',
   },
   {
     id: 3,
     phase: 'PHASE 03',
     title: 'Soldering Session',
     description: 'A practical session where you’ll learn the essential techniques and skills needed to solder with confidence.',
-    icon: <Wrench className="w-6 h-6 text-orange-400" />,
+    icon: <Wrench className="w-6 h-6 text-blue-400" />,
     status: 'upcoming',
-    accentColor: 'from-orange-500 to-amber-400',
+    accentColor: 'from-blue-600 to-blue-400',
   },
   {
     id: 4,
     phase: 'PHASE 04',
     title: 'Software Session',
     description: 'Hands-on workshop where you’ll learn to write and upload code to control your bot’s movements and actions.',
-    icon: <Flag className="w-6 h-6 text-emerald-400" />,
+    icon: <Flag className="w-6 h-6 text-blue-400" />,
     status: 'upcoming',
-    accentColor: 'from-emerald-500 to-teal-400',
+    accentColor: 'from-blue-600 to-blue-400',
   },
   {
     id: 5,
     phase: 'PHASE 05',
     title: 'XLR8 Main Event',
     description: 'Race your bot through a challenging obstacle course and compete with the best teams!',
-    icon: <Trophy className="w-6 h-6 text-yellow-400" />,
+    icon: <Trophy className="w-6 h-6 text-blue-400" />,
     status: 'upcoming',
-    accentColor: 'from-yellow-500 to-orange-500',
+    accentColor: 'from-blue-600 to-blue-400',
   },
 ];
 
@@ -368,16 +384,14 @@ const TimelineSection: React.FC = () => {
     <section className="relative w-full py-24 bg-[#0B1120] text-white overflow-hidden font-body">
       
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
-      <div className="absolute top-1/3 left-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/3 right-10 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
         
         <div className="text-center max-w-3xl mx-auto mb-20">
           <h2 className="text-4xl md:text-5xl font-extrabold font-heading tracking-tight mb-4 text-white">
-            The <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-orange-400">XLR8</span> Roadmap
+            The <span className="text-blue-400">XLR8</span> Roadmap
           </h2>
-          <p className="text-gray-400 text-base sm:text-lg">
+          <p className="text-slate-400 text-base sm:text-lg">
             The technical schedule from initial team assembly to the high-speed arena finale.
           </p>
         </div>
@@ -395,22 +409,21 @@ const TimelineSection: React.FC = () => {
                   }`}
                 >
                   
-                  <div className="flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-gray-900 border-2 border-white/10 shadow-xl relative group">
-                    <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${event.accentColor} opacity-20 group-hover:opacity-40 transition-opacity blur-sm`} />
+                  <div className="flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-slate-900 border border-slate-700 shadow-xl relative group">
                     <div className="relative z-10 flex flex-col items-center justify-center">
                       {event.icon}
                     </div>
-                    <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-gray-950 border border-gray-700 rounded text-[10px] font-mono text-gray-400 shadow">
+                    <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-slate-400 shadow">
                       0{event.id}
                     </span>
                   </div>
 
                   <div
-                    className={`w-full md:w-[calc(50%-4rem)] p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-gray-900/90 via-[#111827]/90 to-gray-900/90 border border-white/10 shadow-2xl backdrop-blur-md relative group hover:border-white/25 transition-all duration-300 hover:-translate-y-1 overflow-hidden ${
+                    className={`w-full md:w-[calc(50%-4rem)] p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl relative group hover:border-blue-500/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden ${
                       isEven ? 'md:text-right' : 'md:text-left'
                     }`}
                   >
-                    <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${event.accentColor} rounded-t-2xl`} />
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-blue-600 rounded-t-2xl" />
 
                     <div
                       className={`flex flex-wrap items-center gap-3 mb-3 mt-1 ${
@@ -422,27 +435,27 @@ const TimelineSection: React.FC = () => {
                       </span>
 
                       {event.status === 'completed' && (
-                        <span className="text-[11px] font-semibold tracking-wide text-emerald-400 bg-emerald-950/50 px-2.5 py-0.5 rounded border border-emerald-800/40">
+                        <span className="text-[11px] font-semibold tracking-wide text-blue-400 bg-blue-950/40 px-2.5 py-0.5 rounded border border-blue-800/40">
                           ✓ COMPLETED
                         </span>
                       )}
                       {event.status === 'current' && (
-                        <span className="text-[11px] font-semibold tracking-wide text-amber-400 bg-amber-950/50 px-2.5 py-0.5 rounded border border-amber-800/40 animate-pulse">
+                        <span className="text-[11px] font-semibold tracking-wide text-blue-400 bg-blue-950/40 px-2.5 py-0.5 rounded border border-blue-800/40">
                           ● IN PROGRESS
                         </span>
                       )}
                       {event.status === 'upcoming' && (
-                        <span className="text-[11px] font-semibold tracking-wide text-gray-400 bg-gray-800/50 px-2.5 py-0.5 rounded border border-gray-700/40">
+                        <span className="text-[11px] font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-0.5 rounded border border-slate-700/40">
                           ○ UPCOMING
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-2xl font-bold font-heading text-white mb-3 tracking-wide group-hover:text-blue-300 transition-colors">
+                    <h3 className="text-2xl font-bold font-heading text-white mb-3 tracking-wide group-hover:text-blue-400 transition-colors">
                       {event.title}
                     </h3>
 
-                    <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                    <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
                       {event.description}
                     </p>
 
@@ -469,7 +482,6 @@ const ComingSoonSection: React.FC = () => {
   });
 
   useEffect(() => {
-    // FIXED: YYYY-MM-DD format (August 15, 2026)
     const targetDate = new Date('2026-08-15T00:00:00').getTime();
 
     const updateCountdown = () => {
@@ -494,76 +506,52 @@ const ComingSoonSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative py-24 bg-[#0B1120] text-white overflow-hidden flex items-center justify-center font-body border-t border-white/10 px-4">
+    <section className="relative py-24 bg-[#0B1120] text-white overflow-hidden flex items-center justify-center font-body border-t border-slate-800 px-4">
       
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-r from-blue-600/25 via-indigo-600/20 to-orange-500/25 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="relative z-10 w-full max-w-4xl p-1 rounded-3xl bg-gradient-to-r from-blue-500/40 via-purple-500/40 to-orange-500/40 shadow-[0_0_60px_-15px_rgba(59,130,246,0.4)]">
-        <div className="rounded-[22px] bg-[#0A101F]/95 backdrop-blur-2xl p-8 sm:p-12 md:p-16 text-center relative overflow-hidden border border-white/10">
+      <div className="relative z-10 w-full max-w-4xl p-1 rounded-3xl bg-slate-800 shadow-2xl">
+        <div className="rounded-[22px] bg-slate-900 p-8 sm:p-12 md:p-16 text-center relative overflow-hidden border border-slate-800">
           
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent shadow-[0_0_12px_#3b82f6]" />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-orange-500/60 to-transparent" />
-
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono tracking-widest uppercase mb-6 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-orange-400 animate-spin" style={{ animationDuration: '4s' }} />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono tracking-widest uppercase mb-6">
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
             <span>TARGET DATE • AUGUST 15</span>
           </div>
 
-          <h3 className="text-4xl sm:text-6xl md:text-7xl font-black font-heading tracking-tight mb-4 uppercase">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-orange-400 drop-shadow-[0_0_35px_rgba(59,130,246,0.4)]">
-              XLR8
-            </span>{' '}
-            <span className="text-white">Coming Soon</span>
+          <h3 className="text-4xl sm:text-6xl md:text-7xl font-black font-heading tracking-tight mb-4 uppercase text-white">
+            XLR8 <span className="text-blue-400">Coming Soon</span>
           </h3>
 
-          <p className="text-gray-300 text-base sm:text-lg max-w-lg mx-auto mb-10 font-light">
+          <p className="text-slate-300 text-base sm:text-lg max-w-lg mx-auto mb-10 font-light">
             The institute’s ultimate robotic battleground is charging up. Assemble your squad and stand by for the drop.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto">
             
-            <div className="relative p-5 sm:p-6 rounded-2xl bg-[#0D1528]/90 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center group overflow-hidden hover:border-blue-500/60 transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-400 opacity-80 group-hover:opacity-100 transition-opacity" />
-              <span 
-                key={timeLeft.days} 
-                className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-white tracking-tight drop-shadow-[0_0_15px_rgba(59,130,246,0.6)] animate-[digit-pulse_0.4s_ease-out]"
-              >
+            <div className="relative p-5 sm:p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center">
+              <span className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-white tracking-tight">
                 {String(timeLeft.days).padStart(2, '0')}
               </span>
               <span className="text-[11px] font-mono text-blue-400 uppercase tracking-widest mt-1 font-semibold">Days</span>
             </div>
 
-            <div className="relative p-5 sm:p-6 rounded-2xl bg-[#0D1528]/90 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center group overflow-hidden hover:border-indigo-500/60 transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-              <span 
-                key={timeLeft.hours} 
-                className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-white tracking-tight drop-shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-[digit-pulse_0.4s_ease-out]"
-              >
+            <div className="relative p-5 sm:p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center">
+              <span className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-white tracking-tight">
                 {String(timeLeft.hours).padStart(2, '0')}
               </span>
-              <span className="text-[11px] font-mono text-indigo-400 uppercase tracking-widest mt-1 font-semibold">Hours</span>
+              <span className="text-[11px] font-mono text-blue-400 uppercase tracking-widest mt-1 font-semibold">Hours</span>
             </div>
 
-            <div className="relative p-5 sm:p-6 rounded-2xl bg-[#0D1528]/90 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center group overflow-hidden hover:border-purple-500/60 transition-all duration-300 hover:-translate-y-1">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 opacity-80 group-hover:opacity-100 transition-opacity" />
-              <span 
-                key={timeLeft.minutes} 
-                className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-white tracking-tight drop-shadow-[0_0_15px_rgba(168,85,247,0.6)] animate-[digit-pulse_0.4s_ease-out]"
-              >
+            <div className="relative p-5 sm:p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center">
+              <span className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-white tracking-tight">
                 {String(timeLeft.minutes).padStart(2, '0')}
               </span>
-              <span className="text-[11px] font-mono text-purple-400 uppercase tracking-widest mt-1 font-semibold">Minutes</span>
+              <span className="text-[11px] font-mono text-blue-400 uppercase tracking-widest mt-1 font-semibold">Minutes</span>
             </div>
 
-            <div className="relative p-5 sm:p-6 rounded-2xl bg-[#0D1528]/90 border border-orange-500/30 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center group overflow-hidden hover:border-orange-500/80 transition-all duration-300 hover:-translate-y-1 shadow-[0_0_25px_-5px_rgba(249,115,22,0.2)]">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-400 animate-pulse" />
-              <span 
-                key={timeLeft.seconds} 
-                className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-orange-400 tracking-tight drop-shadow-[0_0_20px_rgba(249,115,22,0.8)] animate-[digit-pulse_0.4s_ease-out]"
-              >
+            <div className="relative p-5 sm:p-6 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center">
+              <span className="text-4xl sm:text-5xl md:text-6xl font-black font-mono text-blue-400 tracking-tight">
                 {String(timeLeft.seconds).padStart(2, '0')}
               </span>
-              <span className="text-[11px] font-mono text-orange-400 uppercase tracking-widest mt-1 font-semibold">Seconds</span>
+              <span className="text-[11px] font-mono text-blue-400 uppercase tracking-widest mt-1 font-semibold">Seconds</span>
             </div>
 
           </div>
@@ -571,26 +559,20 @@ const ComingSoonSection: React.FC = () => {
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes digit-pulse {
-          0% { transform: scale(1.12); filter: brightness(1.4); }
-          100% { transform: scale(1); filter: brightness(1); }
-        }
-      `}} />
-
     </section>
   );
 };
 
 const XLR8 = () => {
   const heroRef = useRef<HTMLDivElement>(null);
+  const { user, isLoggedIn } = useAuth() as { user: SSOUser | null; isLoggedIn: boolean };
 
   return (
     <>
     <section
       ref={heroRef}
       id="hero"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat py-20"
       style={{
         backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
@@ -601,30 +583,117 @@ const XLR8 = () => {
         className="absolute inset-0"
         style={{
           background: 'linear-gradient(rgb(0, 0, 0), rgb(15, 23, 42))',
-          opacity: 0.75, 
+          opacity: 0.85, 
         }}
       />
 
-      <div className="container mx-auto px-4 z-10 font-body -mt-20 sm:-mt-28">
-        <div className="max-w-2xl mx-auto text-center">
+      <div className="container mx-auto px-4 z-10 font-body">
+        <div className="max-w-3xl mx-auto text-center">
           
           <img src={CenterLogo} alt="Footer Logo" className="block mx-auto w-auto h-auto" />
           <br />
 
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-xl text-slate-300 mb-8">
             Gear up for our club’s flagship event, recognized as the institute’s biggest technical event, bringing together students to compete, learn, and excel.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
              <a
               href="https://erc-xlr8.notion.site/xlr8-home-25"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-md transition-all hover:shadow-lg hover:shadow-blue-500/20 text-lg font-medium font-heading"
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 rounded-md transition-all text-lg font-medium font-heading text-white shadow-lg hover:shadow-blue-500/25"
             >
               XLR8 Info
             </a>
           </div>
+
+          {/* LARGE UNICOLOUR PARTICIPANT DASHBOARD CARD WITH BLUE GLOW */}
+          {isLoggedIn && user && (
+            <div className="w-full max-w-3xl mx-auto text-left">
+              {/* Card Container with Subtle Blue Glow */}
+              <div className="rounded-2xl bg-slate-900 border border-blue-500/30 p-6 sm:p-8 relative overflow-hidden shadow-[0_0_35px_rgba(59,130,246,0.25)] hover:shadow-[0_0_50px_rgba(59,130,246,0.35)] transition-shadow duration-500">
+                
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+                  <div className="flex items-center gap-4">
+                    {/* User Initials Avatar */}
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-800 border border-blue-500/40 flex items-center justify-center font-bold text-2xl sm:text-3xl text-blue-400 tracking-wider font-heading shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                      {user.name
+                        ?.split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase() || 'P'}
+                    </div>
+
+                    <div>
+                      {/* SSO Verified Tag */}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-950/50 border border-blue-500/30 text-blue-400 text-xs font-mono font-medium mb-1.5">
+                        <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                        <span>IITB SSO Authenticated</span>
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-wide">
+                        {user.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center shrink-0 pt-2 sm:pt-0">
+                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                      Account Status
+                    </span>
+                    <div className="flex items-center gap-2 mt-1 px-3 py-1.5 rounded-lg bg-blue-950/40 border border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.15)]">
+                      <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                      <span className="text-xs font-semibold text-slate-200 tracking-wide">
+                        Verified Participant
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  
+                  <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-blue-500/30 transition-colors">
+                    <Hash className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">Roll Number</p>
+                      <p className="text-base font-bold text-white font-mono mt-0.5">{user.roll}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-blue-500/30 transition-colors">
+                    <BookOpen className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">Department</p>
+                      <p className="text-base font-semibold text-white mt-0.5">{user.department}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-blue-500/30 transition-colors">
+                    <GraduationCap className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">Degree</p>
+                      <p className="text-base font-semibold text-white mt-0.5">{user.degree}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-blue-500/30 transition-colors">
+                    <Calendar className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">Passing Year</p>
+                      <p className="text-base font-bold text-white font-mono mt-0.5">Class of {user.passing_year}</p>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
       
@@ -633,39 +702,22 @@ const XLR8 = () => {
     <SemicircularScrollGallery />
 
     <section className="py-12 bg-[#0B1120] text-white">
-      <div className="max-w-4xl mx-auto text-center">
+      <div className="max-w-4xl mx-auto text-center px-4">
         <h2 className="text-3xl font-heading mb-6 border-b-4 border-blue-600 inline-block">XLR8 2025 After Movie</h2>
 
-        <div className="relative">
-          <div className="absolute inset-0 rounded-3xl blur-2xl opacity-70 z-0 bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500"></div>
-
-          <div className="relative z-10 p-1 rounded-3xl bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 shadow-lg">
-            <div className="rounded-2xl bg-[#0B1120] p-1">
-              
-              <div className="aspect-video w-full rounded-xl overflow-hidden bg-[#0A101F] border border-white/5 flex flex-col items-center justify-center relative">
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
-                <div className="relative z-10 flex flex-col items-center opacity-80 animate-[glitch_2.5s_infinite]">
-                  <Video className="w-12 h-12 text-blue-400 mb-3" />
-                  <span className="text-sm font-mono tracking-widest text-blue-300 uppercase">
-                    Footage Processing...
-                  </span>
-                </div>
+        <div className="p-1 rounded-3xl bg-slate-800 shadow-lg">
+          <div className="rounded-2xl bg-[#0B1120] p-1">
+            <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex flex-col items-center justify-center relative">
+              <div className="flex flex-col items-center text-slate-400">
+                <Video className="w-12 h-12 text-blue-400 mb-3" />
+                <span className="text-sm font-mono tracking-widest text-slate-300 uppercase">
+                  Footage Processing...
+                </span>
               </div>
-              
             </div>
           </div>
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes glitch {
-          0%, 100% { transform: translate(0); opacity: 0.8; }
-          20% { transform: translate(-2px, 2px) skewX(-2deg); opacity: 1; }
-          40% { transform: translate(-2px, -2px); opacity: 0.6; }
-          60% { transform: translate(2px, 2px) skewX(2deg); opacity: 0.9; }
-          80% { transform: translate(2px, -2px); opacity: 0.4; }
-        }
-      `}} />
     </section>
 
     <TimelineSection />

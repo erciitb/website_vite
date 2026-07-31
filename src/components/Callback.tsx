@@ -8,36 +8,54 @@ const Callback: React.FC = () => {
   const [status, setStatus] = useState('Authenticating with IITB SSO...')
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const sessionKey = params.get('accessid')
+    const authenticate = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const sessionKey = params.get('accessid')
 
-    if (!sessionKey) {
-      navigate('/')
-      return
+      if (!sessionKey) {
+        navigate('/', { replace: true })
+        return
+      }
+
+      try {
+        const res = await fetch(SSO_USERDATA_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: sessionKey }),
+        })
+
+        if (!res.ok) {
+          throw new Error('SSO fetch failed')
+        }
+
+        const userData = await res.json()
+
+        // Store user session
+        Cookies.set('sso_user', JSON.stringify(userData), {
+          expires: 1 / 24, // 1 hour
+        })
+
+        // Redirect to the page the user originally requested
+        const redirectPath =
+          sessionStorage.getItem('redirectAfterLogin') || '/'
+
+        sessionStorage.removeItem('redirectAfterLogin')
+
+        navigate(redirectPath, { replace: true })
+      } catch (err) {
+        console.error(err)
+        setStatus('Login failed. Please try again.')
+      }
     }
 
-    fetch(SSO_USERDATA_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: sessionKey }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('SSO fetch failed')
-        return res.json()
-      })
-      .then(userData => {
-        Cookies.set('sso_user', JSON.stringify(userData), { expires: 1 / 24 })
-        window.history.replaceState({}, '', '/callback')
-        navigate('/sor') // redirect to SOR page after login
-      })
-      .catch(() => {
-        setStatus('Login failed. Please try again.')
-      })
-  }, [])
+    authenticate()
+  }, [navigate])
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <p className="text-gray-300 text-lg">{status}</p>
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <p className="text-lg text-gray-300">{status}</p>
     </div>
   )
 }

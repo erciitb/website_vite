@@ -233,7 +233,7 @@ const SOR: React.FC = () => {
               </p>
 
               {/* Certificate Download CTA */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-5 backdrop-blur-sm">
+              {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-xl p-5 backdrop-blur-sm">
                 <div>
                   <h3 className="text-white font-semibold text-lg flex items-center gap-2 mb-1">
                     🎓 Course Completion Certificate
@@ -257,11 +257,10 @@ const SOR: React.FC = () => {
                   <Download size={18} />
                   {isGenerating ? 'Generating...' : 'Download Certificate'}
                 </button>
-              </div>
+              </div>*/}
             </div>
           </div>
-        </div>            
-
+        </div>             
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-3">
             Learning Roadmap
