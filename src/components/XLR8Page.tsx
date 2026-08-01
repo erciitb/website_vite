@@ -12,7 +12,7 @@ import {
   Clock,
   Video,
   CheckCircle2,
-  ShieldCheck,
+  ShieldCheck,  
   User,
   GraduationCap,
   BookOpen,
@@ -690,6 +690,17 @@ const XLR8 = () => {
 
                 </div>
 
+              </div>
+
+              {/* REGISTER NOW BUTTON */}
+              <div className="mt-6 flex justify-center">
+                <a
+                  href="/xlr8registration"
+                  className="w-full sm:w-auto px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold font-heading text-lg rounded-xl shadow-[0_0_25px_rgba(59,130,246,0.4)] hover:shadow-[0_0_35px_rgba(59,130,246,0.6)] transition-all duration-300 flex items-center justify-center gap-3 border border-blue-400/40 hover:-translate-y-0.5"
+                >
+                  <Zap className="w-5 h-5 fill-current text-blue-200" />
+                  <span>Register Now</span>
+                </a>
               </div>
             </div>
           )}

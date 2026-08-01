@@ -9,6 +9,11 @@ import {
   AlertCircle,
   Send
 } from 'lucide-react';
+import { useAuth } from "../hooks/useAuth";
+
+
+// Replace with your actual deployed Google Apps Script Web App URL
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwre32a79L7bPPOQmfKsOMR4tH41mkimExx3lqZdn0Hp0AuXoa1HsOVwhNmd5buXbVC/exec";
 
 interface FormData {
   // Team
@@ -73,6 +78,7 @@ const initialFormData: FormData = {
 export default function XLR8Registration() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -183,12 +189,35 @@ export default function XLR8Registration() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validate()) {
-      console.log('XLR8 Registration Submitted Data:', formData);
-      setSubmitted(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setLoading(true);
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          console.log('XLR8 Registration Submitted Data:', formData);
+          setSubmitted(true);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          alert('Submission failed. Please try again.');
+          console.error('Submission Error:', result.error);
+        }
+      } catch (error) {
+        alert('An error occurred while submitting the form.');
+        console.error('Network/Submission Error:', error);
+      } finally {
+        setLoading(false);
+      }
     } else {
       const firstError = document.querySelector('.border-red-500');
       if (firstError) {
@@ -230,7 +259,7 @@ export default function XLR8Registration() {
 
       {/* Container */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28">
-        {/* Header Section with font-heading font styling */}
+        {/* Header Section */}
         <div className="text-center max-w-8xl mx-auto mb-12">
           <h1 className="text-5xl md:text-6xl font-bold font-heading mb-6 tracking-tight">
             Welcome to <span className="text-blue-500">XLR8 !</span>
@@ -304,7 +333,7 @@ export default function XLR8Registration() {
             <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">
               Thank you for registering team <span className="text-blue-400 font-semibold">{formData.teamName}</span> for XLR8. Your details have been recorded successfully.
             </p>
-            <button
+            {/* <button
               onClick={() => {
                 setSubmitted(false);
                 setFormData(initialFormData);
@@ -312,7 +341,7 @@ export default function XLR8Registration() {
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-[0.98]"
             >
               Register Another Team
-            </button>
+            </button> */}
           </div>
         ) : (
           /* Registration Form */
@@ -402,7 +431,7 @@ export default function XLR8Registration() {
                     name="leaderRollNumber"
                     value={formData.leaderRollNumber}
                     onChange={handleChange}
-                    placeholder="e.g. 23B030001"
+                    placeholder="e.g. 26BXXXX"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.leaderRollNumber ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -423,7 +452,7 @@ export default function XLR8Registration() {
                     name="leaderPhone"
                     value={formData.leaderPhone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.leaderPhone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -444,7 +473,7 @@ export default function XLR8Registration() {
                     name="leaderEmail"
                     value={formData.leaderEmail}
                     onChange={handleChange}
-                    placeholder="leader@iitb.ac.in"
+                    placeholder="Provide active email"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.leaderEmail ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -486,7 +515,7 @@ export default function XLR8Registration() {
                     name="leaderMentorPhone"
                     value={formData.leaderMentorPhone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.leaderMentorPhone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -546,7 +575,7 @@ export default function XLR8Registration() {
                     name="p2RollNumber"
                     value={formData.p2RollNumber}
                     onChange={handleChange}
-                    placeholder="e.g. 23B030002"
+                    placeholder="e.g. 26BXXXX"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p2RollNumber ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -567,7 +596,7 @@ export default function XLR8Registration() {
                     name="p2Phone"
                     value={formData.p2Phone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p2Phone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -609,7 +638,7 @@ export default function XLR8Registration() {
                     name="p2MentorPhone"
                     value={formData.p2MentorPhone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p2MentorPhone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -669,7 +698,7 @@ export default function XLR8Registration() {
                     name="p3RollNumber"
                     value={formData.p3RollNumber}
                     onChange={handleChange}
-                    placeholder="e.g. 23B030003"
+                    placeholder="e.g. 26BXXXX"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p3RollNumber ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -690,7 +719,7 @@ export default function XLR8Registration() {
                     name="p3Phone"
                     value={formData.p3Phone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p3Phone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -732,7 +761,7 @@ export default function XLR8Registration() {
                     name="p3MentorPhone"
                     value={formData.p3MentorPhone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p3MentorPhone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -792,7 +821,7 @@ export default function XLR8Registration() {
                     name="p4RollNumber"
                     value={formData.p4RollNumber}
                     onChange={handleChange}
-                    placeholder="e.g. 23B030004"
+                    placeholder="e.g. 26BXXXX"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p4RollNumber ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -813,7 +842,7 @@ export default function XLR8Registration() {
                     name="p4Phone"
                     value={formData.p4Phone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p4Phone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -855,7 +884,7 @@ export default function XLR8Registration() {
                     name="p4MentorPhone"
                     value={formData.p4MentorPhone}
                     onChange={handleChange}
-                    placeholder="+91 9876543210"
+                    placeholder="9876543210"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.p4MentorPhone ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
@@ -895,14 +924,14 @@ export default function XLR8Registration() {
                     name="teamSelfieLink"
                     value={formData.teamSelfieLink}
                     onChange={handleChange}
-                    placeholder="https://drive.google.com/file/d/..."
+                    placeholder="Drive link with selfie uploaded"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.teamSelfieLink ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
                   />
                   <p className="mt-1.5 text-xs text-gray-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
-                    Make sure the Drive link is accessible to Anyone with the link.
+                    Make sure the Drive link is accessible to 'Anyone with the link'.
                   </p>
                   {errors.teamSelfieLink && (
                     <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
@@ -921,14 +950,14 @@ export default function XLR8Registration() {
                     name="paymentScreenshotLink"
                     value={formData.paymentScreenshotLink}
                     onChange={handleChange}
-                    placeholder="https://drive.google.com/file/d/..."
+                    placeholder="Drive link with payment Confirmation screenshot uploaded"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.paymentScreenshotLink ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}
                   />
                   <p className="mt-1.5 text-xs text-gray-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
-                    Make sure the Drive link is accessible to Anyone with the link.
+                    Make sure the Drive link is accessible to 'Anyone with the link'.
                   </p>
                   {errors.paymentScreenshotLink && (
                     <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
@@ -943,9 +972,10 @@ export default function XLR8Registration() {
             <div className="pt-4 text-center">
               <button
                 type="submit"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-base transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-[0.98] border border-blue-500/30"
+                disabled={loading}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-[0.98] border border-blue-500/30"
               >
-                <span>Submit XLR8 Registration</span>
+                <span>{loading ? 'Submitting...' : 'Submit XLR8 Registration'}</span>
                 <Send className="w-5 h-5" />
               </button>
             </div>

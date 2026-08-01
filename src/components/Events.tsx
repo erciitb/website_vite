@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, ArrowRight } from 'lucide-react';
 
 import itsp from '../assets/itsp_banner.png';
-import sor from '../assets/sor_banner.png';
+// import sor from '../assets/sor_banner.png';
 
 const eventsData = [
   {
@@ -95,10 +95,11 @@ const Events = () => {
 
               <div className="flex flex-wrap gap-4">
                 <Link
-                  to="/xlr8registration"
+                  to="/xlr8"
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
                 >
-                  Coming Soon...
+                  Details
+                  <ArrowRight size={16} className="ml-2" />
                 </Link>
               </div>
             </div>
@@ -150,6 +151,14 @@ const Events = () => {
                   <ArrowRight size={16} className="ml-2" />
                 </Link>
               </div>
+              
+            </div>
+            <div className="md:w-1/2 h-64 md:h-auto relative bg-gray-950/50 flex items-center justify-center">
+              <img
+                src='https://res.cloudinary.com/djbm9dagt/image/upload/v1785529227/sor_banner_e4hgnt.png'
+                alt="Summer of Robotics 2026"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>

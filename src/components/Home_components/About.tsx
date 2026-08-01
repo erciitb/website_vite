@@ -363,7 +363,7 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
       </div>
 
       <div className="mt-8 flex items-center justify-center gap-6">
-        <NavButton direction="prev" onClick={prev} />
+        {/* <NavButton direction="prev" onClick={prev} /> */}
         <div className="flex gap-2 items-center h-4" role="tablist" aria-label="Slide indicators">
           {images.map((_, i) => {
             const isActive = i === activeIndex;
@@ -391,7 +391,7 @@ const CoverflowGallery: React.FC<{ images: GalleryImage[]; autoplayDelay?: numbe
             );
           })}
         </div>
-        <NavButton direction="next" onClick={next} />
+        {/* <NavButton direction="next" onClick={next} /> */}
       </div>
 
       <p className="sr-only" aria-live="polite">
