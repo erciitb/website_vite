@@ -14,6 +14,7 @@ import Session5 from './components/Session5.tsx';
 import Projects from './components/Projects.tsx';
 import Preloader from './components/Preloader.tsx'
 import Xlr8registration from './components/Xlr8registration.tsx';
+import Xlr8Conveners from './components/xlr8conveners.tsx';
 
 
 const XLR8Page = lazy(() => import('./components/XLR8Page.tsx'));
@@ -63,6 +64,7 @@ function App() {
               <Route path="/session5" element={<Session5 />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/xlr8registration" element={<Xlr8registration />} />
+              <Route path="/xlr8conveners" element={<Xlr8Conveners />} />
             </Routes>
           </Suspense>
         </main>
