@@ -13,7 +13,7 @@ import { useAuth } from "../hooks/useAuth";
 
 
 // Replace with your actual deployed Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwre32a79L7bPPOQmfKsOMR4tH41mkimExx3lqZdn0Hp0AuXoa1HsOVwhNmd5buXbVC/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpJnY17ZSx-CJQcUv9PAthDB2KpXqdn6kVCdfYnyke4ggEEY3MjPJzzEHRv2u96ZmI/exec"
 
 interface FormData {
   // Team

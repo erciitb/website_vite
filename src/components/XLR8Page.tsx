@@ -232,52 +232,66 @@ const SemicircularScrollGallery: React.FC = () => {
 
     return (
       <div key={`road-${side}`} className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Deep Track Base */}
+        {/* Deep Tire Base (Solid dark rubber) */}
         <div
           style={{
             ...basePosStyle,
-            width: `${(radius + 32) * 2}px`,
-            height: `${(radius + 32) * 2}px`,
-            borderWidth: '64px',
-            borderColor: '#0f172a', 
+            width: `${(radius + 45) * 2}px`,
+            height: `${(radius + 45) * 2}px`,
+            borderWidth: '90px',
+            borderColor: '#0a0a0a', 
             borderStyle: 'solid',
-            boxShadow: '0 0 30px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.8)',
+            boxShadow: '0 0 40px rgba(0,0,0,0.95), inset 0 0 40px rgba(0,0,0,0.95)',
           }}
         />
-        {/* Indigo Outer Ring */}
+        
+        {/* Outer Tire Treads (Using thick dashed lines for tread blocks) */}
         <div
           style={{
             ...basePosStyle,
-            width: `${(radius + 32) * 2}px`,
-            height: `${(radius + 32) * 2}px`,
-            borderWidth: '2px',
-            borderColor: '#6366f1', 
-            borderStyle: 'solid',
-            boxShadow: '0 0 15px rgba(99, 102, 241, 0.4)',
-          }}
-        />
-        {/* Cyan Inner Ring */}
-        <div
-          style={{
-            ...basePosStyle,
-            width: `${(radius - 32) * 2}px`,
-            height: `${(radius - 32) * 2}px`,
-            borderWidth: '2px',
-            borderColor: '#06b6d4', 
-            borderStyle: 'solid',
-            boxShadow: '0 0 15px rgba(6, 182, 212, 0.3)',
-          }}
-        />
-        {/* Rose Dashed Center Line */}
-        <div
-          style={{
-            ...basePosStyle,
-            width: `${radius * 2}px`,
-            height: `${radius * 2}px`,
-            borderWidth: '2px',
-            borderColor: '#f43f5e', 
+            width: `${(radius + 42) * 2}px`,
+            height: `${(radius + 42) * 2}px`,
+            borderWidth: '84px',
+            borderColor: '#171717', 
             borderStyle: 'dashed',
-            opacity: 0.7
+            opacity: 0.9,
+          }}
+        />
+
+        {/* Center Tread Groove */}
+        <div
+          style={{
+            ...basePosStyle,
+            width: `${(radius + 2) * 2}px`,
+            height: `${(radius + 2) * 2}px`,
+            borderWidth: '4px',
+            borderColor: '#050505', 
+            borderStyle: 'solid',
+          }}
+        />
+
+        {/* Inner Metallic Rim Edge */}
+        <div
+          style={{
+            ...basePosStyle,
+            width: `${(radius - 45) * 2}px`,
+            height: `${(radius - 45) * 2}px`,
+            borderWidth: '12px',
+            borderColor: '#475569', // Slate-600 for an alloy wheel look
+            borderStyle: 'solid',
+            boxShadow: '0 0 15px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.9)',
+          }}
+        />
+
+        {/* Rim Inner Lip Detailing */}
+        <div
+          style={{
+            ...basePosStyle,
+            width: `${(radius - 57) * 2}px`,
+            height: `${(radius - 57) * 2}px`,
+            borderWidth: '2px',
+            borderColor: '#334155', // Slate-700
+            borderStyle: 'solid',
           }}
         />
       </div>
