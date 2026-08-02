@@ -18,12 +18,19 @@ const Callback: React.FC = () => {
       }
 
       try {
+        // 1. Get the intended destination BEFORE fetching, so we know which portal we are logging into
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/'
+
+        // 2. Send both the sessionKey AND the portal context to your Google Apps Script
         const res = await fetch(SSO_USERDATA_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ id: sessionKey }),
+          body: JSON.stringify({ 
+            id: sessionKey,
+            portal: redirectPath 
+          }),
         })
 
         if (!res.ok) {
@@ -32,18 +39,15 @@ const Callback: React.FC = () => {
 
         const userData = await res.json()
 
-        // Store user session
+        // 3. Store user session
         Cookies.set('sso_user', JSON.stringify(userData), {
           expires: 1 / 24, // 1 hour
         })
 
-        // Redirect to the page the user originally requested
-        const redirectPath =
-          sessionStorage.getItem('redirectAfterLogin') || '/'
-
+        // 4. Clean up storage and redirect to the correct portal
         sessionStorage.removeItem('redirectAfterLogin')
-
         navigate(redirectPath, { replace: true })
+        
       } catch (err) {
         console.error(err)
         setStatus('Login failed. Please try again.')
