@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from "../hooks/useAuth";
 
-
 // Replace with your actual deployed Google Apps Script Web App URL
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpJnY17ZSx-CJQcUv9PAthDB2KpXqdn6kVCdfYnyke4ggEEY3MjPJzzEHRv2u96ZmI/exec"
 
@@ -199,6 +198,7 @@ export default function XLR8Registration() {
           headers: {
             'Content-Type': 'text/plain;charset=utf-8',
           },
+          redirect: 'follow', // THIS IS THE CRITICAL FIX
           body: JSON.stringify(formData),
         });
 
@@ -209,7 +209,7 @@ export default function XLR8Registration() {
           setSubmitted(true);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
-          alert('Submission failed. Please try again.');
+          alert(`Submission failed: ${result.message || result.error}`);
           console.error('Submission Error:', result.error);
         }
       } catch (error) {
@@ -333,15 +333,6 @@ export default function XLR8Registration() {
             <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">
               Thank you for registering team <span className="text-blue-400 font-semibold">{formData.teamName}</span> for XLR8. Your details have been recorded successfully.
             </p>
-            {/* <button
-              onClick={() => {
-                setSubmitted(false);
-                setFormData(initialFormData);
-              }}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-[0.98]"
-            >
-              Register Another Team
-            </button> */}
           </div>
         ) : (
           /* Registration Form */
