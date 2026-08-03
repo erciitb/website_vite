@@ -198,7 +198,7 @@ export default function XLR8Registration() {
           headers: {
             'Content-Type': 'text/plain;charset=utf-8',
           },
-          redirect: 'follow', // THIS IS THE CRITICAL FIX
+          redirect: 'follow', 
           body: JSON.stringify(formData),
         });
 

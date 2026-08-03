@@ -659,7 +659,7 @@ const XLR8 = () => {
                   <span>Register Now</span>
                 </a>
 
-                {(user.roll.toLowerCase() === '25b2254' || user.roll.toLowerCase() == '25b2134') && (
+                {(user.roll.toLowerCase() === '25b2254' || user.roll.toLowerCase() == '25b2134' || user.roll.toLowerCase() == '25b2465' || user.roll.toLowerCase() == '25b2149' || user.roll.toLowerCase() == '25b2203' || user.roll.toLowerCase() == '25b0325' || user.roll.toLowerCase() == '25b3973' || user.roll.toLowerCase() == '25b0661' || user.roll.toLowerCase() == '25b3907' || user.roll.toLowerCase() == '25b1308' || user.roll.toLowerCase() == '24b3949' || user.roll.toLowerCase() == '24b2471') && (
                   <a
                     href="/xlr8conveners"
                     className="w-full sm:w-auto px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-[0_0_25px_rgba(6,182,212,0.15)] hover:shadow-[0_0_35px_rgba(6,182,212,0.25)] transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-800 hover:-translate-y-0.5"
