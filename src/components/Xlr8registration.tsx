@@ -266,14 +266,8 @@ export default function XLR8Registration() {
           </h1>
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-6 rounded-full" />
           <p className="text-base sm:text-lg text-gray-400 leading-relaxed">
-           Feel the adrenaline, unleash your engineering, and race for glory in XLR8, 
-           IIT Bombay's flagship high-speed robotics competition. Join 900+ participants as 
-           they design, build, and push their robots to the absolute limit in a battle where 
-           every millisecond counts and every turn demands precision. From lightning-fast 
-           straights to razor-sharp corners, XLR8 is the ultimate test of speed, strategy, 
-           innovation, and teamwork. Whether you're taking on the track for the first time or 
-           returning to defend your legacy, this is your chance to compete with the best, learn 
-           from fellow innovators, and experience the electrifying thrill of robotics at full throttle. 
+           Feel the adrenaline and race for glory in XLR8, ERC's flagship high-speed robotics competition. Join 900+ participants to design, 
+           build, and race robots where every millisecond counts. Whether you're a beginner or a seasoned competitor, XLR8 is your chance to innovate, compete, and experience robotics at full throttle.
           </p>
           <p className="text-base sm:text-lg text-gray-400 leading-relaxed"> 
            Register your team below and claim your spot on the starting grid!
