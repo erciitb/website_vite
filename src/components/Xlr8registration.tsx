@@ -7,7 +7,8 @@ import {
   Link as LinkIcon,
   CheckCircle2,
   AlertCircle,
-  Send
+  Send,
+  Zap // <-- Added Zap icon for the new kit distribution button
 } from 'lucide-react';
 import { useAuth } from "../hooks/useAuth";
 
@@ -265,7 +266,7 @@ export default function XLR8Registration() {
             Welcome to <span className="text-blue-500">XLR8 !</span>
           </h1>
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-6 rounded-full" />
-          <p className="text-base sm:text-lg text-gray-400 leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-400 leading-relaxed mb-4">
            Feel the adrenaline, unleash your engineering, and race for glory in XLR8, 
            IIT Bombay's flagship high-speed robotics competition. Join 900+ participants as 
            they design, build, and push their robots to the absolute limit in a battle where 
@@ -278,6 +279,19 @@ export default function XLR8Registration() {
           <p className="text-base sm:text-lg text-gray-400 leading-relaxed"> 
            Register your team below and claim your spot on the starting grid!
           </p>
+          
+          {/* NEW: Electrical Kit Distribution Button */}
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => window.location.href = '/kit-distribution'} // Update this route to your actual page URL
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/50 hover:bg-indigo-600 hover:text-white transition-all duration-300 hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] font-semibold"
+            >
+              <Zap className="w-5 h-5" />
+              Electrical Kit Distribution
+            </button>
+          </div>
+
         </div>
 
         {/* Progress Navigation Indicator */}
