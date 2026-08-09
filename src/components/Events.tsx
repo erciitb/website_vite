@@ -99,7 +99,7 @@ const Events = () => {
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
                 >
                   Coming Soon...
-                  <ArrowRight size={16} className="ml-2" />
+                  {/* <ArrowRight size={16} className="ml-2" /> */}
                 </Link>
               </div>
             </div>
