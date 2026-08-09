@@ -586,7 +586,7 @@ const XLR8 = () => {
                       {/* SSO Verified Tag (Emerald Theme) */}
                       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium mb-1.5">
                         <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>IITB SSO Authenticated</span>
+                        {/* <span>IITB SSO Authenticated</span> */}
                       </div>
                       <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-wide">
                         {user.name}
