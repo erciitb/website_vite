@@ -113,23 +113,40 @@ const SideRays = () => {
 
 // ─── Main Preloader ──────────────────────────────────────────────────────────
 const Preloader = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  // 1. Initialize state by checking sessionStorage. 
+  // If 'hasSeenPreloader' exists, start as false (skip preloader).
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('hasSeenPreloader');
+    }
+    return true;
+  });
+  
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [startAnimation, setStartAnimation] = useState(false);
 
   const text = "ELECTRIFY. CODE. INNOVATE.";
 
   useEffect(() => {
+    // If we shouldn't be loading, do not set up timers
+    if (!isLoading) return;
+
     setStartAnimation(true);
+    
     const triggerExit = () => {
       setIsFadingOut(true);
+      // 2. Mark the preloader as seen in this session before unmounting
+      sessionStorage.setItem('hasSeenPreloader', 'true');
       setTimeout(() => setIsLoading(false), 700);
     };
+    
     window.addEventListener('splineReady', () => setTimeout(triggerExit, 1500));
     const timer = setTimeout(triggerExit, 6000);
+    
     return () => clearTimeout(timer);
-  }, []);
+  }, [isLoading]); 
 
+  // 3. If it has already been seen this session, render nothing instantly
   if (!isLoading) return null;
 
   return (
