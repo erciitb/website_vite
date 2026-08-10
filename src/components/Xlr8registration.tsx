@@ -370,7 +370,7 @@ export default function XLR8Registration() {
                     name="teamName"
                     value={formData.teamName}
                     onChange={handleChange}
-                    placeholder="e.g. Robosapiens"
+                    placeholder="Be creative :)"
                     className={`w-full rounded-xl bg-gray-900/60 border ${
                       errors.teamName ? 'border-red-500' : 'border-white/10'
                     } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`}

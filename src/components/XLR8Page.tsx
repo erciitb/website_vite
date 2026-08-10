@@ -6,17 +6,11 @@ import {
   Wrench, 
   Flag, 
   Trophy, 
-  Sparkles, 
-  Calendar,
-  Lock,
-  Clock,
-  Video,
-  CheckCircle2,
-  ShieldCheck,  
-  User,
-  GraduationCap,
+  CheckCircle2, 
   BookOpen,
-  Hash
+  Hash,
+  Lock,
+  Video
 } from 'lucide-react';
 import CenterLogo from '../assets/newcenterlogo.png';
 import bgImage from '../assets/bg.jpeg';
@@ -25,9 +19,6 @@ import xlr81 from '../assets/xlr81.jpg';
 import xlr82 from '../assets/xlr82.jpg';
 import xlr83 from '../assets/xlr83.jpg';
 import xlr84 from '../assets/xlr84.jpg';
-
-import ProblemStatementSection from './ProblemStatement';
-import ResultsSection from './ResultsSection';
 
 // Replace this path with the actual location of your useAuth hook
 import { useAuth } from '../hooks/useAuth';
@@ -511,13 +502,6 @@ const TimelineSection: React.FC = () => {
   );
 };
 
-/* 
-const ComingSoonSection: React.FC = () => {
-  // Commented out as requested
-  // ...
-}; 
-*/
-
 const XLR8 = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const { user, isLoggedIn } = useAuth() as { user: SSOUser | null; isLoggedIn: boolean };
@@ -543,12 +527,12 @@ const XLR8 = () => {
       />
 
       <div className="container mx-auto px-4 z-10 font-body">
-        <div className="max-w-3xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto text-center">
           
           <img src={CenterLogo} alt="Footer Logo" className="block mx-auto w-auto h-auto" />
           <br />
 
-          <p className="text-xl text-slate-300 mb-8">
+          <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
             Gear up for our club’s flagship event, recognized as the institute’s biggest technical event, bringing together students to compete, learn, and excel.
           </p>
 
@@ -563,9 +547,9 @@ const XLR8 = () => {
             </a>
           </div>
 
-          {/* LARGE MULTI-COLOUR PARTICIPANT DASHBOARD CARD */}
+          {/* EXPANDED PARTICIPANT DASHBOARD CARD */}
           {isLoggedIn && user && (
-            <div className="w-full max-w-3xl mx-auto text-left">
+            <div className="w-full max-w-5xl mx-auto text-left">
               {/* Card Container with Indigo Glow */}
               <div className="rounded-2xl bg-slate-900 border border-indigo-500/30 p-6 sm:p-8 relative overflow-hidden shadow-[0_0_35px_rgba(99,102,241,0.2)] hover:shadow-[0_0_50px_rgba(99,102,241,0.3)] transition-shadow duration-500">
                 
@@ -583,11 +567,9 @@ const XLR8 = () => {
                     </div>
 
                     <div>
-                      {/* SSO Verified Tag (Emerald Theme) */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-emerald-950/50 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium mb-1.5">
-                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                        {/* <span>IITB SSO Authenticated</span> */}
-                      </div>
+                      <span className="text-sm font-mono text-slate-400 uppercase tracking-wider font-semibold block mb-0.5">
+                        Hello,
+                      </span>
                       <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-wide">
                         {user.name}
                       </h3>
@@ -596,13 +578,13 @@ const XLR8 = () => {
 
                   {/* Status Badge */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center shrink-0 pt-2 sm:pt-0">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                    <span className="text-sm font-mono text-slate-400 uppercase tracking-wider font-semibold">
                       Account Status
                     </span>
                     <div className="flex items-center gap-2 mt-1 px-3 py-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span className="text-xs font-semibold text-slate-200 tracking-wide">
-                        Verified Participant
+                        Logged In
                       </span>
                     </div>
                   </div>
@@ -627,22 +609,6 @@ const XLR8 = () => {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-purple-500/30 transition-colors">
-                    <GraduationCap className="w-5 h-5 text-purple-400 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">Degree</p>
-                      <p className="text-base font-semibold text-white mt-0.5">{user.degree}</p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-rose-500/30 transition-colors">
-                    <Calendar className="w-5 h-5 text-rose-400 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">Passing Year</p>
-                      <p className="text-base font-bold text-white font-mono mt-0.5">Class of {user.passing_year}</p>
-                    </div>
-                  </div>
-
                 </div>
 
               </div>
@@ -653,7 +619,7 @@ const XLR8 = () => {
                 {/* Gradient Register Button */}
                 <a
                   href="/xlr8registration"
-                  className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-400 hover:to-rose-400 text-white font-bold font-heading text-lg rounded-xl shadow-[0_0_25px_rgba(244,63,94,0.4)] hover:shadow-[0_0_35px_rgba(244,63,94,0.6)] transition-all duration-300 flex items-center justify-center gap-3 border border-rose-300/30 hover:-translate-y-0.5"
+                  className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-3 border border-rose-400/20"
                 >
                   <Zap className="w-5 h-5 fill-current text-white" />
                   <span>Register Now</span>
@@ -662,7 +628,7 @@ const XLR8 = () => {
                 {(user.roll.toLowerCase() === '25b2254' || user.roll.toLowerCase() == '25b2134' || user.roll.toLowerCase() == '25b2465' || user.roll.toLowerCase() == '25b2149' || user.roll.toLowerCase() == '25b2203' || user.roll.toLowerCase() == '25b0325' || user.roll.toLowerCase() == '25b3973' || user.roll.toLowerCase() == '25b0661' || user.roll.toLowerCase() == '25b3907' || user.roll.toLowerCase() == '25b1308' || user.roll.toLowerCase() == '24b3949' || user.roll.toLowerCase() == '24b2471') && (
                   <a
                     href="/xlr8conveners"
-                    className="w-full sm:w-auto px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-[0_0_25px_rgba(6,182,212,0.15)] hover:shadow-[0_0_35px_rgba(6,182,212,0.25)] transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-800 hover:-translate-y-0.5"
+                    className="w-full sm:w-auto px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-3 border border-cyan-800/60"
                   >
                     <Lock className="w-5 h-5 text-cyan-400" />
                     <span>Convener Portal</span>

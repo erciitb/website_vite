@@ -2,14 +2,16 @@ import React, { useState, FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { 
   ShieldCheck, CheckCircle2, Hash, BookOpen, GraduationCap, 
-  Calendar, Search, Loader2, AlertCircle, Users, User
+  Calendar, Search, Loader2, AlertCircle, Users, User, Zap, Car
 } from 'lucide-react';
 
 // Using your provided script URL
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpJnY17ZSx-CJQcUv9PAthDB2KpXqdn6kVCdfYnyke4ggEEY3MjPJzzEHRv2u96ZmI/exec"
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpJnY17ZSx-CJQcUv9PAthDB2KpXqdn6kVCdfYnyke4ggEEY3MjPJzzEHRv2u96ZmI/exec";
+
 // Type for the expected search result
 interface TeamData {
   teamName: string;
+  vehicleNumber?: string; // Added Vehicle Number
   leaderName: string;
   leaderRoll: string;
   leaderPhone: string;
@@ -54,18 +56,20 @@ const Xlr8Conveners = () => {
     setSearchResult(null);
 
     try {
-      // Calls the doGet function of your Apps Script
-      const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=search&teamName=${encodeURIComponent(searchQuery)}`);
+      // Calls doGet sending both 'query' and 'teamName' for script compatibility
+      const response = await fetch(
+        `${GOOGLE_SCRIPT_URL}?action=search&query=${encodeURIComponent(searchQuery)}&teamName=${encodeURIComponent(searchQuery)}`
+      );
       const data = await response.json();
 
       if (data.success && data.team) {
         setSearchResult(data.team);
       } else {
-        setError('No team found with that name.');
+        setError('No team or vehicle found matching that search.');
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch data. Ensure your Apps Script has a doGet function.');
+      setError('Failed to fetch data. Ensure your Apps Script is correctly configured.');
     } finally {
       setIsSearching(false);
     }
@@ -105,7 +109,7 @@ const Xlr8Conveners = () => {
   return (
     <div className="min-h-screen bg-[#0f172a] pt-32 pb-16 px-6 sm:px-12 flex flex-col items-center gap-8">
       
-      {/* Existing Auth Card */}
+      {/* Auth Card */}
       <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-8 w-full max-w-4xl shadow-2xl">
         <div className="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
           <div className="flex items-center gap-6">
@@ -156,7 +160,7 @@ const Xlr8Conveners = () => {
         </div>
       </div>
 
-      {/* NEW: Team Search Dashboard Widget */}
+      {/* Team & Vehicle Search Dashboard Widget */}
       <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-8 w-full max-w-4xl shadow-2xl">
         <div className="flex items-center gap-3 mb-6">
           <Users className="w-6 h-6 text-blue-400" />
@@ -170,7 +174,7 @@ const Xlr8Conveners = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter exact Team Name to search..."
+              placeholder="Enter Team Name or Vehicle Number to search..."
               className="w-full bg-[#0b1120] border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
             />
           </div>
@@ -192,11 +196,35 @@ const Xlr8Conveners = () => {
 
         {searchResult && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-            <div className="border-b border-slate-800 pb-4">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Found Team</span>
-              <h3 className="text-3xl font-bold text-blue-400">{searchResult.teamName}</h3>
+            <div className="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">Found Team</span>
+                <h3 className="text-3xl font-bold text-blue-400">{searchResult.teamName}</h3>
+              </div>
+
+              {searchResult.vehicleNumber && (
+                <div className="flex items-center gap-3 bg-[#0b1120] border border-indigo-500/40 px-4 py-2.5 rounded-xl w-fit">
+                  <Car className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <span className="text-[10px] font-mono text-slate-400 uppercase font-bold block">Vehicle No.</span>
+                    <span className="text-base font-bold font-mono text-indigo-300">{searchResult.vehicleNumber}</span>
+                  </div>
+                </div>
+              )}
             </div>
             
+            {/* Electrical Kit Distribution Button */}
+            <div className="flex justify-start">
+              <button
+                type="button"
+                onClick={() => window.location.href = '/kit-distribution'}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/50 hover:bg-indigo-600 hover:text-white transition-all duration-300 hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] font-semibold"
+              >
+                <Zap className="w-5 h-5" />
+                Electrical Kit Distribution
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ParticipantCard 
                 title="Participant 1 (Leader)" 
@@ -224,7 +252,7 @@ const Xlr8Conveners = () => {
               />
             </div>
 
-            {/* NEW: Confirmation Status Banner */}
+            {/* Confirmation Status Banner */}
             <div className={`mt-6 flex items-center justify-center p-5 rounded-xl border ${
               searchResult.isConfirmed 
                 ? 'bg-green-900/20 border-green-500/40 text-green-400' 
