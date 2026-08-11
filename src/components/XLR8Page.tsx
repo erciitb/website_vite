@@ -378,8 +378,8 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
   {
     id: 2,
     phase: 'PHASE 02',
-    title: 'Hardware Session',
-    description: 'Session to design, build, and wire the hardware that brings your bot to life. (Electrical and mechanical).',
+    title: 'Software Session',
+    description: 'Hands-on workshop where you’ll learn to write and upload code to control your bot’s movements and actions.',
     icon: <Cpu className="w-6 h-6 text-amber-400" />,
     status: 'upcoming',
     tagBg: 'bg-amber-950/60', tagText: 'text-amber-400', tagBorder: 'border-amber-800/50',
@@ -398,8 +398,8 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
   {
     id: 4,
     phase: 'PHASE 04',
-    title: 'Software Session',
-    description: 'Hands-on workshop where you’ll learn to write and upload code to control your bot’s movements and actions.',
+    title: 'Debugging Session',
+    description: "Get hands-on support to troubleshoot and fix any issues with your bot. We'll also walk you through integrating custom add-ons to upgrade its capabilities.",
     icon: <Flag className="w-6 h-6 text-emerald-400" />,
     status: 'upcoming',
     tagBg: 'bg-emerald-950/60', tagText: 'text-emerald-400', tagBorder: 'border-emerald-800/50',

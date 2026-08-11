@@ -101,12 +101,12 @@ const Header = () => {
               SOR
             </button>
 
-            {/* <button
+            {<button
               onClick={handleXlr8Click}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
             >
               XLR8
-            </button> */}
+            </button>}
           </nav>
 
           {/* Mobile Menu Button */}
