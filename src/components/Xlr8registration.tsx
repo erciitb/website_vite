@@ -13,7 +13,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 
 // Replace with your actual deployed Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpJnY17ZSx-CJQcUv9PAthDB2KpXqdn6kVCdfYnyke4ggEEY3MjPJzzEHRv2u96ZmI/exec"
+const GOOGLE_SCRIPT_URL ="https://script.google.com/macros/s/AKfycbw8vfnctR_vjItbZ6CbeckP153utSOFzUnM6TkJi7qQ6FnheoacUUQQPifel0aVgDpt/exec";
 
 interface FormData {
   // Team
@@ -274,7 +274,7 @@ export default function XLR8Registration() {
            Register your team below and claim your spot on the starting grid!
           </p>
           
-          {/* NEW: Electrical Kit Distribution Button */}
+          {/* NEW: Electrical Kit Distribution Button
           <div className="mt-8 flex justify-center">
             <button
               type="button"
@@ -284,7 +284,7 @@ export default function XLR8Registration() {
               <Zap className="w-5 h-5" />
               Electrical Kit Distribution
             </button>
-          </div>
+          </div> */}
 
         </div>
 
@@ -355,7 +355,7 @@ export default function XLR8Registration() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">1. Team Details</h2>
+                  <h2 className="text-xl font-bold text-white">Team Details</h2>
                   <p className="text-xs sm:text-sm text-gray-400">Enter your official team name</p>
                 </div>
               </div>
@@ -394,7 +394,7 @@ export default function XLR8Registration() {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">2. Participant 1 (Team Leader)</h2>
+                  <h2 className="text-xl font-bold text-white">Participant 1 (Team Leader)</h2>
                   <p className="text-xs sm:text-sm text-gray-400">Primary point of contact for the team</p>
                 </div>
               </div>
@@ -538,7 +538,7 @@ export default function XLR8Registration() {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">3. Participant 2</h2>
+                  <h2 className="text-xl font-bold text-white">Participant 2</h2>
                   <p className="text-xs sm:text-sm text-gray-400">Team member details</p>
                 </div>
               </div>
@@ -661,7 +661,7 @@ export default function XLR8Registration() {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">4. Participant 3</h2>
+                  <h2 className="text-xl font-bold text-white">Participant 3</h2>
                   <p className="text-xs sm:text-sm text-gray-400">Team member details</p>
                 </div>
               </div>
@@ -784,7 +784,7 @@ export default function XLR8Registration() {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">5. Participant 4</h2>
+                  <h2 className="text-xl font-bold text-white">Participant 4</h2>
                   <p className="text-xs sm:text-sm text-gray-400">Team member details</p>
                 </div>
               </div>
@@ -897,6 +897,61 @@ export default function XLR8Registration() {
               </div>
             </div>
 
+            {/* IMPORTANT — Kit & Payment Details */}
+            <div className="bg-amber-500/5 backdrop-blur-md border border-amber-400/25 rounded-2xl p-5 sm:p-6">
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 text-xl sm:text-2xl">
+                  ⚠️
+                </div>
+
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-bold text-amber-300 mb-3 font-heading">
+                    IMPORTANT — KIT & PAYMENT DETAILS
+                  </h3>
+
+                  <ul className="space-y-2.5 text-sm sm:text-base text-gray-300 leading-relaxed">
+                    <li>
+                      • <strong className="text-white">Electrical Kit:</strong> You will receive the electrical kit first. Payment for the kit will need to be completed as instructed.
+                    </li>
+                    <li>
+                      • <strong className="text-white">Mechanical Kit:</strong> The mechanical kit will be provided at a later stage.
+                    </li>
+                    <li>
+                      • <strong className="text-white">Kit Payment:</strong> Please use <strong className="text-white">either of the two QR codes below</strong> to make the <strong className="text-amber-300">₹1,800 payment</strong>.
+                    </li>
+                    <li>
+                      • After completing the payment, proceed to the <strong className="text-white">submission link</strong> below.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Scanner Images */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-4 flex flex-col items-center">
+                <p className="text-sm font-semibold text-cyan-300 mb-3">
+                  Scanner 1
+                </p>
+                <img
+                  src="/scanner1.png"
+                  alt="Scanner 1 - ₹1,800 Payment"
+                  className="w-full max-w-xs rounded-xl object-contain"
+                />
+              </div>
+
+              <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-4 flex flex-col items-center">
+                <p className="text-sm font-semibold text-cyan-300 mb-3">
+                  Scanner 2
+                </p>
+                <img
+                  src="/scanner2.png"
+                  alt="Scanner 2 - ₹1,800 Payment"
+                  className="w-full max-w-xs rounded-xl object-contain"
+                />
+              </div>
+            </div>
+
             {/* 6. Submission Links */}
             <div
               id="sec-sub"
@@ -907,7 +962,7 @@ export default function XLR8Registration() {
                   <LinkIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">6. Submission Links</h2>
+                  <h2 className="text-xl font-bold text-white">Submission Links</h2>
                   <p className="text-xs sm:text-sm text-gray-400">Provide drive links for verification</p>
                 </div>
               </div>

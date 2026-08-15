@@ -16,6 +16,7 @@ import Preloader from './components/Preloader.tsx'
 import Xlr8registration from './components/Xlr8registration.tsx';
 import Xlr8Conveners from './components/xlr8conveners.tsx';
 import KitDistribution from './components/kit-distribution.tsx';
+import Xlr8participants from './components/Xlr8participants.tsx';
 
 
 const XLR8Page = lazy(() => import('./components/XLR8Page.tsx'));
@@ -67,6 +68,7 @@ function App() {
               <Route path="/xlr8registration" element={<Xlr8registration />} />
               <Route path="/xlr8conveners" element={<Xlr8Conveners />} />
               <Route path="/kit-distribution" element={<KitDistribution />} />
+              <Route path="/xlr8participants" element={<Xlr8participants />} />
             </Routes>
           </Suspense>
         </main>
