@@ -255,13 +255,9 @@ export default function TeammateFinder() {
         ====================================================== */}
 
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm font-bold tracking-widest uppercase mb-4">
-            <Sparkles className="w-4 h-4" />
-            Matchmaking Protocol
-          </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-            Solo Participant Registration
+            FIND YOUR SQUAD
           </h1>
 
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
