@@ -122,7 +122,6 @@ const SemicircularScrollGallery: React.FC = () => {
     };
 
     updateRadius();
-
     window.addEventListener('resize', updateRadius);
 
     return () => window.removeEventListener('resize', updateRadius);
@@ -183,8 +182,7 @@ const SemicircularScrollGallery: React.FC = () => {
       return {
         opacity: 0,
         pointerEvents: 'none',
-        transform:
-          'translate3d(-9999px, 0, 0)'
+        transform: 'translate3d(-9999px, 0, 0)'
       };
     }
 
@@ -447,7 +445,6 @@ const SemicircularScrollGallery: React.FC = () => {
           ))}
 
         </div>
-
       </div>
     </section>
   );
@@ -488,7 +485,8 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     id: 2,
     phase: 'PHASE 02',
     title: 'Software Session',
-    description: 'Hands-on workshop where you’ll learn to write and upload code to control your bot’s movements and actions.',
+    description:
+      'Hands-on workshop where you’ll learn to write and upload code to control your bot’s movements and actions.',
     icon: <Cpu className="w-6 h-6 text-amber-400" />,
     status: 'upcoming',
     tagBg: 'bg-amber-950/60',
@@ -517,7 +515,8 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     id: 4,
     phase: 'PHASE 04',
     title: 'Debugging Session',
-    description: "Get hands-on support to troubleshoot and fix any issues with your bot. We'll also walk you through integrating custom add-ons to upgrade its capabilities.",
+    description:
+      "Get hands-on support to troubleshoot and fix any issues with your bot. We'll also walk you through integrating custom add-ons to upgrade its capabilities.",
     icon: <Flag className="w-6 h-6 text-emerald-400" />,
     status: 'upcoming',
     tagBg: 'bg-emerald-950/60',
@@ -622,27 +621,9 @@ const TimelineSection: React.FC = () => {
                         {event.phase}
                       </span>
 
-                      {event.status === 'completed' && (
-                        <span
-                          className={`text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded border ${event.tagBg} ${event.tagText} ${event.tagBorder}`}
-                        >
-                          ✓ COMPLETED
-                        </span>
-                      )}
-
-                      {event.status === 'current' && (
-                        <span
-                          className={`text-[11px] font-semibold tracking-wide px-2.5 py-0.5 rounded border ${event.tagBg} ${event.tagText} ${event.tagBorder}`}
-                        >
-                          ● IN PROGRESS
-                        </span>
-                      )}
-
-                      {event.status === 'upcoming' && (
-                        <span className="text-[11px] font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-0.5 rounded border border-slate-700/40">
-                          ○ UPCOMING
-                        </span>
-                      )}
+                      <span className="text-[11px] font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-0.5 rounded border border-slate-700/40">
+                        ○ UPCOMING
+                      </span>
 
                     </div>
 
@@ -665,7 +646,6 @@ const TimelineSection: React.FC = () => {
           })}
 
         </div>
-
       </div>
     </section>
   );
@@ -679,6 +659,23 @@ const XLR8: React.FC = () => {
     user: SSOUser | null;
     isLoggedIn: boolean;
   };
+
+  const isConvener =
+    !!user &&
+    [
+      '25b2254',
+      '25b2234',
+      '25b2465',
+      '25b2149',
+      '25b2203',
+      '25b0325',
+      '25b3973',
+      '25b0661',
+      '25b3907',
+      '25b1308',
+      '24b3949',
+      '24b2471'
+    ].includes(user.roll.toLowerCase());
 
   return (
     <>
@@ -712,9 +709,7 @@ const XLR8: React.FC = () => {
 
           <div className="max-w-5xl mx-auto text-center">
 
-            {/* ===================================================
-                XLR8 LOGO / HEADER
-            =================================================== */}
+            {/* XLR8 LOGO */}
 
             <img
               src={CenterLogo}
@@ -731,6 +726,8 @@ const XLR8: React.FC = () => {
               learn, and excel.
             </p>
 
+            {/* XLR8 INFO
+
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
 
               <a
@@ -742,72 +739,13 @@ const XLR8: React.FC = () => {
                 XLR8 Info
               </a>
 
-            </div>
+            </div> */}
 
 
-            {/* ===================================================
-                PARTICIPANT DASHBOARD QUICK ACCESS
-            =================================================== */}
-
-            {isLoggedIn && user && (
-
-              <div className="w-full max-w-5xl mx-auto mb-8">
-
-                <a
-                  href="/xlr8participants"
-                  className="group relative w-full flex items-center justify-between gap-4 px-5 sm:px-7 py-4 sm:py-5 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-indigo-500/10 to-purple-500/10 border border-cyan-400/30 hover:border-cyan-400/70 hover:from-cyan-500/15 hover:via-indigo-500/15 hover:to-purple-500/15 transition-all duration-300 shadow-lg hover:shadow-cyan-500/10 overflow-hidden"
-                >
-
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                  <div className="relative flex items-center gap-4">
-
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center group-hover:scale-105 group-hover:border-cyan-400/60 transition-all duration-300">
-
-                      <Trophy className="w-6 h-6 text-cyan-400" />
-
-                    </div>
-
-                    <div className="text-left">
-
-                      <p className="text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] text-cyan-400 mb-1">
-                        Participant Portal
-                      </p>
-
-                      <h3 className="text-base sm:text-xl font-bold text-white">
-                        Check Your XLR8 Progress
-                      </h3>
-
-                      <p className="hidden sm:block text-xs sm:text-sm text-slate-400 mt-1">
-                        Kit status • slots • Sessions • Final Race
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                  <div className="relative flex items-center gap-2 text-cyan-400 shrink-0">
-
-                    <span className="hidden sm:block text-sm font-semibold">
-                      Open Dashboard
-                    </span>
-
-                    <span className="text-xl sm:text-2xl group-hover:translate-x-1 transition-transform duration-300">
-                      →
-                    </span>
-
-                  </div>
-
-                </a>
-
-              </div>
-
-            )}
-
-
-            {/* ===================================================
+            {/* =========================================================
                 PARTICIPANT CARD
-            =================================================== */}
+                ONLY SHOWN WHEN LOGGED IN
+            ========================================================= */}
 
             {isLoggedIn && user && (
 
@@ -847,9 +785,7 @@ const XLR8: React.FC = () => {
                     </div>
 
 
-                    {/* =================================================
-                        ACCOUNT STATUS + LOGOUT
-                    ================================================= */}
+                    {/* ACCOUNT STATUS */}
 
                     <div className="flex flex-col sm:items-end gap-3 shrink-0">
 
@@ -930,102 +866,102 @@ const XLR8: React.FC = () => {
 
                 </div>
 
-
-                {/* =================================================
-                    ACTION BUTTONS
-                ================================================= */}
-
-                <div className="mt-6 flex flex-col sm:flex-row justify-center gap-4">
-
-                  {/* REGISTER */}
-
-                  <a
-                    href="/xlr8registration"
-                    className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-3 border border-rose-400/20"
-                  >
-
-                    <Zap className="w-5 h-5 fill-current text-white" />
-
-                    <span>
-                      Register Now
-                    </span>
-
-                  </a>
-
-                  <a
-                    href="/xlr8registration"
-                    className="group relative w-full sm:w-auto px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 hover:from-cyan-500/25 hover:via-blue-500/25 hover:to-indigo-500/25 text-white font-bold font-heading text-lg shadow-[0_0_10px_rgba(6,182,212,0.08)] hover:shadow-[0_0_15px_rgba(6,182,212,0.12)] transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-400/30 hover:border-cyan-300/50"
-                  >
-                    {/* Hover sweep
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" /> */}
-
-                    {/* Decorative dots
-                    <div className="absolute top-1.5 right-3 w-1 h-1 rounded-full bg-cyan-300 opacity-60" />
-                    <div className="absolute bottom-2 left-4 w-1 h-1 rounded-full bg-blue-300 opacity-50" /> */}
-
-                    {/* Team icon */}
-                    <div className="relative w-9 h-9 rounded-lg
-                      bg-cyan-400/5 border border-cyan-400/20
-                      flex items-center justify-center
-                      group-hover:border-cyan-400/40
-                      transition-all duration-300">
-                      <Users className="w-5 h-5 text-cyan-300" />
-                    </div>
-
-                    {/* Button text */}
-                    <div className="relative text-left leading-tight">
-                      {/* <span className="block text-[9px] sm:text-[10px] font-mono tracking-[0.2em] text-cyan-300 uppercase">
-                        Team Match
-                      </span> */}
-                      <span className="block text-base sm:text-lg font-bold">
-                        Find Your Team
-                      </span>
-                    </div>
-
-                    {/* Arrow */}
-                    {/* <span className="relative text-cyan-300 text-xl ml-1 group-hover:translate-x-1 transition-transform duration-300">
-                      →
-                    </span> */}
-                  </a>
-
-
-                  {/* CONVENER PORTAL */}
-
-                  {(
-                    user.roll.toLowerCase() === '25b2254' ||
-                    user.roll.toLowerCase() === '25b2154' ||
-                    user.roll.toLowerCase() === '25b2465' ||
-                    user.roll.toLowerCase() === '25b2149' ||
-                    user.roll.toLowerCase() === '25b2203' ||
-                    user.roll.toLowerCase() === '25b0325' ||
-                    user.roll.toLowerCase() === '25b3973' ||
-                    user.roll.toLowerCase() === '25b0661' ||
-                    user.roll.toLowerCase() === '25b3907' ||
-                    user.roll.toLowerCase() === '25b1308' ||
-                    user.roll.toLowerCase() === '24b3949' ||
-                    user.roll.toLowerCase() === '24b2471'
-                  ) && (
-
-                    <a
-                      href="/xlr8conveners"
-                      className="w-full sm:w-auto px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-3 border border-cyan-800/60"
-                    >
-
-                      <Lock className="w-5 h-5 text-cyan-400" />
-
-                      <span>
-                        Convener Portal
-                      </span>
-
-                    </a>
-
-                  )}
-
-                </div>
-
               </div>
 
             )}
+
+
+            {/* =========================================================
+                ACTION BUTTONS
+                ALWAYS VISIBLE
+            ========================================================= */}
+
+            <div className="mt-8 w-full max-w-5xl mx-auto flex flex-col sm:flex-row justify-center gap-4">
+
+              {/* REGISTER NOW */}
+
+              <a
+                href="/xlr8registration"
+                className="w-full sm:w-auto min-w-[220px] px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold font-heading text-lg rounded-xl shadow-[0_8px_25px_rgba(244,63,94,0.25)] hover:shadow-[0_10px_35px_rgba(244,63,94,0.4)] transition-all duration-300 flex items-center justify-center gap-3 border border-rose-400/30 hover:-translate-y-1"
+              >
+
+                <Zap className="w-5 h-5 fill-current text-white" />
+
+                <span>
+                  Register Now
+                </span>
+
+              </a>
+
+
+              {/* FIND YOUR TEAM */}
+
+              <a
+                href="/findyourteam"
+                className="group relative w-full sm:w-auto min-w-[220px] px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:via-blue-500/30 hover:to-indigo-500/30 text-white font-bold font-heading text-lg shadow-[0_8px_25px_rgba(6,182,212,0.12)] hover:shadow-[0_10px_35px_rgba(6,182,212,0.25)] transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-400/40 hover:border-cyan-300/70 hover:-translate-y-1"
+              >
+
+                {/* Hover sweep */}
+
+                {/* <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" /> */}
+
+                {/* Decorative glow
+
+                <div className="absolute top-1 right-3 w-1.5 h-1.5 rounded-full bg-cyan-300 opacity-70" />
+
+                <div className="absolute bottom-2 left-4 w-1 h-1 rounded-full bg-blue-300 opacity-60" /> */}
+
+                {/* Icon */}
+
+                <div
+                  className="relative w-9 h-9 rounded-lg
+                  bg-cyan-400/10 border border-cyan-400/30
+                  flex items-center justify-center
+                  group-hover:border-cyan-400/60
+                  group-hover:bg-cyan-400/15
+                  transition-all duration-300"
+                >
+
+                  <Users className="w-5 h-5 text-cyan-300" />
+
+                </div>
+
+                {/* Text */}
+
+                <div className="relative text-left leading-tight">
+
+                  <span className="block text-base sm:text-lg font-bold">
+                    Find Your Team
+                  </span>
+
+                </div>
+
+              </a>
+
+
+              {/* =====================================================
+                  CONVENER PORTAL
+                  ONLY AUTHORIZED USERS
+              ===================================================== */}
+
+              {isConvener && (
+
+                <a
+                  href="/xlr8conveners"
+                  className="w-full sm:w-auto min-w-[220px] px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-800/60 hover:border-cyan-500/70 hover:-translate-y-1"
+                >
+
+                  <Lock className="w-5 h-5 text-cyan-400" />
+
+                  <span>
+                    Convener Portal
+                  </span>
+
+                </a>
+
+              )}
+
+            </div>
 
           </div>
 

@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react';
 import HeaderLogo from '../assets/header.png';
 import MobileMenu from '../MobileMenu';
 import { useAuth } from '../hooks/useAuth';
-import { SOR_SSO_URL, XLR8_SSO_URL } from '../config/sso';
+import { SOR_SSO_URL } from '../config/sso';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,16 +36,10 @@ const Header = () => {
     window.location.href = SOR_SSO_URL;
   };
 
+  // XLR8 — NO SSO / LOGIN
   const handleXlr8Click = () => {
     setIsMenuOpen(false);
-
-    if (isLoggedIn) {
-      navigate('/xlr8');
-      return;
-    }
-
-    sessionStorage.setItem('redirectAfterLogin', '/xlr8');
-    window.location.href = XLR8_SSO_URL;
+    navigate('/xlr8');
   };
 
   const navItems = [
@@ -68,6 +62,7 @@ const Header = () => {
         }`}
       >
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+
           {/* Logo */}
           <Link
             to="/"
@@ -83,6 +78,7 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
+
             {navItems.map(({ label, path }) => (
               <Link
                 key={label}
@@ -94,6 +90,7 @@ const Header = () => {
               </Link>
             ))}
 
+            {/* SOR */}
             <button
               onClick={handleSorClick}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
@@ -101,12 +98,14 @@ const Header = () => {
               SOR
             </button>
 
+            {/* XLR8 — Direct Access */}
             <button
               onClick={handleXlr8Click}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
             >
               XLR8
             </button>
+
           </nav>
 
           {/* Mobile Menu Button */}
@@ -116,6 +115,7 @@ const Header = () => {
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+
         </div>
       </header>
 
