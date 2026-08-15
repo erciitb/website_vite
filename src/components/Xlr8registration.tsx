@@ -11,12 +11,9 @@ import {
   Send,
 } from 'lucide-react';
 
-// Replace with your actual deployed Google Apps Script Web App URLs.
-// The same form data is POSTed to all three in parallel.
-const GOOGLE_SCRIPT_URLS = [
-  'https://script.google.com/macros/s/AKfycbyKa8OrzJkB7xJUrvQq-hVC0cp0RwF5xbXJFhmVLjo1POBAAT30y4a6oRMl3s62EURVrA/exec',
-  'https://script.google.com/macros/s/AKfycbxNbC45lJPHcLnGfK0Y6U0g8nS6cJ8KqsK3VKIv7WIxQYDFwFVWGQXxdsACijo1gVSb7g/exec',
-];
+// Replace with your actual deployed Google Apps Script Web App URL
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyKa8OrzJkB7xJUrvQq-hVC0cp0RwF5xbXJFhmVLjo1POBAAT30y4a6oRMl3s62EURVrA/exec";
 
 interface FormData {
   // Team
@@ -255,39 +252,6 @@ export default function XLR8Registration() {
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * POSTs the form data to a single Apps Script URL and normalizes the
-   * outcome. Never throws — network errors and non-2xx responses are
-   * captured as a failed outcome instead of rejecting.
-   */
-  const submitToSheet = async (
-    url: string
-  ): Promise<{ ok: boolean; reason?: string }> => {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        redirect: 'follow',
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        return { ok: true };
-      }
-
-      return {
-        ok: false,
-        reason: result.message || result.error || 'Unknown error',
-      };
-    } catch (err) {
-      return { ok: false, reason: String(err) };
-    }
-  };
-
   const handleSubmit = async (
     e: FormEvent<HTMLFormElement>
   ) => {
@@ -310,19 +274,40 @@ export default function XLR8Registration() {
     setLoading(true);
 
     try {
-      const outcomes = await Promise.all(
-        GOOGLE_SCRIPT_URLS.map((url) => submitToSheet(url))
-      );
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        redirect: 'follow',
+        body: JSON.stringify(formData),
+      });
 
-      const failures = outcomes.filter((o) => !o.ok);
+      const result = await response.json();
 
-      if (failures.length === 0) {
-        console.log('XLR8 Registration Submitted Data:', formData);
+      if (result.success) {
+        console.log(
+          'XLR8 Registration Submitted Data:',
+          formData
+        );
+
         setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
       } else {
-        console.error('Submission failed:', failures);
-        alert(`Submission failed: ${failures[0].reason}`);
+        alert(
+          `Submission failed: ${
+            result.message || result.error
+          }`
+        );
+
+        console.error(
+          'Submission Error:',
+          result.error
+        );
       }
     } catch (error) {
       alert(
@@ -1240,6 +1225,20 @@ export default function XLR8Registration() {
 
               </div>
             </div>
+
+              {/* <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-4 flex flex-col items-center">
+
+                <p className="text-sm font-semibold text-cyan-300 mb-3">
+                  Scanner 2
+                </p>
+
+                <img
+                  src="/scanner2.png"
+                  alt="Scanner 2 - ₹1,800 Payment"
+                  className="w-full max-w-xs rounded-xl object-contain"
+                />
+
+              </div> */}
 
             {/* SUBMISSION LINKS */}
             <div
