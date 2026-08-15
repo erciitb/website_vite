@@ -13,7 +13,7 @@ import {
 
 // Replace with your actual deployed Google Apps Script Web App URL
 const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbz1VUbHq9eK0y9pZxSE_8_YvwmY_T2ZzKh1rB3T3QxSXH0YwughGwYHYfD-rE8SS0p6/exec";
+  "https://script.google.com/macros/s/AKfycbyKa8OrzJkB7xJUrvQq-hVC0cp0RwF5xbXJFhmVLjo1POBAAT30y4a6oRMl3s62EURVrA/exec";
 
 interface FormData {
   // Team
