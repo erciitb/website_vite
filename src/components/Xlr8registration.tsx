@@ -15,7 +15,6 @@ import {
 // The same form data is POSTed to all three in parallel.
 const GOOGLE_SCRIPT_URLS = [
   'https://script.google.com/macros/s/AKfycbyKa8OrzJkB7xJUrvQq-hVC0cp0RwF5xbXJFhmVLjo1POBAAT30y4a6oRMl3s62EURVrA/exec',
-  'https://script.google.com/macros/s/AKfycbykIlSuqzyDZmJ5Dd6WOTayynS4yLRPtbcfFDJJF39RBGgnhIylE4aGDt8oSaZPP9PX/exec',
   'https://script.google.com/macros/s/AKfycbxNbC45lJPHcLnGfK0Y6U0g8nS6cJ8KqsK3VKIv7WIxQYDFwFVWGQXxdsACijo1gVSb7g/exec',
 ];
 
@@ -89,15 +88,10 @@ const initialFormData: FormData = {
   paymentScreenshotLink: '',
 };
 
-type SubmitOutcome =
-  | { url: string; ok: true }
-  | { url: string; ok: false; reason: string };
-
 export default function XLR8Registration() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [partialWarning, setPartialWarning] = useState<string>('');
 
   const [errors, setErrors] = useState<
     Partial<Record<keyof FormData, string>>
@@ -266,7 +260,9 @@ export default function XLR8Registration() {
    * outcome. Never throws — network errors and non-2xx responses are
    * captured as a failed outcome instead of rejecting.
    */
-  const submitToSheet = async (url: string): Promise<SubmitOutcome> => {
+  const submitToSheet = async (
+    url: string
+  ): Promise<{ ok: boolean; reason?: string }> => {
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -280,16 +276,15 @@ export default function XLR8Registration() {
       const result = await response.json();
 
       if (result.success) {
-        return { url, ok: true };
+        return { ok: true };
       }
 
       return {
-        url,
         ok: false,
         reason: result.message || result.error || 'Unknown error',
       };
     } catch (err) {
-      return { url, ok: false, reason: String(err) };
+      return { ok: false, reason: String(err) };
     }
   };
 
@@ -313,36 +308,20 @@ export default function XLR8Registration() {
     }
 
     setLoading(true);
-    setPartialWarning('');
 
     try {
       const outcomes = await Promise.all(
         GOOGLE_SCRIPT_URLS.map((url) => submitToSheet(url))
       );
 
-      const failures = outcomes.filter((o) => !o.ok) as Extract<
-        SubmitOutcome,
-        { ok: false }
-      >[];
+      const failures = outcomes.filter((o) => !o.ok);
 
       if (failures.length === 0) {
-        // All three sheets updated successfully.
         console.log('XLR8 Registration Submitted Data:', formData);
         setSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (failures.length < GOOGLE_SCRIPT_URLS.length) {
-        // Recorded in at least one sheet, but not all three.
-        console.error('Some submissions failed:', failures);
-        setPartialWarning(
-          `Heads up: your registration was only recorded in ${
-            GOOGLE_SCRIPT_URLS.length - failures.length
-          }/${GOOGLE_SCRIPT_URLS.length} systems. Please contact an organizer to confirm your entry.`
-        );
-        setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        // All three failed.
-        console.error('All submissions failed:', failures);
+        console.error('Submission failed:', failures);
         alert(`Submission failed: ${failures[0].reason}`);
       }
     } catch (error) {
@@ -591,13 +570,6 @@ export default function XLR8Registration() {
               for XLR8. Your details have been
               recorded successfully.
             </p>
-
-            {partialWarning && (
-              <div className="bg-amber-900/20 border border-amber-500/30 rounded-xl p-4 text-left flex gap-3 text-amber-300 text-sm">
-                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                <p>{partialWarning}</p>
-              </div>
-            )}
 
           </div>
 
