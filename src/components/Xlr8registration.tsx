@@ -1,5 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import aditya from '../assets/aditya_qr.jpeg';
+import daskh from '../assets/WhatsApp Image 2026-08-16 at 1.13.08 PM.jpeg'
 import {
   Users,
   User,
@@ -1218,7 +1219,7 @@ export default function XLR8Registration() {
                 </p>
 
                 <img
-                  src={aditya}
+                  src={daksh}
                   alt="Scanner 1 - ₹1,800 Payment"
                   className="w-full max-w-xs rounded-xl object-contain"
                 />
