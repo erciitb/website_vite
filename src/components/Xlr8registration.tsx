@@ -3,6 +3,7 @@ import aditya from '../assets/aditya_qr.jpeg';
 import daksh from '../assets/WhatsApp Image 2026-08-16 at 1.13.08 PM.jpeg'
 import daksh_1 from '../assets/WhatsApp Image 2026-08-16 at 1.30.36 PM.jpeg'
 import qr from '../assets/IMG-20260816-WA0044(1).jpg'
+import rr_qr from '../assets/RR_QR.png'
 import {
   Users,
   User,
@@ -1221,7 +1222,7 @@ export default function XLR8Registration() {
                 </p>
 
                 <img
-                  src={qr}
+                  src={rr_qr}
                   alt="Scanner 1 - ₹1,800 Payment"
                   className="w-full max-w-xs rounded-xl object-contain"
                 />
