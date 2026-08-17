@@ -1000,7 +1000,7 @@ const XLR8: React.FC = () => {
 
                 {/* SUBTLE GRID */}
 
-                <div
+                {/* <div
                   className="
                     absolute inset-0
                     opacity-[0.035]
@@ -1008,7 +1008,7 @@ const XLR8: React.FC = () => {
                     bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)]
                     bg-[size:2rem_2rem]
                   "
-                />
+                /> */}
 
 
                 <div className="relative z-10 flex flex-col items-center text-center">
