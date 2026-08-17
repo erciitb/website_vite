@@ -233,7 +233,7 @@ export default function TeammateFinder() {
 
           <p className="text-slate-400 text-lg leading-relaxed">
             Your registration has been successfully recorded. We will
-            review your responses and pair you with a suitable team
+            review your responses and sugggest you suitable teammates
             based on your profile and preferences. Our team will
             contact you shortly.
           </p>
