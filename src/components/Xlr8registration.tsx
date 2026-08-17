@@ -4,6 +4,7 @@ import daksh from '../assets/WhatsApp Image 2026-08-16 at 1.13.08 PM.jpeg'
 import daksh_1 from '../assets/WhatsApp Image 2026-08-16 at 1.30.36 PM.jpeg'
 import qr from '../assets/IMG-20260816-WA0044(1).jpg'
 import rr_qr from '../assets/RR_QR.png'
+import aditya_qr2 from '../assets/aditya_qr2.jpeg'
 import {
   Users,
   User,
@@ -1191,7 +1192,7 @@ export default function XLR8Registration() {
                       </strong>{' '}
                       Please use{' '}
                       <strong className="text-white">
-                        the QR code below
+                        any one of the two QR code below
                       </strong>{' '}
                       to make the{' '}
                       <strong className="text-amber-300">
@@ -1218,11 +1219,11 @@ export default function XLR8Registration() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
               <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
                 <p className="text-sm font-semibold text-cyan-300 mb-4">
-                  Scanner 1
+                  Pay Rs. 1800 using the QR code below 
                 </p>
 
                 <img
-                  src={rr_qr}
+                  src={aditya_qr2}
                   alt="Scanner 1 - ₹1,800 Payment"
                   className="w-full max-w-xs rounded-xl object-contain"
                 />
@@ -1230,11 +1231,11 @@ export default function XLR8Registration() {
 
               <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
                 <p className="text-sm font-semibold text-cyan-300 mb-4">
-                  Scanner 2
+                  Pay Rs. 1800 using the QR code below 
                 </p>
 
                 <img
-                  src="/scanner2.png"
+                  src={rr_qr}
                   alt="Scanner 2 - ₹1,800 Payment"
                   className="w-full max-w-xs rounded-xl object-contain"
                 />
