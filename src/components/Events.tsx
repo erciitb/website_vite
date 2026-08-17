@@ -95,11 +95,11 @@ const Events = () => {
 
               <div className="flex flex-wrap gap-4">
                 <Link
-                  to="#"
+                  to="/xlr8"
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
                 >
-                  Coming Soon...
-                  {/* <ArrowRight size={16} className="ml-2" /> */}
+                  Details
+                  <ArrowRight size={16} className="ml-2" />
                 </Link>
               </div>
             </div>

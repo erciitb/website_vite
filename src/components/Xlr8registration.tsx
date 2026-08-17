@@ -476,6 +476,7 @@ export default function XLR8Registration() {
             Register your team below and claim your spot
             on the starting grid!
           </p>
+
         </div>
 
         {/* Progress Navigation */}
@@ -1214,11 +1215,10 @@ export default function XLR8Registration() {
             </div>
 
             {/* PAYMENT SCANNERS */}
-            <div className="w-full flex justify-center">
-              <div className="w-full max-w-sm bg-slate-900/60 border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+              <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
                 <p className="text-sm font-semibold text-cyan-300 mb-4">
-                  Pay Rs. 1,800 using the QR code below
+                  Scanner 1
                 </p>
 
                 <img
@@ -1226,13 +1226,10 @@ export default function XLR8Registration() {
                   alt="Scanner 1 - ₹1,800 Payment"
                   className="w-full max-w-xs rounded-xl object-contain"
                 />
-
               </div>
-            </div>
 
-              {/* <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-4 flex flex-col items-center">
-
-                <p className="text-sm font-semibold text-cyan-300 mb-3">
+              <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
+                <p className="text-sm font-semibold text-cyan-300 mb-4">
                   Scanner 2
                 </p>
 
@@ -1241,8 +1238,8 @@ export default function XLR8Registration() {
                   alt="Scanner 2 - ₹1,800 Payment"
                   className="w-full max-w-xs rounded-xl object-contain"
                 />
-
-              </div> */}
+              </div>
+            </div>
 
             {/* SUBMISSION LINKS */}
             <div
