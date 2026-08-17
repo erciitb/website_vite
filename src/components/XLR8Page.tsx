@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Zap,
   Users,
   Cpu,
   Wrench,
@@ -11,7 +10,8 @@ import {
   Hash,
   Lock,
   Video,
-  LogOut
+  LogOut,
+  LayoutDashboard
 } from 'lucide-react';
 
 import CenterLogo from '../assets/newcenterlogo.png';
@@ -132,7 +132,8 @@ const SemicircularScrollGallery: React.FC = () => {
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const totalScrollableHeight = rect.height - window.innerHeight;
+      const totalScrollableHeight =
+        rect.height - window.innerHeight;
 
       if (totalScrollableHeight <= 0) return;
 
@@ -726,22 +727,6 @@ const XLR8: React.FC = () => {
               learn, and excel.
             </p>
 
-            {/* XLR8 INFO
-
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
-
-              <a
-                href="https://erc-xlr8.notion.site/xlr8-home-25"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-md transition-all text-lg font-medium font-heading text-white shadow-lg hover:shadow-indigo-500/25"
-              >
-                XLR8 Info
-              </a>
-
-            </div> */}
-
-
             {/* =========================================================
                 PARTICIPANT CARD
                 ONLY SHOWN WHEN LOGGED IN
@@ -784,7 +769,6 @@ const XLR8: React.FC = () => {
 
                     </div>
 
-
                     {/* ACCOUNT STATUS */}
 
                     <div className="flex flex-col sm:items-end gap-3 shrink-0">
@@ -812,14 +796,16 @@ const XLR8: React.FC = () => {
                         onClick={logout}
                         className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-200 text-sm font-semibold"
                       >
+
                         <LogOut className="w-4 h-4" />
+
                         Logout
+
                       </button>
 
                     </div>
 
                   </div>
-
 
                   {/* DETAILS */}
 
@@ -842,7 +828,6 @@ const XLR8: React.FC = () => {
                       </div>
 
                     </div>
-
 
                     <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-amber-500/30 transition-colors">
 
@@ -870,7 +855,6 @@ const XLR8: React.FC = () => {
 
             )}
 
-
             {/* =========================================================
                 ACTION BUTTONS
                 ALWAYS VISIBLE
@@ -878,66 +862,76 @@ const XLR8: React.FC = () => {
 
             <div className="mt-8 w-full max-w-5xl mx-auto flex flex-col sm:flex-row justify-center gap-4">
 
-              {/* REGISTER NOW */}
+              {/* =====================================================
+                  PARTICIPATION DASHBOARD
+              ===================================================== */}
 
               <a
-                href="/xlr8registration"
-                className="w-full sm:w-auto min-w-[220px] px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold font-heading text-lg rounded-xl shadow-[0_8px_25px_rgba(244,63,94,0.25)] hover:shadow-[0_10px_35px_rgba(244,63,94,0.4)] transition-all duration-300 flex items-center justify-center gap-3 border border-rose-400/30 hover:-translate-y-1"
+                href="/xlr8participants"
+                className="group relative w-full sm:w-auto min-w-[280px] px-6 py-4 rounded-2xl overflow-hidden bg-slate-900/90 border border-cyan-400/30 hover:border-cyan-300/70 shadow-[0_8px_30px_rgba(6,182,212,0.10)] hover:shadow-[0_12px_40px_rgba(6,182,212,0.25)] transition-all duration-300 hover:-translate-y-1"
               >
 
-                <Zap className="w-5 h-5 fill-current text-white" />
-
-                <span>
-                  Register Now
-                </span>
-
-              </a>
-
-
-              {/* FIND YOUR TEAM */}
-
-              <a
-                href="/findyourteam"
-                className="group relative w-full sm:w-auto min-w-[220px] px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:via-blue-500/30 hover:to-indigo-500/30 text-white font-bold font-heading text-lg shadow-[0_8px_25px_rgba(6,182,212,0.12)] hover:shadow-[0_10px_35px_rgba(6,182,212,0.25)] transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-400/40 hover:border-cyan-300/70 hover:-translate-y-1"
-              >
-
-                {/* Hover sweep */}
-
-                {/* <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" /> */}
-
-                {/* Decorative glow
-
-                <div className="absolute top-1 right-3 w-1.5 h-1.5 rounded-full bg-cyan-300 opacity-70" />
-
-                <div className="absolute bottom-2 left-4 w-1 h-1 rounded-full bg-blue-300 opacity-60" /> */}
-
-                {/* Icon */}
+                {/* Animated glow sweep */}
 
                 <div
-                  className="relative w-9 h-9 rounded-lg
-                  bg-cyan-400/10 border border-cyan-400/30
-                  flex items-center justify-center
-                  group-hover:border-cyan-400/60
-                  group-hover:bg-cyan-400/15
-                  transition-all duration-300"
-                >
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none"
+                />
 
-                  <Users className="w-5 h-5 text-cyan-300" />
+                {/* Top glow */}
 
-                </div>
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-px bg-cyan-400/60 blur-sm group-hover:w-48 transition-all duration-500"
+                />
 
-                {/* Text */}
+                <div className="relative flex items-center gap-4">
 
-                <div className="relative text-left leading-tight">
+                  {/* Icon */}
 
-                  <span className="block text-base sm:text-lg font-bold">
-                    Find Your Team
-                  </span>
+                  <div
+                    className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-cyan-400/20 to-blue-500/10 border border-cyan-400/30 flex items-center justify-center shadow-[inset_0_0_15px_rgba(6,182,212,0.08)] group-hover:bg-cyan-400/20 group-hover:border-cyan-300/60 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.20)] transition-all duration-300"
+                  >
+
+                    <LayoutDashboard
+                      className="w-6 h-6 text-cyan-300 group-hover:text-cyan-200 group-hover:scale-110 transition-all duration-300"
+                    />
+
+                  </div>
+
+                  {/* Text */}
+
+                  <div className="flex-1 text-left">
+
+                    <div className="flex items-center gap-2">
+
+                      <span className="text-base sm:text-lg font-bold text-white">
+                        Participation Dashboard
+                      </span>
+
+                      {/* <span
+                        className="text-[9px] font-mono font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-cyan-400/10 border border-cyan-400/20 text-cyan-400"
+                      >
+                        LIVE
+                      </span> */}
+
+                    </div>
+
+                    <span className="block text-xs text-slate-400 mt-0.5 font-medium tracking-wide">
+                      Track your XLR8 journey
+                    </span>
+
+                  </div>
+
+                  {/* Arrow */}
+
+                  {/* <div
+                    className="w-8 h-8 rounded-lg border border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-cyan-300 group-hover:border-cyan-400/40 group-hover:translate-x-1 transition-all duration-300"
+                  >
+                    →
+                  </div> */}
 
                 </div>
 
               </a>
-
 
               {/* =====================================================
                   CONVENER PORTAL
@@ -948,13 +942,47 @@ const XLR8: React.FC = () => {
 
                 <a
                   href="/xlr8conveners"
-                  className="w-full sm:w-auto min-w-[220px] px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-800/60 hover:border-cyan-500/70 hover:-translate-y-1"
+                  className="group relative w-full sm:w-auto min-w-[240px] px-6 py-4 rounded-2xl bg-slate-900/90 border border-slate-700 hover:border-purple-400/50 shadow-lg hover:shadow-[0_10px_35px_rgba(168,85,247,0.15)] transition-all duration-300 hover:-translate-y-1 flex items-center gap-4 overflow-hidden"
                 >
 
-                  <Lock className="w-5 h-5 text-cyan-400" />
+                  {/* Hover glow */}
 
-                  <span>
-                    Convener Portal
+                  <div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"
+                  />
+
+                  {/* Icon */}
+
+                  <div
+                    className="w-12 h-12 shrink-0 rounded-xl bg-purple-500/10 border border-purple-400/25 flex items-center justify-center group-hover:bg-purple-500/15 group-hover:border-purple-400/50 transition-all duration-300"
+                  >
+
+                    <Lock
+                      className="w-5 h-5 text-purple-400 group-hover:text-purple-300 group-hover:scale-110 transition-all duration-300"
+                    />
+
+                  </div>
+
+                  {/* Text */}
+
+                  <div className="flex-1 text-left">
+
+                    <span className="block text-base sm:text-lg font-bold text-white">
+                      Convener Portal
+                    </span>
+
+                    <span className="block text-xs text-slate-500 mt-0.5">
+                      Event management access
+                    </span>
+
+                  </div>
+
+                  {/* Arrow */}
+
+                  <span
+                    className="text-slate-600 group-hover:text-purple-400 group-hover:translate-x-1 transition-all duration-300"
+                  >
+                    →
                   </span>
 
                 </a>
@@ -969,13 +997,11 @@ const XLR8: React.FC = () => {
 
       </section>
 
-
       {/* =========================================================
           SCROLL GALLERY
       ========================================================= */}
 
       <SemicircularScrollGallery />
-
 
       {/* =========================================================
           AFTER MOVIE
@@ -1014,7 +1040,6 @@ const XLR8: React.FC = () => {
         </div>
 
       </section>
-
 
       {/* =========================================================
           TIMELINE
