@@ -4,19 +4,13 @@ import {
   Users,
   Phone,
   Mail,
-  Hash,
+  BadgeCheck,
   Car,
   Package,
   Wrench,
-  Code2,
-  Bug,
-  Flag,
   Trophy,
   CheckCircle2,
   Circle,
-  CalendarDays,
-  Clock3,
-  MapPin,
   ShieldCheck,
   AlertCircle,
   RefreshCw,
@@ -27,15 +21,11 @@ import { useAuth, logout } from '../hooks/useAuth';
 
 /* =========================================================
    APPS SCRIPT URLS
-
-   SAME BACKENDS USED BY YOUR XLR8 REGISTRATION WORKFLOW
 ========================================================= */
 
-// Registration Sheet backend
 const REGISTRATION_API_URL =
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
 
-// Kit Distribution backend
 const KIT_API_URL =
   'https://script.google.com/macros/s/AKfycbx9luLGT0Q8rAs_3TbBA-oXjsoq8acUVV07hkefGVlzFjB3n_0qtlWcecT2M3b6k7k2/exec';
 
@@ -169,107 +159,32 @@ const getInitials = (name?: string) => {
     .toUpperCase();
 };
 
-const formatDate = (date?: string) => {
-  if (!date) return '';
-
-  const parsed = new Date(date);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return date;
-  }
-
-  return parsed.toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-};
-
 /* =========================================================
-   PROGRESS
-========================================================= */
-
-const PROGRESS_STEPS = [
-  {
-    key: 'registration',
-    title: 'Registration',
-    description: 'Team registration and participant verification',
-    icon: Users,
-  },
-  {
-    key: 'electricalKit',
-    title: 'Electrical Kit Collection',
-    description: 'Collect your XLR8 electrical hardware kit',
-    icon: Package,
-  },
-  {
-    key: 'softwareSession',
-    title: 'Software Session',
-    description: 'Get into the world of microcontrollers and programming',
-    icon: Code2,
-  },
-  {
-    key: 'solderingSession',
-    title: 'Soldering Session',
-    description: 'Learn to solder',
-    icon: Wrench,
-  },
-  {
-    key: 'mechanicalKit',
-    title: 'Mechanical Kit Collection',
-    description: 'Collect your XLR8 mechanical hardware kit',
-    icon: Package,
-  },
-  {
-    key: 'debuggingSession',
-    title: 'Debugging Session',
-    description: 'Debug and optimize your bot',
-    icon: Bug,
-  },
-  {
-    key: 'checkpoint',
-    title: 'Checkpoint',
-    description: 'Submit your bot for technical inspection',
-    icon: Flag,
-  },
-  {
-    key: 'finalRace',
-    title: 'Final Race',
-    description: 'Take your bot to the final showdown',
-    icon: Trophy,
-  },
-];
-
-/* =========================================================
-   LOGISTICS CARDS
+   LOGISTICS
 ========================================================= */
 
 const LOGISTICS = [
   {
     key: 'electricalKit',
     label: 'Electrical Kit',
-    shortLabel: '',
     icon: Package,
     accent: 'amber',
   },
   {
     key: 'mechanicalKit',
     label: 'Mechanical Kit',
-    shortLabel: '',
     icon: Package,
     accent: 'cyan',
   },
   {
     key: 'solderingSession',
     label: 'Soldering Session',
-    shortLabel: '',
     icon: Wrench,
     accent: 'rose',
   },
   {
     key: 'finalRace',
     label: 'Final Race',
-    shortLabel: '',
     icon: Trophy,
     accent: 'purple',
   },
@@ -324,14 +239,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
   };
 
   const [team, setTeam] = useState<TeamData | null>(null);
-
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [error, setError] = useState('');
 
   /* =======================================================
-     FETCH REGISTRATION DATA
+     FETCH TEAM DATA
   ======================================================= */
 
   const fetchTeamData = async () => {
@@ -403,10 +316,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
         : [];
 
       /* =====================================================
-         KIT STATUS
-
-         Backend call is retained, but kit/slot UI is
-         currently kept as "To Be Announced".
+         KIT BACKEND
       ===================================================== */
 
       try {
@@ -449,9 +359,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
       }
 
       /* =====================================================
-         BUILD TEAM OBJECT
-
-         All logistics dates / slots are currently TBA.
+         BUILD TEAM
       ===================================================== */
 
       const resolvedTeam: TeamData = {
@@ -464,10 +372,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
           data.vehicleNumber ||
           'Not Assigned',
 
-        registrationStatus:
-          data.found
-            ? 'Completed'
-            : 'Not Found',
+        registrationStatus: 'Completed',
 
         registeredAt: '',
 
@@ -566,29 +471,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
   }, [team]);
 
   /* =======================================================
-     STEP STATUS
-  ======================================================= */
-
-  const getStepStatus = (
-    key: string
-  ):
-    | 'completed'
-    | 'current'
-    | 'upcoming' => {
-
-    if (
-      key === 'registration'
-    ) {
-      return team
-        ? 'completed'
-        : 'upcoming';
-    }
-
-    // All other stages are currently TBA.
-    return 'upcoming';
-  };
-
-  /* =======================================================
      LOGOUT
   ======================================================= */
 
@@ -615,20 +497,30 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
-          <h1 className="text-2xl font-bold font-heading">
+          <h1 className="text-3xl font-bold font-heading">
             Participant Login Required
           </h1>
 
-          <p className="text-sm text-slate-400 mt-3 leading-relaxed">
+          <p className="text-base text-slate-400 mt-3 leading-relaxed">
             Please login using your ITC SSO account to access your XLR8 participant dashboard.
           </p>
 
           <button
             onClick={() => {
-              window.location.href =
-                '/xlr8';
+              window.location.href = '/xlr8';
             }}
-            className="mt-6 w-full rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 transition"
+            className="
+              mt-6
+              w-full
+              rounded-xl
+              bg-cyan-500
+              hover:bg-cyan-400
+              text-slate-950
+              font-bold
+              text-base
+              py-3.5
+              transition
+            "
           >
             Return to XLR8
           </button>
@@ -656,8 +548,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
-          <p className="mt-5 text-sm text-slate-400 font-mono">
-            LOADING XLR8 RECORDS...
+          <p className="mt-5 text-base text-slate-400 font-mono">
+            LOADING...
           </p>
 
         </div>
@@ -717,7 +609,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
           px-4
           sm:px-6
           lg:px-8
-          pb-12
+          pb-16
         "
       >
 
@@ -732,8 +624,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
             sm:flex-row
             sm:items-center
             justify-between
-            gap-4
-            mb-6
+            gap-5
+            mb-8
           "
         >
 
@@ -741,23 +633,43 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
             <div className="flex items-center gap-2">
 
-              <span className="text-[20px] font-mono tracking-[0.25em] text-cyan-400 uppercase">
+              <span
+                className="
+                  text-[22px]
+                  sm:text-[24px]
+                  font-mono
+                  tracking-[0.25em]
+                  text-cyan-400
+                  uppercase
+                "
+              >
                 XLR8 2026
               </span>
 
-              {/* <span className="w-1 h-1 rounded-full bg-slate-600" /> */}
-
-              {/* <span className="text-[10px] font-mono tracking-[0.2em] text-slate-500 uppercase">
-                Participant Portal
-              </span> */}
-
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold font-heading mt-2">
+            <h1
+              className="
+                text-3xl
+                sm:text-4xl
+                lg:text-5xl
+                font-extrabold
+                font-heading
+                mt-2
+                tracking-tight
+              "
+            >
               Participant Dashboard
             </h1>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p
+              className="
+                text-base
+                sm:text-lg
+                text-slate-400
+                mt-2
+              "
+            >
               Your team, kits, sessions and race information in one place.
             </p>
 
@@ -773,12 +685,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 items-center
                 gap-2
                 px-4
-                py-2.5
+                py-3
                 rounded-xl
                 bg-slate-900
                 border
                 border-slate-800
                 hover:border-cyan-500/30
+                text-base
                 text-slate-300
                 hover:text-cyan-400
                 transition
@@ -786,7 +699,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             >
 
               <RefreshCw
-                className={`w-4 h-4 ${
+                className={`w-5 h-5 ${
                   refreshing
                     ? 'animate-spin'
                     : ''
@@ -806,11 +719,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 items-center
                 gap-2
                 px-4
-                py-2.5
+                py-3
                 rounded-xl
                 bg-rose-500/5
                 border
                 border-rose-500/20
+                text-base
                 text-rose-400
                 hover:bg-rose-500
                 hover:text-white
@@ -818,7 +732,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               "
             >
 
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-5 h-5" />
 
               <span className="hidden sm:inline">
                 Logout
@@ -837,13 +751,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
         {error && (
           <div
             className="
-              mb-6
+              mb-7
               rounded-xl
               border
               border-amber-500/20
               bg-amber-500/5
-              px-4
-              py-3
+              px-5
+              py-4
               flex
               items-start
               gap-3
@@ -854,7 +768,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
             <div className="flex-1">
 
-              <p className="text-xs sm:text-sm text-amber-200/80">
+              <p className="text-sm sm:text-base text-amber-200/80">
                 {error}
               </p>
 
@@ -862,7 +776,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 onClick={handleRefresh}
                 className="
                   mt-2
-                  text-xs
+                  text-sm
                   font-semibold
                   text-amber-400
                   hover:text-amber-300
@@ -888,7 +802,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             border-slate-800
             shadow-2xl
             overflow-hidden
-            mb-6
+            mb-7
           "
         >
 
@@ -896,9 +810,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           <div
             className="
-              px-5
-              sm:px-7
-              py-5
+              px-6
+              sm:px-8
+              py-6
               border-b
               border-slate-800
               bg-slate-950/30
@@ -912,7 +826,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 lg:flex-row
                 lg:items-center
                 justify-between
-                gap-5
+                gap-6
               "
             >
 
@@ -920,8 +834,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                 <div
                   className="
-                    w-14
-                    h-14
+                    w-16
+                    h-16
                     rounded-2xl
                     bg-cyan-500/10
                     border
@@ -932,7 +846,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   "
                 >
 
-                  <Users className="w-7 h-7 text-cyan-400" />
+                  <Users className="w-8 h-8 text-cyan-400" />
 
                 </div>
 
@@ -940,7 +854,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <p
                     className="
-                      text-[10px]
+                      text-[11px]
                       font-mono
                       tracking-[0.2em]
                       text-cyan-400
@@ -952,8 +866,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <h2
                     className="
-                      text-xl
-                      sm:text-2xl
+                      text-3xl
+                      sm:text-4xl
                       font-bold
                       font-heading
                       mt-1
@@ -966,14 +880,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
 
                 {/* REGISTRATION */}
 
                 <div
                   className="
-                    px-3
-                    py-2
+                    px-4
+                    py-3
                     rounded-lg
                     bg-emerald-500/5
                     border
@@ -983,7 +897,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <p
                     className="
-                      text-[9px]
+                      text-[10px]
                       text-slate-500
                       uppercase
                       font-mono
@@ -994,17 +908,17 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <p
                     className="
-                      text-xs
+                      text-sm
                       font-bold
                       text-emerald-400
-                      mt-0.5
+                      mt-1
                       flex
                       items-center
-                      gap-1
+                      gap-1.5
                     "
                   >
 
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <CheckCircle2 className="w-4 h-4" />
 
                     COMPLETED
 
@@ -1016,8 +930,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                 <div
                   className="
-                    px-3
-                    py-2
+                    px-4
+                    py-3
                     rounded-lg
                     bg-slate-950/70
                     border
@@ -1027,7 +941,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <p
                     className="
-                      text-[9px]
+                      text-[10px]
                       text-slate-500
                       uppercase
                       font-mono
@@ -1038,18 +952,18 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <p
                     className="
-                      text-xs
+                      text-sm
                       font-bold
                       text-white
-                      mt-0.5
+                      mt-1
                       font-mono
                       flex
                       items-center
-                      gap-1
+                      gap-1.5
                     "
                   >
 
-                    <Car className="w-3.5 h-3.5 text-cyan-400" />
+                    <Car className="w-4 h-4 text-cyan-400" />
 
                     {safe(team?.vehicleNo)}
 
@@ -1061,8 +975,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                 <div
                   className="
-                    px-3
-                    py-2
+                    px-4
+                    py-3
                     rounded-lg
                     bg-slate-950/70
                     border
@@ -1072,29 +986,29 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                   <p
                     className="
-                      text-[9px]
+                      text-[10px]
                       text-slate-500
                       uppercase
                       font-mono
                     "
                   >
-                    Your Roll
+                    Roll Number
                   </p>
 
                   <p
                     className="
-                      text-xs
+                      text-sm
                       font-bold
                       text-white
-                      mt-0.5
+                      mt-1
                       font-mono
                       flex
                       items-center
-                      gap-1
+                      gap-1.5
                     "
                   >
 
-                    <Hash className="w-3.5 h-3.5 text-cyan-400" />
+                    <BadgeCheck className="w-4 h-4 text-cyan-400" />
 
                     {safe(user.roll)}
 
@@ -1112,46 +1026,31 @@ const XLR8ParticipantDashboard: React.FC = () => {
               TEAM MEMBERS
           ================================================= */}
 
-          <div className="p-5 sm:p-7">
+          <div className="p-6 sm:p-8">
 
             <div
               className="
                 flex
                 items-center
                 justify-between
-                mb-4
+                mb-5
               "
             >
 
               <div>
 
-                {/* <p
+                <h3
                   className="
-                    text-[10px]
-                    font-mono
-                    tracking-[0.2em]
-                    text-slate-500
-                    uppercase
+                    text-2xl
+                    sm:text-3xl
+                    font-bold
+                    mt-1
                   "
                 >
-                  Team Roster
-                </p> */}
-
-                <h3 className="text-lg font-bold mt-1">
                   Team Members
                 </h3>
 
               </div>
-
-              {/* <span
-                className="
-                  text-xs
-                  font-mono
-                  text-slate-500
-                "
-              >
-                {members.length}/4 MEMBERS
-              </span> */}
 
             </div>
 
@@ -1161,7 +1060,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 grid-cols-1
                 sm:grid-cols-2
                 xl:grid-cols-4
-                gap-3
+                gap-4
               "
             >
 
@@ -1178,7 +1077,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       bg-slate-950/60
                       border
                       border-slate-800
-                      p-4
+                      p-5
                       hover:border-cyan-500/20
                       transition
                     "
@@ -1189,14 +1088,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         flex
                         items-center
                         gap-3
-                        mb-4
+                        mb-5
                       "
                     >
 
                       <div
                         className="
-                          w-10
-                          h-10
+                          w-12
+                          h-12
                           rounded-xl
                           bg-slate-800
                           border
@@ -1204,7 +1103,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           flex
                           items-center
                           justify-center
-                          text-sm
+                          text-base
                           font-bold
                           text-cyan-400
                         "
@@ -1218,7 +1117,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                         <p
                           className="
-                            text-sm
+                            text-lg
+                            sm:text-xl
                             font-bold
                             text-white
                             truncate
@@ -1231,7 +1131,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                         <p
                           className="
-                            text-[10px]
+                            text-sm
+                            sm:text-base
                             font-mono
                             text-cyan-400
                             uppercase
@@ -1247,18 +1148,18 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
 
                       <div
                         className="
                           flex
                           items-center
                           gap-2
-                          text-xs
+                          text-sm
                         "
                       >
 
-                        <Hash className="w-3.5 h-3.5 text-slate-500" />
+                        <BadgeCheck className="w-4 h-4 text-cyan-400/70" />
 
                         <span
                           className="
@@ -1280,14 +1181,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             flex
                             items-center
                             gap-2
-                            text-xs
+                            text-sm
                             text-slate-400
                             hover:text-cyan-400
                             transition
                           "
                         >
 
-                          <Phone className="w-3.5 h-3.5 text-slate-500" />
+                          <Phone className="w-4 h-4 text-slate-500" />
 
                           {member.phone}
 
@@ -1301,7 +1202,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             flex
                             items-center
                             gap-2
-                            text-xs
+                            text-sm
                             text-slate-400
                             hover:text-cyan-400
                             transition
@@ -1309,7 +1210,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           "
                         >
 
-                          <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <Mail className="w-4 h-4 text-slate-500 shrink-0" />
 
                           <span className="truncate">
                             {member.email}
@@ -1332,638 +1233,213 @@ const XLR8ParticipantDashboard: React.FC = () => {
         </section>
 
         {/* =================================================
-            PROGRESS + LOGISTICS
+            KITS & SLOTS
         ================================================= */}
 
-        <div
-          className="
-            grid
-            grid-cols-1
-            lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]
-            gap-5
-            items-start
-          "
-        >
+        <section className="space-y-4">
 
-          {/* =================================================
-              PROGRESS
-          ================================================= */}
+          <div className="px-1 mb-3">
 
-          <section
-            className="
-              rounded-2xl
-              bg-slate-900/80
-              border
-              border-slate-800
-              shadow-2xl
-              overflow-hidden
-            "
-          >
-
-            <div
+            <h2
               className="
-                px-5
-                sm:px-7
-                py-5
-                border-b
-                border-slate-800
+                text-2xl
+                sm:text-3xl
+                font-bold
+                font-heading
+                mt-1
               "
             >
+              Kits & Slots
+            </h2>
 
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-4
-                "
-              >
+            <p
+              className="
+                text-sm
+                sm:text-base
+                text-slate-500
+                mt-1.5
+              "
+            >
+              Your collection, session and race details.
+            </p>
 
-                <div>
+          </div>
 
-                  <p
-                    className="
-                      text-[10px]
-                      font-mono
-                      tracking-[0.2em]
-                      text-cyan-400
-                      uppercase
-                    "
+          {LOGISTICS.map(
+            (item) => {
+
+              const Icon = item.icon;
+
+              const info =
+                team?.logistics?.[
+                  item.key as keyof NonNullable<
+                    TeamData['logistics']
                   >
-                    Journey
-                  </p>
+                ];
 
-                  <h2
-                    className="
-                      text-xl
-                      sm:text-2xl
-                      font-bold
-                      font-heading
-                      mt-1
-                    "
-                  >
-                    XLR8 Progress
-                  </h2>
+              const accent =
+                accentClasses[
+                  item.accent as keyof typeof accentClasses
+                ];
 
-                </div>
+              const status =
+                normalizeStatus(
+                  info?.status
+                );
 
+              return (
                 <div
-                  className="
-                    hidden
-                    sm:block
-                    text-right
-                  "
+                  key={item.key}
+                  className={`
+                    rounded-2xl
+                    bg-slate-900/80
+                    border
+                    ${accent.border}
+                    ${accent.glow}
+                    p-5
+                    sm:p-6
+                    transition
+                    hover:-translate-y-0.5
+                  `}
                 >
 
-                  <p
-                    className="
-                      text-[9px]
-                      font-mono
-                      text-slate-500
-                      uppercase
-                    "
-                  >
-                    Current Stage
-                  </p>
+                  {/* HEADER */}
 
-                  <p
-                    className="
-                      text-xs
-                      font-bold
-                      text-cyan-400
-                      mt-1
-                    "
-                  >
-                    BUILD PHASE
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            <div className="p-5 sm:p-7">
-
-              <div className="relative">
-
-                <div
-                  className="
-                    absolute
-                    left-[19px]
-                    top-6
-                    bottom-6
-                    w-px
-                    bg-slate-800
-                  "
-                />
-
-                <div className="space-y-3">
-
-                  {PROGRESS_STEPS.map(
-                    (step) => {
-
-                      const status =
-                        getStepStatus(
-                          step.key
-                        );
-
-                      const Icon =
-                        step.icon;
-
-                      const completed =
-                        status ===
-                        'completed';
-
-                      const current =
-                        status ===
-                        'current';
-
-                      return (
-                        <div
-                          key={step.key}
-                          className={`
-                            relative
-                            flex
-                            items-center
-                            gap-4
-                            p-3
-                            sm:p-4
-                            rounded-xl
-                            border
-                            transition-all
-                            ${
-                              completed
-                                ? 'bg-emerald-500/[0.035] border-emerald-500/15'
-                                : current
-                                ? 'bg-cyan-500/[0.035] border-cyan-500/20'
-                                : 'bg-transparent border-transparent hover:bg-slate-950/40'
-                            }
-                          `}
-                        >
-
-                          {/* ICON */}
-
-                          <div
-                            className={`
-                              relative
-                              z-10
-                              shrink-0
-                              w-10
-                              h-10
-                              rounded-xl
-                              flex
-                              items-center
-                              justify-center
-                              border
-                              ${
-                                completed
-                                  ? 'bg-emerald-500/10 border-emerald-500/30'
-                                  : current
-                                  ? 'bg-cyan-500/10 border-cyan-500/30'
-                                  : 'bg-slate-900 border-slate-700'
-                              }
-                            `}
-                          >
-
-                            {completed ? (
-                              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                            ) : current ? (
-                              <Icon className="w-5 h-5 text-cyan-400" />
-                            ) : (
-                              <Icon className="w-5 h-5 text-slate-500" />
-                            )}
-
-                          </div>
-
-                          {/* TEXT */}
-
-                          <div className="min-w-0 flex-1">
-
-                            <h3
-                              className={`
-                                text-sm
-                                sm:text-base
-                                font-bold
-                                ${
-                                  completed ||
-                                  current
-                                    ? 'text-white'
-                                    : 'text-slate-300'
-                                }
-                              `}
-                            >
-                              {step.title}
-                            </h3>
-
-                            <p
-                              className="
-                                text-xs
-                                text-slate-500
-                                mt-1
-                              "
-                            >
-                              {step.description}
-                            </p>
-
-                          </div>
-
-                          {/* STATUS */}
-
-                          <div className="shrink-0">
-
-                            {completed ? (
-                              <span
-                                className="
-                                  inline-flex
-                                  items-center
-                                  gap-1.5
-                                  px-2.5
-                                  py-1
-                                  rounded-lg
-                                  bg-emerald-500/10
-                                  border
-                                  border-emerald-500/20
-                                  text-[10px]
-                                  font-semibold
-                                  text-emerald-400
-                                "
-                              >
-
-                                <CheckCircle2 className="w-3 h-3" />
-
-                                COMPLETED
-
-                              </span>
-                            ) : current ? (
-                              <span
-                                className="
-                                  inline-flex
-                                  items-center
-                                  gap-1.5
-                                  px-2.5
-                                  py-1
-                                  rounded-lg
-                                  bg-cyan-500/10
-                                  border
-                                  border-cyan-500/20
-                                  text-[10px]
-                                  font-semibold
-                                  text-cyan-400
-                                "
-                              >
-
-                                <Circle className="w-3 h-3 fill-current" />
-
-                                CURRENT
-
-                              </span>
-                            ) : (
-                              <span
-                                className="
-                                  inline-flex
-                                  items-center
-                                  gap-1.5
-                                  px-2.5
-                                  py-1
-                                  rounded-lg
-                                  bg-indigo-500/5
-                                  border
-                                  border-indigo-500/15
-                                  text-[10px]
-                                  font-semibold
-                                  text-indigo-400
-                                "
-                              >
-
-                                <Circle className="w-3 h-3" />
-
-                                TO BE ANNOUNCED
-
-                              </span>
-                            )}
-
-                          </div>
-
-                        </div>
-                      );
-                    }
-                  )}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </section>
-
-          {/* =================================================
-              LOGISTICS
-          ================================================= */}
-
-          <section className="space-y-3">
-
-            <div className="px-1 mb-2">
-
-              <h2
-                className="
-                  text-xl
-                  font-bold
-                  font-heading
-                  mt-1
-                "
-              >
-                Kits & Slots
-              </h2>
-
-              <p
-                className="
-                  text-xs
-                  text-slate-500
-                  mt-1
-                "
-              >
-                Your collection, session and race details.
-              </p>
-
-            </div>
-
-            {LOGISTICS.map(
-              (item) => {
-
-                const Icon =
-                  item.icon;
-
-                const info =
-                  team?.logistics?.[
-                    item.key as keyof NonNullable<
-                      TeamData['logistics']
-                    >
-                  ];
-
-                const accent =
-                  accentClasses[
-                    item.accent as keyof typeof accentClasses
-                  ];
-
-                const status =
-                  normalizeStatus(
-                    info?.status
-                  );
-
-                /*
-                 * Currently every logistics item is TBA.
-                 */
-                const isTBA = true;
-
-                return (
                   <div
-                    key={item.key}
-                    className={`
-                      rounded-2xl
-                      bg-slate-900/80
-                      border
-                      ${accent.border}
-                      ${accent.glow}
-                      p-4
-                      sm:p-5
-                      transition
-                      hover:-translate-y-0.5
-                    `}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      gap-4
+                    "
                   >
-
-                    {/* HEADER */}
 
                     <div
                       className="
                         flex
                         items-center
-                        justify-between
+                        gap-4
+                        min-w-0
+                      "
+                    >
+
+                      <div
+                        className={`
+                          w-12
+                          h-12
+                          rounded-xl
+                          ${accent.iconBg}
+                          border
+                          ${accent.iconBorder}
+                          flex
+                          items-center
+                          justify-center
+                          shrink-0
+                        `}
+                      >
+
+                        <Icon
+                          className={`
+                            w-6
+                            h-6
+                            ${accent.icon}
+                          `}
+                        />
+
+                      </div>
+
+                      <div className="min-w-0">
+
+                        <h3
+                          className="
+                            text-base
+                            sm:text-lg
+                            font-bold
+                            text-white
+                            truncate
+                          "
+                        >
+                          {item.label}
+                        </h3>
+
+                      </div>
+
+                    </div>
+
+                    <span
+                      className="
+                        shrink-0
+                        text-[10px]
+                        sm:text-xs
+                        font-semibold
+                        uppercase
+                        tracking-wide
+                        px-3
+                        py-1.5
+                        rounded-md
+                        bg-indigo-500/5
+                        text-indigo-400
+                        border
+                        border-indigo-500/15
+                      "
+                    >
+                      TO BE ANNOUNCED
+                    </span>
+
+                  </div>
+
+                  {/* DETAILS */}
+
+                  <div
+                    className="
+                      mt-5
+                      rounded-xl
+                      bg-slate-950/70
+                      border
+                      border-slate-800
+                      p-4
+                    "
+                  >
+
+                    <div
+                      className="
+                        flex
+                        items-center
                         gap-3
                       "
                     >
 
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-3
-                          min-w-0
-                        "
-                      >
+                      <Circle className="w-5 h-5 text-slate-600" />
 
-                        <div
-                          className={`
-                            w-10
-                            h-10
-                            rounded-xl
-                            ${accent.iconBg}
-                            border
-                            ${accent.iconBorder}
-                            flex
-                            items-center
-                            justify-center
-                            shrink-0
-                          `}
+                      <div>
+
+                        <p
+                          className="
+                            text-sm
+                            sm:text-base
+                            font-semibold
+                            text-slate-300
+                          "
                         >
-
-                          <Icon
-                            className={`
-                              w-5
-                              h-5
-                              ${accent.icon}
-                            `}
-                          />
-
-                        </div>
-
-                        <div className="min-w-0">
-
-                          <p
-                            className="
-                              text-[9px]
-                              font-mono
-                              tracking-[0.16em]
-                              text-slate-500
-                              uppercase
-                            "
-                          >
-                            {item.shortLabel}
-                          </p>
-
-                          <h3
-                            className="
-                              text-sm
-                              font-bold
-                              text-white
-                              truncate
-                              mt-0.5
-                            "
-                          >
-                            {item.label}
-                          </h3>
-
-                        </div>
-
-                      </div>
-
-                      <span
-                        className="
-                          shrink-0
-                          text-[9px]
-                          font-semibold
-                          uppercase
-                          tracking-wide
-                          px-2
-                          py-1
-                          rounded-md
-                          bg-indigo-500/5
-                          text-indigo-400
-                          border
-                          border-indigo-500/15
-                        "
-                      >
-                        TO BE ANNOUNCED
-                      </span>
-
-                    </div>
-
-                    {/* DETAILS */}
-
-                    <div
-                      className="
-                        mt-4
-                        rounded-xl
-                        bg-slate-950/70
-                        border
-                        border-slate-800
-                        p-3
-                      "
-                    >
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          gap-3
-                        "
-                      >
-
-                        <Circle className="w-4 h-4 text-slate-600" />
-
-                        <div>
-
-                          <p
-                            className="
-                              text-xs
-                              font-semibold
-                              text-slate-300
-                            "
-                          >
-                            To Be Announced
-                          </p>
-
-                          {/* <p
-                            className="
-                              text-[10px]
-                              text-slate-600
-                              mt-0.5
-                            "
-                           >
-                           Details will be updated here once finalized.
-                           </p> */}
-
-                        </div>
+                          To Be Announced
+                        </p>
 
                       </div>
 
                     </div>
 
                   </div>
-                );
-              }
-            )}
 
-          </section>
+                </div>
+              );
+            }
+          )}
 
-        </div>
+        </section>
 
       </div>
 
     </main>
-  );
-};
-
-/* =========================================================
-   INFO ITEM
-========================================================= */
-
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  full?: boolean;
-}
-
-const InfoItem: React.FC<
-  InfoItemProps
-> = ({
-  icon,
-  label,
-  value,
-  full,
-}) => {
-  return (
-    <div
-      className={`
-        flex
-        items-start
-        gap-2
-        ${full ? 'col-span-2' : ''}
-      `}
-    >
-
-      <div
-        className="
-          text-slate-600
-          mt-0.5
-          [&>svg]:w-3.5
-          [&>svg]:h-3.5
-        "
-      >
-        {icon}
-      </div>
-
-      <div className="min-w-0">
-
-        <p
-          className="
-            text-[8px]
-            font-mono
-            uppercase
-            tracking-wider
-            text-slate-600
-          "
-        >
-          {label}
-        </p>
-
-        <p
-          className="
-            text-[11px]
-            font-semibold
-            text-slate-300
-            mt-0.5
-            truncate
-          "
-        >
-          {value}
-        </p>
-
-      </div>
-
-    </div>
   );
 };
 
