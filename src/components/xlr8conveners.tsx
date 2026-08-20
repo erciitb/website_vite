@@ -24,8 +24,7 @@ import {
 // - Roll number search
 // - Vehicle number search
 const SEARCH_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbz1VUbHq9eK0y9pZxSE_8_YvwmY_T2ZzKh1rB3T3QxSXH0YwughGwYHYfD-rE8SS0p6/exec';
-
+  'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec'
 // Kit Distribution Apps Script
 const KIT_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbw0H67jJU6OomSyWXpGyL3ubbdzIMBI-S5rU185yn4rbqKtk1QjP-NR_dTY29zjdrcd/exec';

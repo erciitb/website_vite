@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+
 import {
   Zap,
   Users,
@@ -7,12 +8,16 @@ import {
   Flag,
   Trophy,
   CheckCircle2,
-  BookOpen,
-  Hash,
   Lock,
-  Video,
-  LogOut
+  LogOut,
+  Gauge,
+  ChevronRight,
+  AlertCircle,
+  Loader2,
+  ShieldCheck,
 } from 'lucide-react';
+
+import { Link, useNavigate } from 'react-router-dom';
 
 import CenterLogo from '../assets/newcenterlogo.png';
 import bgImage from '../assets/bg.jpeg';
@@ -23,6 +28,11 @@ import xlr83 from '../assets/xlr83.jpg';
 import xlr84 from '../assets/xlr84.jpg';
 
 import { useAuth, logout } from '../hooks/useAuth';
+import { XLR8_SSO_URL } from '../config/sso';
+
+/* =========================================================
+   SSO USER
+========================================================= */
 
 interface SSOUser {
   name: string;
@@ -31,6 +41,17 @@ interface SSOUser {
   degree: string;
   passing_year: number;
 }
+
+/* =========================================================
+   FINAL XLR8 REGISTRATION API
+========================================================= */
+
+const FINAL_REG_CHECK_URL =
+  'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
+
+/* =========================================================
+   SCROLL GALLERY
+========================================================= */
 
 interface ArcImageConfig {
   id: number;
@@ -55,13 +76,13 @@ const SCROLL_SEQUENCE: ArcImageConfig[] = [
     description:
       'Step into the institute’s most legendary freshman battleground. XLR8 isn’t just a race—it’s where hundreds of squads collide, engines roar, and campus legacies are born.',
     side: 'left',
-    start: 0.000,
-    end: 0.250,
+    start: 0.0,
+    end: 0.25,
     image: xlr81,
     badgeBg: 'bg-cyan-500/10',
     badgeText: 'text-cyan-400',
     badgeBorder: 'border-cyan-500/20',
-    cardBorder: 'border-cyan-500/50'
+    cardBorder: 'border-cyan-500/50',
   },
   {
     id: 2,
@@ -70,13 +91,13 @@ const SCROLL_SEQUENCE: ArcImageConfig[] = [
     description:
       'Zero robotics experience? That’s where the magic starts. Armed with ERC mentorship, late-night soldering sessions, and sheer grit, watch your first-ever bot come alive.',
     side: 'right',
-    start: 0.250,
-    end: 0.500,
+    start: 0.25,
+    end: 0.5,
     image: xlr82,
     badgeBg: 'bg-amber-500/10',
     badgeText: 'text-amber-400',
     badgeBorder: 'border-amber-500/20',
-    cardBorder: 'border-amber-500/50'
+    cardBorder: 'border-amber-500/50',
   },
   {
     id: 3,
@@ -85,13 +106,13 @@ const SCROLL_SEQUENCE: ArcImageConfig[] = [
     description:
       'Over 200+ rival squads and 800+ freshmen battling it out under one roof. With a deafening crowd of spectators packing the arena, XLR8 stands unchallenged as the largest and most electrifying technical festival track on campus.',
     side: 'left',
-    start: 0.500,
-    end: 0.750,
+    start: 0.5,
+    end: 0.75,
     image: xlr83,
     badgeBg: 'bg-purple-500/10',
     badgeText: 'text-purple-400',
     badgeBorder: 'border-purple-500/20',
-    cardBorder: 'border-purple-500/50'
+    cardBorder: 'border-purple-500/50',
   },
   {
     id: 4,
@@ -100,31 +121,40 @@ const SCROLL_SEQUENCE: ArcImageConfig[] = [
     description:
       'You are never building alone. Get access to intensive hardware bootcamps and late-night troubleshooting sessions where ERC seniors help you debug fried circuits, optimize sensor calibration, and bulletproof your bot for race day.',
     side: 'right',
-    start: 0.750,
-    end: 1.000,
+    start: 0.75,
+    end: 1.0,
     image: xlr84,
     badgeBg: 'bg-emerald-500/10',
     badgeText: 'text-emerald-400',
     badgeBorder: 'border-emerald-500/20',
-    cardBorder: 'border-emerald-500/50'
-  }
+    cardBorder: 'border-emerald-500/50',
+  },
 ];
+
+/* =========================================================
+   SEMICIRCULAR SCROLL GALLERY
+========================================================= */
 
 const SemicircularScrollGallery: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+
   const [scrollProgress, setScrollProgress] = useState(0);
   const [radius, setRadius] = useState(350);
 
   useEffect(() => {
     const updateRadius = () => {
       const w = window.innerWidth;
+
       setRadius(Math.min(Math.max(w * 0.28, 160), 380));
     };
 
     updateRadius();
+
     window.addEventListener('resize', updateRadius);
 
-    return () => window.removeEventListener('resize', updateRadius);
+    return () => {
+      window.removeEventListener('resize', updateRadius);
+    };
   }, []);
 
   useEffect(() => {
@@ -132,14 +162,19 @@ const SemicircularScrollGallery: React.FC = () => {
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const totalScrollableHeight = rect.height - window.innerHeight;
+
+      const totalScrollableHeight =
+        rect.height - window.innerHeight;
 
       if (totalScrollableHeight <= 0) return;
 
       const currentScroll = -rect.top;
 
       const progress = Math.min(
-        Math.max(currentScroll / totalScrollableHeight, 0),
+        Math.max(
+          currentScroll / totalScrollableHeight,
+          0
+        ),
         1
       );
 
@@ -147,29 +182,32 @@ const SemicircularScrollGallery: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll, {
-      passive: true
+      passive: true,
     });
 
     handleScroll();
 
-    return () =>
+    return () => {
       window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const getEffectiveProgress = (t: number): number => {
-    const holdStart = 0.30;
-    const holdEnd = 0.70;
+    const holdStart = 0.3;
+    const holdEnd = 0.7;
 
     if (t < holdStart) {
       return (t / holdStart) * 0.5;
-    } else if (t <= holdEnd) {
-      return 0.5;
-    } else {
-      return (
-        0.5 +
-        ((t - holdEnd) / (1 - holdEnd)) * 0.5
-      );
     }
+
+    if (t <= holdEnd) {
+      return 0.5;
+    }
+
+    return (
+      0.5 +
+      ((t - holdEnd) / (1 - holdEnd)) * 0.5
+    );
   };
 
   const getImageStyle = (
@@ -182,7 +220,7 @@ const SemicircularScrollGallery: React.FC = () => {
       return {
         opacity: 0,
         pointerEvents: 'none',
-        transform: 'translate3d(-9999px, 0, 0)'
+        transform: 'translate3d(-9999px, 0, 0)',
       };
     }
 
@@ -190,8 +228,7 @@ const SemicircularScrollGallery: React.FC = () => {
       (scrollProgress - item.start) /
       (item.end - item.start);
 
-    const effectiveT =
-      getEffectiveProgress(t);
+    const effectiveT = getEffectiveProgress(t);
 
     const angle =
       -Math.PI / 2 +
@@ -221,7 +258,9 @@ const SemicircularScrollGallery: React.FC = () => {
     const scale =
       0.75 +
       0.25 *
-        Math.sin(effectiveT * Math.PI);
+        Math.sin(
+          effectiveT * Math.PI
+        );
 
     const baseTransform =
       item.side === 'left'
@@ -230,7 +269,8 @@ const SemicircularScrollGallery: React.FC = () => {
 
     return {
       opacity,
-      transform: `${baseTransform} translate3d(${x}px, ${y}px, 0) scale(${scale})`,
+      transform:
+        `${baseTransform} translate3d(${x}px, ${y}px, 0) scale(${scale})`,
       transition:
         'transform 75ms linear, opacity 75ms linear',
       willChange: 'transform, opacity',
@@ -244,7 +284,7 @@ const SemicircularScrollGallery: React.FC = () => {
           ? '0px'
           : 'auto',
       top: '50%',
-      zIndex: 20
+      zIndex: 20,
     };
   };
 
@@ -257,7 +297,7 @@ const SemicircularScrollGallery: React.FC = () => {
     ) {
       return {
         opacity: 0,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
       };
     }
 
@@ -269,14 +309,14 @@ const SemicircularScrollGallery: React.FC = () => {
     let translateY = 15;
 
     if (t >= 0.18 && t <= 0.82) {
-      if (t < 0.30) {
+      if (t < 0.3) {
         const fadeInT =
           (t - 0.18) / 0.12;
 
         opacity = fadeInT;
         translateY =
           15 * (1 - fadeInT);
-      } else if (t > 0.70) {
+      } else if (t > 0.7) {
         const fadeOutT =
           (0.82 - t) / 0.12;
 
@@ -306,7 +346,7 @@ const SemicircularScrollGallery: React.FC = () => {
           ? '8%'
           : 'auto',
       top: '50%',
-      zIndex: 30
+      zIndex: 30,
     };
   };
 
@@ -318,13 +358,17 @@ const SemicircularScrollGallery: React.FC = () => {
     const basePosStyle: React.CSSProperties = {
       position: 'absolute',
       top: '50%',
-      left: isLeft ? '0px' : 'auto',
-      right: !isLeft ? '0px' : 'auto',
+      left: isLeft
+        ? '0px'
+        : 'auto',
+      right: !isLeft
+        ? '0px'
+        : 'auto',
       transform: isLeft
         ? 'translate(-50%, -50%)'
         : 'translate(50%, -50%)',
       borderRadius: '9999px',
-      pointerEvents: 'none'
+      pointerEvents: 'none',
     };
 
     return (
@@ -341,7 +385,7 @@ const SemicircularScrollGallery: React.FC = () => {
             borderColor: '#0a0a0a',
             borderStyle: 'solid',
             boxShadow:
-              '0 0 40px rgba(0,0,0,0.95), inset 0 0 40px rgba(0,0,0,0.95)'
+              '0 0 40px rgba(0,0,0,0.95), inset 0 0 40px rgba(0,0,0,0.95)',
           }}
         />
 
@@ -353,7 +397,7 @@ const SemicircularScrollGallery: React.FC = () => {
             borderWidth: '84px',
             borderColor: '#171717',
             borderStyle: 'dashed',
-            opacity: 0.9
+            opacity: 0.9,
           }}
         />
 
@@ -364,7 +408,7 @@ const SemicircularScrollGallery: React.FC = () => {
             height: `${(radius + 2) * 2}px`,
             borderWidth: '4px',
             borderColor: '#050505',
-            borderStyle: 'solid'
+            borderStyle: 'solid',
           }}
         />
 
@@ -377,7 +421,7 @@ const SemicircularScrollGallery: React.FC = () => {
             borderColor: '#475569',
             borderStyle: 'solid',
             boxShadow:
-              '0 0 15px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.9)'
+              '0 0 15px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.9)',
           }}
         />
 
@@ -388,7 +432,7 @@ const SemicircularScrollGallery: React.FC = () => {
             height: `${(radius - 57) * 2}px`,
             borderWidth: '2px',
             borderColor: '#334155',
-            borderStyle: 'solid'
+            borderStyle: 'solid',
           }}
         />
       </div>
@@ -407,7 +451,6 @@ const SemicircularScrollGallery: React.FC = () => {
         {renderRoadTrack('right')}
 
         <div className="absolute inset-0 pointer-events-none">
-
           {SCROLL_SEQUENCE.map((item) => (
             <React.Fragment key={item.id}>
 
@@ -443,20 +486,27 @@ const SemicircularScrollGallery: React.FC = () => {
 
             </React.Fragment>
           ))}
-
         </div>
       </div>
     </section>
   );
 };
 
+/* =========================================================
+   TIMELINE
+========================================================= */
+
 interface TimelineEvent {
   id: number;
   phase: string;
   title: string;
+  date: string;
   description: string;
   icon: React.ReactNode;
-  status: 'completed' | 'current' | 'upcoming';
+  status:
+    | 'completed'
+    | 'current'
+    | 'upcoming';
   tagBg: string;
   tagText: string;
   tagBorder: string;
@@ -470,23 +520,25 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     id: 1,
     phase: 'PHASE 01',
     title: 'XLR8 Oreo',
+    date: '15 AUG',
     description:
-      'Form your team and register through the official portal to participate in XLR8.',
+      'Form your team, understand the challenge, and get ready for your XLR8 journey.',
     icon: <Users className="w-6 h-6 text-cyan-400" />,
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-cyan-950/60',
     tagText: 'text-cyan-400',
     tagBorder: 'border-cyan-800/50',
     topBar: 'bg-cyan-500',
     hoverBorder: 'hover:border-cyan-500/40',
-    titleHover: 'group-hover:text-cyan-400'
+    titleHover: 'group-hover:text-cyan-400',
   },
   {
     id: 2,
     phase: 'PHASE 02',
     title: 'Software Session',
+    date: '22 AUG',
     description:
-      'Hands-on workshop where you’ll learn to write and upload code to control your bot’s movements and actions.',
+      'Learn the fundamentals of programming your bot and get it moving with the right code.',
     icon: <Cpu className="w-6 h-6 text-amber-400" />,
     status: 'upcoming',
     tagBg: 'bg-amber-950/60',
@@ -494,14 +546,15 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     tagBorder: 'border-amber-800/50',
     topBar: 'bg-amber-500',
     hoverBorder: 'hover:border-amber-500/40',
-    titleHover: 'group-hover:text-amber-400'
+    titleHover: 'group-hover:text-amber-400',
   },
   {
     id: 3,
     phase: 'PHASE 03',
     title: 'Soldering Session',
+    date: '23 AUG',
     description:
-      'A practical session where you’ll learn the essential techniques and skills needed to solder with confidence.',
+      'Get hands-on with your electronics and learn the essential soldering skills needed to build your bot.',
     icon: <Wrench className="w-6 h-6 text-rose-400" />,
     status: 'upcoming',
     tagBg: 'bg-rose-950/60',
@@ -509,14 +562,15 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     tagBorder: 'border-rose-800/50',
     topBar: 'bg-rose-500',
     hoverBorder: 'hover:border-rose-500/40',
-    titleHover: 'group-hover:text-rose-400'
+    titleHover: 'group-hover:text-rose-400',
   },
   {
     id: 4,
     phase: 'PHASE 04',
     title: 'Debugging Session',
+    date: '29 AUG',
     description:
-      "Get hands-on support to troubleshoot and fix any issues with your bot. We'll also walk you through integrating custom add-ons to upgrade its capabilities.",
+      'Troubleshoot your bot, fix hardware and software issues, and get expert help to make sure everything is race-ready.',
     icon: <Flag className="w-6 h-6 text-emerald-400" />,
     status: 'upcoming',
     tagBg: 'bg-emerald-950/60',
@@ -524,14 +578,31 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     tagBorder: 'border-emerald-800/50',
     topBar: 'bg-emerald-500',
     hoverBorder: 'hover:border-emerald-500/40',
-    titleHover: 'group-hover:text-emerald-400'
+    titleHover: 'group-hover:text-emerald-400',
   },
   {
     id: 5,
     phase: 'PHASE 05',
-    title: 'XLR8 Main Event',
+    title: 'Checkpoint',
+    date: '30 AUG',
     description:
-      'Race your bot through a challenging obstacle course and compete with the best teams!',
+      'Time for a progress check. Show us what you have built, assess your team’s progress, and make sure your bot is on track for the final showdown.',
+    icon: <CheckCircle2 className="w-6 h-6 text-blue-400" />,
+    status: 'upcoming',
+    tagBg: 'bg-blue-950/60',
+    tagText: 'text-blue-400',
+    tagBorder: 'border-blue-800/50',
+    topBar: 'bg-blue-500',
+    hoverBorder: 'hover:border-blue-500/40',
+    titleHover: 'group-hover:text-blue-400',
+  },
+  {
+    id: 6,
+    phase: 'PHASE 06',
+    title: 'XLR8 Main Event',
+    date: '05–06 SEP',
+    description:
+      'The final showdown. Put your bot to the test, take on the obstacle course, and race against the best teams on campus.',
     icon: <Trophy className="w-6 h-6 text-purple-400" />,
     status: 'upcoming',
     tagBg: 'bg-purple-950/60',
@@ -539,9 +610,13 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     tagBorder: 'border-purple-800/50',
     topBar: 'bg-purple-500',
     hoverBorder: 'hover:border-purple-500/40',
-    titleHover: 'group-hover:text-purple-400'
-  }
+    titleHover: 'group-hover:text-purple-400',
+  },
 ];
+
+/* =========================================================
+   TIMELINE SECTION
+========================================================= */
 
 const TimelineSection: React.FC = () => {
   return (
@@ -558,23 +633,25 @@ const TimelineSection: React.FC = () => {
           </h2>
 
           <p className="text-slate-400 text-base sm:text-lg">
-            The technical schedule from initial team assembly to the high-speed arena finale.
+            From team formation and technical sessions to the final high-speed showdown.
           </p>
 
         </div>
 
         <div className="relative">
 
-          {TIMELINE_EVENTS.map((event, index) => {
+          <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-500/30 via-slate-700 to-purple-500/30 -translate-x-1/2" />
 
+          {TIMELINE_EVENTS.map((event, index) => {
             const isEven = index % 2 === 1;
+            const isCompleted =
+              event.status === 'completed';
 
             return (
               <div
                 key={event.id}
                 className="relative mb-12 md:mb-16 last:mb-0"
               >
-
                 <div
                   className={`flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 relative z-10 ${
                     isEven
@@ -583,8 +660,13 @@ const TimelineSection: React.FC = () => {
                   }`}
                 >
 
-                  <div className="flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-slate-900 border border-slate-700 shadow-xl relative group">
-
+                  <div
+                    className={`flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-slate-900 border ${
+                      isCompleted
+                        ? 'border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
+                        : 'border-slate-700 shadow-xl'
+                    } relative group`}
+                  >
                     <div className="relative z-10 flex flex-col items-center justify-center">
                       {event.icon}
                     </div>
@@ -593,6 +675,11 @@ const TimelineSection: React.FC = () => {
                       0{event.id}
                     </span>
 
+                    {isCompleted && (
+                      <span className="absolute -bottom-2 -right-2 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0B1120] flex items-center justify-center">
+                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      </span>
+                    )}
                   </div>
 
                   <div
@@ -602,7 +689,6 @@ const TimelineSection: React.FC = () => {
                         : 'md:text-left'
                     }`}
                   >
-
                     <div
                       className={`absolute top-0 left-0 right-0 h-1 ${event.topBar} rounded-t-2xl`}
                     />
@@ -614,17 +700,27 @@ const TimelineSection: React.FC = () => {
                           : 'md:justify-start'
                       }`}
                     >
-
                       <span
                         className={`text-xs font-mono font-bold tracking-wider uppercase px-3 py-1 rounded-full border ${event.tagBg} ${event.tagText} ${event.tagBorder}`}
                       >
                         {event.phase}
                       </span>
 
-                      <span className="text-[11px] font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-0.5 rounded border border-slate-700/40">
-                        ○ UPCOMING
+                      <span className="text-xs font-mono font-bold tracking-wider text-white bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                        {event.date}
                       </span>
 
+                      {isCompleted ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-emerald-400 bg-emerald-950/40 px-2.5 py-1 rounded border border-emerald-500/20">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          COMPLETED
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-1 rounded border border-slate-700/40">
+                          <span className="text-slate-500">○</span>
+                          UPCOMING
+                        </span>
+                      )}
                     </div>
 
                     <h3
@@ -636,11 +732,9 @@ const TimelineSection: React.FC = () => {
                     <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
                       {event.description}
                     </p>
-
                   </div>
 
                 </div>
-
               </div>
             );
           })}
@@ -651,14 +745,138 @@ const TimelineSection: React.FC = () => {
   );
 };
 
-const XLR8: React.FC = () => {
+/* =========================================================
+   MAIN XLR8 PAGE
+========================================================= */
 
+const XLR8: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
 
-  const { user, isLoggedIn } = useAuth() as {
+  /*
+    React Router navigation for internal routes.
+    This prevents a full page reload when opening
+    participant / convener portals.
+  */
+  const navigate = useNavigate();
+
+  const {
+    user,
+    isLoggedIn,
+  } = useAuth() as {
     user: SSOUser | null;
     isLoggedIn: boolean;
   };
+
+  type RegistrationStatus =
+    | 'idle'
+    | 'checking'
+    | 'registered'
+    | 'not_registered'
+    | 'error';
+
+  const [
+    registrationStatus,
+    setRegistrationStatus,
+  ] = useState<RegistrationStatus>('idle');
+
+  const [
+    registeredTeamName,
+    setRegisteredTeamName,
+  ] = useState('');
+
+  const [
+    registeredVehicleNo,
+    setRegisteredVehicleNo,
+  ] = useState('');
+
+  /* =======================================================
+     CHECK REGISTRATION
+  ======================================================= */
+
+  const checkFinalRegistration = async () => {
+    if (!user?.roll) {
+      setRegistrationStatus('idle');
+      return;
+    }
+
+    setRegistrationStatus('checking');
+
+    try {
+      const roll = user.roll
+        .trim()
+        .toLowerCase();
+
+      const response = await fetch(
+        `${FINAL_REG_CHECK_URL}?roll=${encodeURIComponent(roll)}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+          cache: 'no-store',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Registration API returned ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+
+      console.log(
+        'XLR8 Registration API Response:',
+        data
+      );
+
+      if (data.found === true) {
+        setRegisteredTeamName(
+          data.teamName || ''
+        );
+
+        setRegisteredVehicleNo(
+          data.vehicleNumber || ''
+        );
+
+        setRegistrationStatus(
+          'registered'
+        );
+      } else {
+        setRegisteredTeamName('');
+        setRegisteredVehicleNo('');
+
+        setRegistrationStatus(
+          'not_registered'
+        );
+      }
+    } catch (error) {
+      console.error(
+        'XLR8 registration verification failed:',
+        error
+      );
+
+      setRegistrationStatus('error');
+    }
+  };
+
+  /* =======================================================
+     AUTO CHECK AFTER LOGIN
+  ======================================================= */
+
+  useEffect(() => {
+    if (isLoggedIn && user?.roll) {
+      checkFinalRegistration();
+    } else {
+      setRegistrationStatus('idle');
+      setRegisteredTeamName('');
+      setRegisteredVehicleNo('');
+    }
+  }, [isLoggedIn, user?.roll]);
+
+  /* =======================================================
+     CONVENER CHECK
+  ======================================================= */
 
   const isConvener =
     !!user &&
@@ -671,18 +889,57 @@ const XLR8: React.FC = () => {
       '25b0325',
       '25b3973',
       '25b0661',
-      '25b3907',
+      '25b3905',
       '25b1308',
       '24b3949',
-      '24b2471'
-    ].includes(user.roll.toLowerCase());
+      '24b2471',
+    ].includes(
+      user.roll.toLowerCase()
+    );
+
+  /* =======================================================
+     PARTICIPANT DASHBOARD
+  ======================================================= */
+
+  const handleParticipantDashboard = () => {
+    /*
+      NOT LOGGED IN:
+      External SSO redirect is intentional.
+      Do NOT use React Router for this.
+    */
+    if (!isLoggedIn) {
+      sessionStorage.setItem(
+        'redirectAfterLogin',
+        '/xlr8participants'
+      );
+
+      window.location.href = XLR8_SSO_URL;
+
+      return;
+    }
+
+    /*
+      LOGGED IN + REGISTERED:
+      Internal route -> React Router navigation.
+      No full page reload.
+    */
+    if (
+      registrationStatus ===
+      'registered'
+    ) {
+      navigate('/xlr8participants');
+    }
+  };
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
 
   return (
     <>
-
-      {/* =========================================================
-          HERO / HEADER
-      ========================================================= */}
+      {/* =====================================================
+          HERO
+      ===================================================== */}
 
       <section
         ref={heroRef}
@@ -692,7 +949,7 @@ const XLR8: React.FC = () => {
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
+          backgroundRepeat: 'no-repeat',
         }}
       >
 
@@ -701,7 +958,7 @@ const XLR8: React.FC = () => {
           style={{
             background:
               'linear-gradient(rgb(0, 0, 0), rgb(15, 23, 42))',
-            opacity: 0.85
+            opacity: 0.85,
           }}
         />
 
@@ -709,7 +966,7 @@ const XLR8: React.FC = () => {
 
           <div className="max-w-5xl mx-auto text-center">
 
-            {/* XLR8 LOGO */}
+            {/* LOGO */}
 
             <img
               src={CenterLogo}
@@ -719,311 +976,487 @@ const XLR8: React.FC = () => {
 
             <br />
 
+            {/* DESCRIPTION */}
+
             <p className="text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
               Gear up for our club’s flagship event,
-              recognized as the institute’s biggest technical
-              event, bringing together students to compete,
-              learn, and excel.
+              recognized as the institute’s biggest
+              technical event, bringing together
+              students to compete, learn, and excel.
             </p>
 
-            {/* XLR8 INFO
+            {/* =================================================
+                LOGGED-IN USER
+            ================================================= */}
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-10">
+            {isLoggedIn && user && (
+              <div className="w-full max-w-5xl mx-auto text-left">
 
-              <a
-                href="https://erc-xlr8.notion.site/xlr8-home-25" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-md transition-all text-lg font-medium font-heading text-white shadow-lg hover:shadow-indigo-500/25" 
-              > 
-                XLR8 Info 
-              </a> 
- 
-            </div> */} 
- 
- 
-            {/* ========================================================= 
-                PARTICIPANT CARD 
-                ONLY SHOWN WHEN LOGGED IN 
-            ========================================================= */} 
- 
-            {isLoggedIn && user && ( 
- 
-              <div className="w-full max-w-5xl mx-auto text-left"> 
- 
-                <div className="rounded-2xl bg-slate-900 border border-indigo-500/30 p-6 sm:p-8 relative overflow-hidden shadow-[0_0_35px_rgba(99,102,241,0.2)] hover:shadow-[0_0_50px_rgba(99,102,241,0.3)] transition-shadow duration-500"> 
- 
-                  {/* HEADER */} 
- 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4"> 
- 
-                    <div className="flex items-center gap-4"> 
- 
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-800 border border-cyan-500/40 flex items-center justify-center font-bold text-2xl sm:text-3xl text-cyan-400 tracking-wider font-heading shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.2)]"> 
- 
-                        {user.name 
-                          ?.split(' ') 
-                          .map((n) => n[0]) 
-                          .join('') 
-                          .slice(0, 2) 
-                          .toUpperCase() || 'P'} 
- 
-                      </div> 
- 
-                      <div> 
- 
-                        <span className="text-sm font-mono text-slate-400 uppercase tracking-wider font-semibold block mb-0.5"> 
-                          Hello, 
-                        </span> 
- 
-                        <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-wide"> 
-                          {user.name} 
-                        </h3> 
- 
-                      </div> 
- 
-                    </div> 
- 
- 
-                    {/* ACCOUNT STATUS */} 
- 
-                    <div className="flex flex-col sm:items-end gap-3 shrink-0"> 
- 
-                      <div className="text-right"> 
- 
-                        <span className="text-sm font-mono text-slate-400 uppercase tracking-wider font-semibold"> 
-                          Account Status 
-                        </span> 
- 
-                        <div className="flex items-center justify-end gap-2 mt-1 px-3 py-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]"> 
- 
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" /> 
- 
-                          <span className="text-xs font-semibold text-slate-200 tracking-wide"> 
-                            Logged In 
-                          </span> 
- 
-                        </div> 
- 
-                      </div> 
- 
-                      <button 
-                        type="button" 
-                        onClick={logout} 
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-200 text-sm font-semibold" 
-                      > 
-                        <LogOut className="w-4 h-4" /> 
-                        Logout 
-                      </button> 
- 
-                    </div> 
- 
-                  </div> 
- 
- 
-                  {/* DETAILS */} 
- 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6"> 
- 
-                    <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-cyan-500/30 transition-colors"> 
- 
-                      <Hash className="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" /> 
- 
-                      <div> 
- 
-                        <p className="text-xs font-mono text-slate-400 uppercase font-semibold"> 
-                          Roll Number 
-                        </p> 
- 
-                        <p className="text-base font-bold text-white font-mono mt-0.5"> 
-                          {user.roll} 
-                        </p> 
- 
-                      </div> 
- 
-                    </div> 
- 
- 
-                    <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3.5 hover:border-amber-500/30 transition-colors"> 
- 
-                      <BookOpen className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" /> 
- 
-                      <div> 
- 
-                        <p className="text-xs font-mono text-slate-400 uppercase font-semibold"> 
-                          Department 
-                        </p> 
- 
-                        <p className="text-base font-semibold text-white mt-0.5"> 
-                          {user.department} 
-                        </p> 
- 
-                      </div> 
- 
-                    </div> 
- 
-                  </div> 
- 
-                </div> 
- 
-              </div> 
- 
-            )} 
- 
- 
-            {/* ========================================================= 
-                ACTION BUTTONS 
-                ALWAYS VISIBLE 
-            ========================================================= */} 
- 
-            <div className="mt-8 w-full max-w-5xl mx-auto flex flex-col sm:flex-row justify-center gap-4"> 
- 
-              {/* REGISTER NOW */} 
- 
-              <a 
-                href="/xlr8registration" 
-                className="w-full sm:w-auto min-w-[220px] px-10 py-4 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold font-heading text-lg rounded-xl shadow-[0_8px_25px_rgba(244,63,94,0.25)] hover:shadow-[0_10px_35px_rgba(244,63,94,0.4)] transition-all duration-300 flex items-center justify-center gap-3 border border-rose-400/30 hover:-translate-y-1" 
-              > 
- 
-                <Zap className="w-5 h-5 fill-current text-white" /> 
- 
-                <span> 
-                  Register Now 
-                </span> 
- 
-              </a> 
- 
- 
-              {/* FIND YOUR TEAM */} 
- 
-              <a 
-                href="/findyourteam" 
-                className="group relative w-full sm:w-auto min-w-[220px] px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:via-blue-500/30 hover:to-indigo-500/30 text-white font-bold font-heading text-lg shadow-[0_8px_25px_rgba(6,182,212,0.12)] hover:shadow-[0_10px_35px_rgba(6,182,212,0.25)] transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-400/40 hover:border-cyan-300/70 hover:-translate-y-1" 
-              > 
- 
-                {/* Hover sweep */} 
- 
-                {/* <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" /> */} 
- 
-                {/* Decorative glow 
- 
-                <div className="absolute top-1 right-3 w-1.5 h-1.5 rounded-full bg-cyan-300 opacity-70" /> 
- 
-                <div className="absolute bottom-2 left-4 w-1 h-1 rounded-full bg-blue-300 opacity-60" /> */} 
- 
-                {/* Icon */} 
- 
-                <div 
-                  className="relative w-9 h-9 rounded-lg 
-                  bg-cyan-400/10 border border-cyan-400/30 
-                  flex items-center justify-center 
-                  group-hover:border-cyan-400/60 
-                  group-hover:bg-cyan-400/15 
-                  transition-all duration-300" 
-                > 
- 
-                  <Users className="w-5 h-5 text-cyan-300" /> 
- 
-                </div> 
- 
-                {/* Text */} 
- 
-                <div className="relative text-left leading-tight"> 
- 
-                  <span className="block text-base sm:text-lg font-bold"> 
-                    Find Your Team 
-                  </span> 
- 
-                </div> 
- 
-              </a> 
- 
- 
-              {/* ===================================================== 
-                  CONVENER PORTAL 
-                  ONLY AUTHORIZED USERS 
-              ===================================================== */} 
- 
-              {isConvener && ( 
- 
-                <a 
-                  href="/xlr8conveners" 
-                  className="w-full sm:w-auto min-w-[220px] px-10 py-4 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-800/60 hover:border-cyan-500/70 hover:-translate-y-1" 
-                > 
- 
-                  <Lock className="w-5 h-5 text-cyan-400" /> 
- 
-                  <span> 
-                    Convener Portal 
-                  </span> 
- 
-                </a> 
- 
-              )} 
- 
-            </div> 
- 
-          </div> 
- 
-        </div> 
- 
-      </section> 
- 
- 
-      {/* ========================================================= 
-          SCROLL GALLERY 
-      ========================================================= */} 
- 
-      <SemicircularScrollGallery /> 
- 
- 
-      {/* ========================================================= 
-          AFTER MOVIE 
-      ========================================================= */} 
- 
-      <section className="py-12 bg-[#0B1120] text-white"> 
- 
-        <div className="max-w-4xl mx-auto text-center px-4"> 
- 
-          <h2 className="text-3xl font-heading mb-6 border-b-4 border-rose-500 inline-block"> 
-            XLR8 2025 After Movie 
-          </h2> 
- 
-          <div className="p-1 rounded-3xl bg-slate-800 shadow-lg"> 
- 
-            <div className="rounded-2xl bg-[#0B1120] p-1"> 
- 
-              <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex flex-col items-center justify-center relative"> 
- 
-                <div className="flex flex-col items-center text-slate-400"> 
- 
-                  <Video className="w-12 h-12 text-rose-500 mb-3" /> 
- 
-                  <span className="text-sm font-mono tracking-widest text-slate-300 uppercase"> 
-                    Footage Processing... 
-                  </span> 
- 
-                </div> 
- 
-              </div> 
- 
-            </div> 
- 
-          </div> 
- 
-        </div> 
- 
-      </section> 
- 
- 
-      {/* ========================================================= 
-          TIMELINE 
-      ========================================================= */} 
- 
-      <TimelineSection /> 
- 
-    </> 
-  ); 
-}; 
- 
-export default XLR8; 
+                <div className="rounded-2xl bg-slate-900 border border-indigo-500/30 p-6 sm:p-8 relative overflow-hidden shadow-[0_0_35px_rgba(99,102,241,0.2)]">
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                    <div className="flex items-center gap-4">
+
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-800 border border-cyan-500/40 flex items-center justify-center font-bold text-2xl sm:text-3xl text-cyan-400 tracking-wider font-heading shrink-0">
+                        {user.name
+                          ?.split(' ')
+                          .map(
+                            (n) => n[0]
+                          )
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase() ||
+                          'P'}
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-mono text-slate-400 tracking-wider font-semibold block mb-0.5">
+                          Hello,
+                        </span>
+
+                        <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-wide">
+                          {user.name}
+                        </h3>
+                      </div>
+
+                    </div>
+
+                    {/* LOGOUT */}
+
+                    <div className="flex flex-col sm:items-end gap-3 shrink-0">
+
+                      <div className="flex items-center justify-end gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30">
+
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+
+                        <span className="text-xs font-semibold text-slate-200 tracking-wide">
+                          Logged In
+                        </span>
+
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={logout}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all duration-200 text-sm font-semibold"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800">
+
+                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">
+                        Roll Number
+                      </p>
+
+                      <p className="text-base font-bold text-white font-mono mt-0.5">
+                        {user.roll}
+                      </p>
+
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800">
+
+                      <p className="text-xs font-mono text-slate-400 uppercase font-semibold">
+                        Department
+                      </p>
+
+                      <p className="text-base font-semibold text-white mt-0.5">
+                        {user.department}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
+            {/* =================================================
+                REGISTRATION SECTION
+            ================================================= */}
+
+            <div className="mt-8 w-full max-w-5xl mx-auto">
+
+              {/* =================================================
+                  LOGGED IN
+              ================================================= */}
+
+              {isLoggedIn && user ? (
+
+                <>
+
+                  {/* CHECKING */}
+
+                  {registrationStatus ===
+                    'checking' && (
+                    <div className="rounded-2xl border border-cyan-500/30 bg-slate-950/80 p-6 flex items-center justify-center gap-3">
+
+                      <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+
+                      <span className="text-sm text-slate-300">
+                        Checking XLR8 registration...
+                      </span>
+
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      REGISTERED
+                  ================================================= */}
+
+                  {registrationStatus ===
+                    'registered' && (
+                    <div className="relative overflow-hidden rounded-2xl border border-emerald-500/30 bg-emerald-950/10 shadow-[0_0_40px_rgba(16,185,129,0.08)] p-5 sm:p-6">
+
+                      {/* HEADER */}
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                        <div className="flex items-center gap-4">
+
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center bg-emerald-500/10 border border-emerald-500/30">
+
+                            <ShieldCheck className="w-7 h-7 text-emerald-400" />
+
+                          </div>
+
+                          <div className="text-left">
+
+                            <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-white">
+                              Registration Confirmed
+                            </h3>
+
+                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+
+                              Roll Number:{' '}
+
+                              <span className="font-mono text-slate-300">
+                                {user.roll}
+                              </span>
+
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                      <div className="my-5 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+
+                      {/* TEAM + VEHICLE */}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                        {/* TEAM */}
+
+                        <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800">
+
+                          <Users className="w-5 h-5 text-cyan-400 mb-3" />
+
+                          <p className="text-[9px] font-mono text-slate-500 uppercase tracking-wider">
+                            Registered Team
+                          </p>
+
+                          <p className="text-base font-bold text-white mt-1">
+                            {registeredTeamName ||
+                              'Team Registered'}
+                          </p>
+
+                        </div>
+
+                        {/* VEHICLE */}
+
+                        <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800">
+
+                          <Zap className="w-5 h-5 text-amber-400 mb-3" />
+
+                          <p className="text-[9px] font-mono text-slate-500 uppercase tracking-wider">
+                            Vehicle No.
+                          </p>
+
+                          <p className="text-base font-bold text-white mt-1 font-mono">
+                            {registeredVehicleNo ||
+                              'Not Assigned'}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      {/* =================================================
+                          PARTICIPANT DASHBOARD
+                      ================================================= */}
+
+                      <Link
+                        to="/xlr8participants"
+                        className="group relative mt-4 block w-full overflow-hidden rounded-xl border border-cyan-400/30 bg-cyan-500/[0.04] hover:bg-cyan-500/[0.08] hover:border-cyan-400/60 transition-all duration-300 text-left"
+                      >
+
+                        <div className="relative z-10 p-4 sm:p-5 flex items-center justify-between gap-4">
+
+                          <div className="flex items-center gap-4">
+
+                            <div className="w-11 h-11 rounded-xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center">
+
+                              <Gauge className="w-5 h-5 text-cyan-300" />
+
+                            </div>
+
+                            <div>
+
+                              <h4 className="text-base sm:text-lg font-bold text-white">
+                                Open Participant Dashboard
+                              </h4>
+
+                              <p className="text-xs text-slate-500 mt-1">
+                                Kits • Slots • Sessions • Team • Mentor • POC • Final Race
+                              </p>
+
+                            </div>
+
+                          </div>
+
+                          <div className="w-9 h-9 rounded-lg border border-cyan-400/30 bg-cyan-400/5 flex items-center justify-center shrink-0">
+
+                            <ChevronRight className="w-5 h-5 text-cyan-400 group-hover:translate-x-1 transition-transform" />
+
+                          </div>
+
+                        </div>
+
+                      </Link>
+
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      NOT REGISTERED
+                  ================================================= */}
+
+                  {registrationStatus ===
+                    'not_registered' && (
+                    <div className="rounded-2xl border border-amber-500/30 bg-amber-950/10 p-6 sm:p-7">
+
+                      <div className="flex items-start gap-4">
+
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+
+                          <AlertCircle className="w-6 h-6 text-amber-400" />
+
+                        </div>
+
+                        <div className="text-left">
+
+                          <h3 className="text-lg sm:text-xl font-bold text-amber-300">
+                            Well... you missed it. 💀
+                          </h3>
+
+                          <p className="text-sm text-slate-400 mt-2 leading-relaxed">
+                            You're not registered for
+                            XLR8. While the registered
+                            teams are busy building,
+                            debugging and preparing for
+                            the final showdown, you're
+                            watching from the sidelines. 🥲🏁
+                          </p>
+
+                          <p className="text-xs text-slate-600 mt-3">
+                            If you think this is a mistake,
+                            contact the ERC XLR8 team.
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      ERROR
+                  ================================================= */}
+
+                  {registrationStatus ===
+                    'error' && (
+                    <div className="rounded-2xl border border-rose-500/30 bg-rose-950/10 p-6">
+
+                      <div className="flex items-center gap-4">
+
+                        <AlertCircle className="w-6 h-6 text-rose-400 shrink-0" />
+
+                        <div className="text-left flex-1">
+
+                          <h3 className="text-base font-bold text-rose-300">
+                            Couldn't verify your registration
+                          </h3>
+
+                          <p className="text-xs text-slate-500 mt-1">
+                            Please try again.
+                          </p>
+
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={
+                            checkFinalRegistration
+                          }
+                          className="px-4 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold transition"
+                        >
+                          Try Again
+                        </button>
+
+                      </div>
+
+                    </div>
+                  )}
+
+                </>
+
+              ) : (
+
+                /* =================================================
+                   LOGGED OUT
+                ================================================= */
+
+                <button
+                  type="button"
+                  onClick={
+                    handleParticipantDashboard
+                  }
+                  className="group relative block w-full overflow-hidden rounded-2xl border border-cyan-400/30 bg-slate-950/80 shadow-[0_0_40px_rgba(6,182,212,0.10)] hover:border-cyan-400/60 transition-all duration-500 text-left"
+                >
+
+                  <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl" />
+
+                  <div className="relative z-10 p-5 sm:p-6 flex items-center justify-between gap-5">
+
+                    <div className="flex items-center gap-4">
+
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center">
+
+                        <Gauge className="w-7 h-7 sm:w-8 sm:h-8 text-cyan-300" />
+
+                      </div>
+
+                      <div className="text-left">
+
+                        <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-white tracking-wide">
+                          Participant Dashboard
+                        </h3>
+
+                        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                          Login with ITC SSO to check your XLR8 registration.
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+
+                      <span className="hidden sm:block">
+                        Login & Check
+                      </span>
+
+                      <div className="w-9 h-9 rounded-lg border border-cyan-400/30 bg-cyan-400/5 flex items-center justify-center">
+
+                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </button>
+              )}
+
+              {/* =================================================
+                  CONVENER PORTAL
+              ================================================= */}
+
+              {isConvener && (
+                <Link
+                  to="/xlr8conveners"
+                  className="mt-4 w-full px-8 py-4 bg-slate-900 hover:bg-slate-800 text-cyan-400 font-bold font-heading text-lg rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-3 border border-cyan-800/60 hover:border-cyan-500/70"
+                >
+
+                  <Lock className="w-5 h-5 text-cyan-400" />
+
+                  <span>
+                    Convener Portal
+                  </span>
+
+                </Link>
+              )}
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          SCROLL GALLERY
+      ===================================================== */}
+
+      <SemicircularScrollGallery />
+
+      {/* =====================================================
+          AFTERMOVIE
+      ===================================================== */}
+
+      <section className="py-12 bg-[#0B1120] text-white">
+
+        <div className="max-w-5xl mx-auto text-center px-4">
+
+          <h2 className="text-3xl font-heading mb-6 border-b-4 border-rose-500 inline-block">
+            XLR8 2025 Aftermovie
+          </h2>
+
+          <div className="p-1 rounded-3xl bg-slate-800 shadow-lg">
+
+            <div className="rounded-2xl bg-[#0B1120] p-1">
+
+              <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
+
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/NaWnMilkoWo"
+                  title="XLR8 2025 After Movie"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          TIMELINE
+      ===================================================== */}
+
+      <TimelineSection />
+    </>
+  );
+};
+
+export default XLR8;
