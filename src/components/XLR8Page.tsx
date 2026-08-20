@@ -9,12 +9,19 @@ import {
   Trophy,
   CheckCircle2,
   Lock,
+<<<<<<< HEAD
   LogOut,
   Gauge,
   ChevronRight,
   AlertCircle,
   Loader2,
   ShieldCheck,
+=======
+  Video,
+  LogOut,
+  Mail,
+  Clock3
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
 } from 'lucide-react';
 
 import { Link, useNavigate } from 'react-router-dom';
@@ -753,6 +760,7 @@ const XLR8: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
 
   /*
+<<<<<<< HEAD
     React Router navigation for internal routes.
     This prevents a full page reload when opening
     participant / convener portals.
@@ -763,10 +771,18 @@ const XLR8: React.FC = () => {
     user,
     isLoggedIn,
   } = useAuth() as {
+=======
+   * ITC SSO AUTHENTICATION
+   * Existing useAuth() is kept unchanged.
+   */
+
+  const { user, isLoggedIn } = useAuth() as {
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
     user: SSOUser | null;
     isLoggedIn: boolean;
   };
 
+<<<<<<< HEAD
   type RegistrationStatus =
     | 'idle'
     | 'checking'
@@ -877,6 +893,11 @@ const XLR8: React.FC = () => {
   /* =======================================================
      CONVENER CHECK
   ======================================================= */
+=======
+  /*
+   * AUTHORIZED CONVENERS
+   */
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
 
   const isConvener =
     !!user &&
@@ -953,6 +974,8 @@ const XLR8: React.FC = () => {
         }}
       >
 
+        {/* DARK OVERLAY */}
+
         <div
           className="absolute inset-0"
           style={{
@@ -966,7 +989,13 @@ const XLR8: React.FC = () => {
 
           <div className="max-w-5xl mx-auto text-center">
 
+<<<<<<< HEAD
             {/* LOGO */}
+=======
+            {/* =====================================================
+                XLR8 LOGO
+            ===================================================== */}
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
 
             <img
               src={CenterLogo}
@@ -985,6 +1014,7 @@ const XLR8: React.FC = () => {
               students to compete, learn, and excel.
             </p>
 
+<<<<<<< HEAD
             {/* =================================================
                 LOGGED-IN USER
             ================================================= */}
@@ -1012,16 +1042,83 @@ const XLR8: React.FC = () => {
 
                       <div>
                         <span className="text-sm font-mono text-slate-400 tracking-wider font-semibold block mb-0.5">
+=======
+
+            {/* =========================================================
+                PARTICIPANT CARD
+                ONLY SHOWN WHEN LOGGED IN THROUGH ITC SSO
+            ========================================================= */}
+
+            {isLoggedIn && user && (
+
+              <div className="w-full max-w-5xl mx-auto text-left">
+
+                <div
+                  className="
+                    rounded-2xl
+                    bg-slate-900
+                    border border-indigo-500/30
+                    p-6 sm:p-8
+                    relative overflow-hidden
+                    shadow-[0_0_35px_rgba(99,102,241,0.2)]
+                    hover:shadow-[0_0_50px_rgba(99,102,241,0.3)]
+                    transition-shadow duration-500
+                  "
+                >
+
+                  {/* HEADER */}
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+
+                    <div className="flex items-center gap-4">
+
+                      {/* INITIALS */}
+
+                      <div
+                        className="
+                          w-16 h-16
+                          sm:w-20 sm:h-20
+                          rounded-2xl
+                          bg-slate-800
+                          border border-cyan-500/40
+                          flex items-center justify-center
+                          font-bold
+                          text-2xl sm:text-3xl
+                          text-cyan-400
+                          tracking-wider
+                          font-heading
+                          shrink-0
+                          shadow-[0_0_15px_rgba(6,182,212,0.2)]
+                        "
+                      >
+                        {user.name
+                          ?.split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase() || 'P'}
+                      </div>
+
+
+                      <div>
+
+                        <span className="text-sm font-mono text-slate-400 uppercase tracking-wider font-semibold block mb-0.5">
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
                           Hello,
                         </span>
 
                         <h3 className="text-2xl sm:text-3xl font-extrabold font-heading text-white tracking-wide">
                           {user.name}
                         </h3>
+<<<<<<< HEAD
+=======
+
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
                       </div>
 
                     </div>
 
+<<<<<<< HEAD
                     {/* LOGOUT */}
 
                     <div className="flex flex-col sm:items-end gap-3 shrink-0">
@@ -1043,12 +1140,72 @@ const XLR8: React.FC = () => {
                       >
                         <LogOut className="w-4 h-4" />
                         Logout
+=======
+
+                    {/* ACCOUNT STATUS */}
+
+                    <div className="flex flex-col sm:items-end gap-3 shrink-0">
+
+                      <div className="text-right">
+
+                        <span className="text-sm font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                          Account Status
+                        </span>
+
+                        <div
+                          className="
+                            flex items-center justify-end gap-2
+                            mt-1 px-3 py-1.5
+                            rounded-lg
+                            bg-emerald-950/30
+                            border border-emerald-500/30
+                            shadow-[0_0_10px_rgba(16,185,129,0.1)]
+                          "
+                        >
+
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+
+                          <span className="text-xs font-semibold text-slate-200 tracking-wide">
+                            Logged In
+                          </span>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* LOGOUT */}
+
+                      <button
+                        type="button"
+                        onClick={logout}
+                        className="
+                          inline-flex items-center justify-center gap-2
+                          px-4 py-2
+                          rounded-lg
+                          bg-rose-500/10
+                          border border-rose-500/30
+                          text-rose-400
+                          hover:bg-rose-500
+                          hover:text-white
+                          hover:border-rose-500
+                          transition-all duration-200
+                          text-sm font-semibold
+                        "
+                      >
+
+                        <LogOut className="w-4 h-4" />
+
+                        Logout
+
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
                       </button>
 
                     </div>
 
                   </div>
 
+<<<<<<< HEAD
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                     <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800">
@@ -1072,6 +1229,69 @@ const XLR8: React.FC = () => {
                       <p className="text-base font-semibold text-white mt-0.5">
                         {user.department}
                       </p>
+=======
+
+                  {/* DETAILS */}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+
+                    {/* ROLL NUMBER */}
+
+                    <div
+                      className="
+                        p-4 rounded-xl
+                        bg-slate-950/70
+                        border border-slate-800
+                        flex items-start gap-3.5
+                        hover:border-cyan-500/30
+                        transition-colors
+                      "
+                    >
+
+                      <Hash className="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" />
+
+                      <div>
+
+                        <p className="text-xs font-mono text-slate-400 uppercase font-semibold">
+                          Roll Number
+                        </p>
+
+                        <p className="text-base font-bold text-white font-mono mt-0.5">
+                          {user.roll}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* DEPARTMENT */}
+
+                    <div
+                      className="
+                        p-4 rounded-xl
+                        bg-slate-950/70
+                        border border-slate-800
+                        flex items-start gap-3.5
+                        hover:border-amber-500/30
+                        transition-colors
+                      "
+                    >
+
+                      <BookOpen className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+
+                      <div>
+
+                        <p className="text-xs font-mono text-slate-400 uppercase font-semibold">
+                          Department
+                        </p>
+
+                        <p className="text-base font-semibold text-white mt-0.5">
+                          {user.department}
+                        </p>
+
+                      </div>
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
 
                     </div>
 
@@ -1080,6 +1300,7 @@ const XLR8: React.FC = () => {
                 </div>
 
               </div>
+<<<<<<< HEAD
             )}
 
             {/* =================================================
@@ -1377,10 +1598,247 @@ const XLR8: React.FC = () => {
 
                       </div>
 
+=======
+
+            )}
+
+
+            {/* =========================================================
+                REGISTRATION CLOSED
+            ========================================================= */}
+
+            <div className="mt-8 w-full max-w-5xl mx-auto">
+
+              <div
+                className="
+                  relative overflow-hidden
+                  rounded-2xl
+                  border border-rose-500/30
+                  bg-gradient-to-br
+                  from-slate-900
+                  via-slate-950
+                  to-rose-950/20
+                  shadow-[0_0_35px_rgba(244,63,94,0.12)]
+                  px-6 py-7
+                  sm:px-10 sm:py-8
+                "
+              >
+
+                {/* BACKGROUND GLOW */}
+
+                <div
+                  className="
+                    absolute
+                    -top-24
+                    -right-24
+                    w-64 h-64
+                    bg-rose-500/10
+                    rounded-full
+                    blur-3xl
+                    pointer-events-none
+                  "
+                />
+
+                <div
+                  className="
+                    absolute
+                    -bottom-24
+                    -left-24
+                    w-64 h-64
+                    bg-orange-500/5
+                    rounded-full
+                    blur-3xl
+                    pointer-events-none
+                  "
+                />
+
+
+                {/* SUBTLE GRID */}
+
+                {/* <div
+                  className="
+                    absolute inset-0
+                    opacity-[0.035]
+                    pointer-events-none
+                    bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)]
+                    bg-[size:2rem_2rem]
+                  "
+                /> */}
+
+
+                <div className="relative z-10 flex flex-col items-center text-center">
+
+
+                  {/* LOCK ICON */}
+
+                  <div
+                    className="
+                      relative
+                      w-16 h-16
+                      sm:w-20 sm:h-20
+                      rounded-2xl
+                      bg-rose-500/10
+                      border border-rose-500/30
+                      flex items-center justify-center
+                      mb-5
+                      shadow-[0_0_25px_rgba(244,63,94,0.15)]
+                    "
+                  >
+
+                    <div
+                      className="
+                        absolute inset-0
+                        rounded-2xl
+                        bg-rose-500/5
+                        blur-xl
+                      "
+                    />
+
+                    <Lock
+                      className="
+                        relative
+                        w-8 h-8
+                        sm:w-9 sm:h-9
+                        text-rose-400
+                      "
+                    />
+
+                  </div>
+
+
+                  {/* STATUS BADGE */}
+
+                  <div
+                    className="
+                      inline-flex items-center gap-2
+                      px-3.5 py-1.5
+                      rounded-full
+                      bg-rose-500/10
+                      border border-rose-500/25
+                      text-rose-400
+                      text-xs sm:text-sm
+                      font-mono
+                      font-bold
+                      tracking-widest
+                      uppercase
+                      mb-4
+                    "
+                  >
+
+                    <span
+                      className="
+                        w-1.5 h-1.5
+                        rounded-full
+                        bg-rose-400
+                        animate-pulse
+                      "
+                    />
+
+                    Registration Closed
+
+                  </div>
+
+
+                  {/* HEADING */}
+
+                  <h3
+                    className="
+                      text-2xl
+                      sm:text-3xl
+                      md:text-4xl
+                      font-extrabold
+                      font-heading
+                      text-white
+                      tracking-wide
+                      mb-4
+                    "
+                  >
+                    Registrations for XLR8 are now closed.
+                  </h3>
+
+
+                  {/* DESCRIPTION */}
+
+                  <p
+                    className="
+                      max-w-2xl
+                      text-sm
+                      sm:text-base
+                      md:text-lg
+                      text-slate-300
+                      leading-relaxed
+                    "
+                  >
+                    Registered teams will receive a confirmation email
+                    within{' '}
+                    <span className="font-bold text-rose-400">
+                      2–3 days
+                    </span>{' '}
+                    with further details regarding their participation.
+                  </p>
+
+
+                  {/* INFO STRIPS */}
+
+                  <div
+                    className="
+                      mt-6
+                      flex flex-col sm:flex-row
+                      items-center justify-center
+                      gap-3 sm:gap-4
+                      w-full
+                    "
+                  >
+
+                    {/* EMAIL */}
+
+                    <div
+                      className="
+                        flex items-center gap-2.5
+                        px-4 py-2.5
+                        rounded-xl
+                        bg-slate-950/70
+                        border border-slate-800
+                        text-slate-400
+                        text-xs sm:text-sm
+                      "
+                    >
+
+                      <Mail className="w-4 h-4 text-cyan-400 shrink-0" />
+
+                      <span>
+                        Keep an eye on your registered email
+                      </span>
+
+                    </div>
+
+
+                    {/* TIME */}
+
+                    <div
+                      className="
+                        flex items-center gap-2.5
+                        px-4 py-2.5
+                        rounded-xl
+                        bg-slate-950/70
+                        border border-slate-800
+                        text-slate-400
+                        text-xs sm:text-sm
+                      "
+                    >
+
+                      <Clock3 className="w-4 h-4 text-amber-400 shrink-0" />
+
+                      <span>
+                        Confirmation within 2–3 days
+                      </span>
+
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
                     </div>
 
                   </div>
 
+<<<<<<< HEAD
                 </button>
               )}
 
@@ -1424,12 +1882,92 @@ const XLR8: React.FC = () => {
 
           <h2 className="text-3xl font-heading mb-6 border-b-4 border-rose-500 inline-block">
             XLR8 2025 Aftermovie
+=======
+                </div>
+
+              </div>
+
+
+              {/* =====================================================
+                  CONVENER PORTAL
+                  ONLY AUTHORIZED USERS
+              ===================================================== */}
+
+              {isConvener && (
+
+                <div className="mt-5 flex justify-center">
+
+                  <a
+                    href="/xlr8conveners"
+                    className="
+                      group
+                      w-full sm:w-auto
+                      min-w-[220px]
+                      px-8 py-3.5
+                      bg-slate-900
+                      hover:bg-slate-800
+                      text-cyan-400
+                      font-bold
+                      font-heading
+                      text-base sm:text-lg
+                      rounded-xl
+                      shadow-md
+                      hover:shadow-[0_8px_25px_rgba(6,182,212,0.15)]
+                      transition-all
+                      duration-300
+                      flex items-center justify-center gap-3
+                      border border-cyan-800/60
+                      hover:border-cyan-500/70
+                      hover:-translate-y-1
+                    "
+                  >
+
+                    <Lock className="w-5 h-5 text-cyan-400" />
+
+                    <span>
+                      Convener Portal
+                    </span>
+
+                  </a>
+
+                </div>
+
+              )}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =========================================================
+          SCROLL GALLERY
+      ========================================================= */}
+
+      <SemicircularScrollGallery />
+
+
+      {/* =========================================================
+          AFTER MOVIE
+      ========================================================= */}
+
+      <section className="py-12 bg-[#0B1120] text-white">
+
+        <div className="max-w-4xl mx-auto text-center px-4">
+
+          <h2 className="text-3xl font-heading mb-6 border-b-4 border-rose-500 inline-block">
+            XLR8 2025 After Movie
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
           </h2>
 
           <div className="p-1 rounded-3xl bg-slate-800 shadow-lg">
 
             <div className="rounded-2xl bg-[#0B1120] p-1">
 
+<<<<<<< HEAD
               <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
 
                 <iframe
@@ -1439,6 +1977,40 @@ const XLR8: React.FC = () => {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
+=======
+              <div
+                className="
+                  aspect-video
+                  w-full
+                  rounded-xl
+                  overflow-hidden
+                  bg-slate-950
+                  border border-slate-800
+                  flex flex-col
+                  items-center
+                  justify-center
+                  relative
+                "
+              >
+
+                <div className="flex flex-col items-center text-slate-400">
+
+                  <Video className="w-12 h-12 text-rose-500 mb-3" />
+
+                  <span
+                    className="
+                      text-sm
+                      font-mono
+                      tracking-widest
+                      text-slate-300
+                      uppercase
+                    "
+                  >
+                    Footage Processing...
+                  </span>
+
+                </div>
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
 
               </div>
 
@@ -1450,13 +2022,27 @@ const XLR8: React.FC = () => {
 
       </section>
 
+<<<<<<< HEAD
       {/* =====================================================
           TIMELINE
       ===================================================== */}
 
       <TimelineSection />
+=======
+
+      {/* =========================================================
+          TIMELINE
+      ========================================================= */}
+
+      <TimelineSection />
+
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
     </>
   );
 };
 
+<<<<<<< HEAD
 export default XLR8;
+=======
+export default XLR8;
+>>>>>>> c1a3add40124d8dca21f682380a014f935bb31c2
