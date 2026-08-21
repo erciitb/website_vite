@@ -20,16 +20,12 @@ import {
 // =======================================================================
 
 // Registration Sheet Apps Script
-// Supports:
-// - Team name search
-// - Roll number search
-// - Vehicle number search
 const SEARCH_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
 
 // Kit Distribution Apps Script
 const KIT_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbytaSKQeVekdnel6lHiI_ysa1BM41ylVghQjGs3NsWNFEevEMyZsgubw3MLNOfLyuE/exec';
+  'https://script.google.com/macros/s/AKfycbyOlqOWSh4HX5F4yNeh3m0xvAfxrKMbbnfWX0dpElqCMcE5MlTzqODTfY29lLewQZra/exec';
 
 // =======================================================================
 // TEAM DATA
@@ -92,6 +88,9 @@ const kitItems = [
   { id: 'bergPins', label: 'Berg Pins(M/F)' },
   { id: 'microUsb', label: 'Micro USB Cable' },
   { id: 'screwDriver', label: 'Black Electric Tape' },
+
+  // NEW
+  { id: 'buckConverter', label: 'Buck Converter' },
 ];
 
 // =======================================================================
@@ -491,7 +490,7 @@ const Xlr8Conveners = () => {
 
   const handleSelectAll = () => {
     const allSelected =
-      Object.values(checkedItems).every(Boolean);
+      kitItems.every((item) => checkedItems[item.id]);
 
     const newState =
       kitItems.reduce<Record<string, boolean>>(
@@ -518,8 +517,13 @@ const Xlr8Conveners = () => {
 
     const payload = {
       action: 'kitDistribution',
-      rollNumber: searchResult.leaderRoll,
-      vehicleNumber: searchResult.vehicleNumber || '',
+
+      rollNumber:
+        searchResult.leaderRoll,
+
+      vehicleNumber:
+        searchResult.vehicleNumber || '',
+
       items: checkedItems,
     };
 
@@ -544,6 +548,12 @@ const Xlr8Conveners = () => {
 
       if (result.success) {
         setIsKitConfirmed(true);
+
+        // Keep the currently selected state so the
+        // recorded components immediately reflect submission.
+        setCheckedItems({
+          ...checkedItems,
+        });
       } else {
         alert(
           `Kit Submission failed: ${
@@ -1024,6 +1034,26 @@ const Xlr8Conveners = () => {
 
                   </div>
 
+                  {/* TOTAL RECORDED */}
+
+                  <div className="mt-5 pt-5 border-t border-slate-700/80 flex items-center justify-between">
+
+                    <div className="flex items-center gap-2 text-slate-400">
+
+                      <Package className="w-5 h-5 text-blue-400" />
+
+                      <span className="text-sm font-medium">
+                        Total Components Distributed
+                      </span>
+
+                    </div>
+
+                    <span className="text-xl font-bold text-white">
+                      {selectedItemCount}
+                    </span>
+
+                  </div>
+
                 </div>
 
               ) : (
@@ -1057,17 +1087,23 @@ const Xlr8Conveners = () => {
 
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/80">
 
-                      <h4 className="text-md font-bold text-slate-200">
-                        Select Items to Distribute
-                      </h4>
+                      <div>
+                        <h4 className="text-md font-bold text-slate-200">
+                          Select Items to Distribute
+                        </h4>
+
+                        <p className="text-xs text-slate-500 mt-1">
+                          Select every component handed over to the team.
+                        </p>
+                      </div>
 
                       <button
                         type="button"
                         onClick={handleSelectAll}
                         className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors bg-blue-900/20 hover:bg-blue-900/40 px-3 py-1.5 rounded-lg border border-blue-900/30"
                       >
-                        {Object.values(checkedItems).every(
-                          Boolean
+                        {kitItems.every(
+                          (item) => checkedItems[item.id]
                         )
                           ? 'Deselect All'
                           : 'Select All'}
@@ -1101,7 +1137,9 @@ const Xlr8Conveners = () => {
                           <input
                             type="checkbox"
                             className="hidden"
-                            checked={checkedItems[item.id]}
+                            checked={
+                              checkedItems[item.id] || false
+                            }
                             onChange={() =>
                               handleToggle(item.id)
                             }
@@ -1123,7 +1161,7 @@ const Xlr8Conveners = () => {
                       SUBMIT
                   ================================================= */}
 
-                  <div className="flex items-center justify-between gap-4 pt-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
 
                     {/* SELECTED COMPONENT COUNT */}
 
@@ -1139,6 +1177,10 @@ const Xlr8Conveners = () => {
                         {selectedItemCount}
                       </span>
 
+                      <span className="text-xs text-slate-500">
+                        / {kitItems.length}
+                      </span>
+
                     </div>
 
                     {/* CONFIRM BUTTON */}
@@ -1150,13 +1192,15 @@ const Xlr8Conveners = () => {
                     >
 
                       {isSubmittingKit ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Confirming...
+                        </>
                       ) : (
-                        'Confirm Kit Distribution'
-                      )}
-
-                      {!isSubmittingKit && (
-                        <Send className="w-4 h-4" />
+                        <>
+                          Confirm Kit Distribution
+                          <Send className="w-4 h-4" />
+                        </>
                       )}
 
                     </button>

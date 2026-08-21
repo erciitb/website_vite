@@ -29,18 +29,16 @@ const REGISTRATION_API_URL =
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
 
 const KIT_API_URL =
-  'https://script.google.com/macros/s/AKfycbzg8r2g7-VqAkJKjfClt3s9jP-F1aP_7_lACQQRolm4vD5DlpLjL7vmBxm1HVSMQ-kE/exec';
+  'https://script.google.com/macros/s/AKfycbyOlqOWSh4HX5F4yNeh3m0xvAfxrKMbbnfWX0dpElqCMcE5MlTzqODTfY29lLewQZra/exec';
 
 const SLOT_API_URL =
   'https://script.google.com/macros/s/AKfycbx0qeEoZ15qVlaS7jgHs9uZnPQGeWOJnfKP9JPDXr_477POiVw7zzsNwGr31w5rT-Wy/exec';
-
 
 /* =========================================================
    FIXED ELECTRICAL KIT DATE
 ========================================================= */
 
 const ELECTRICAL_KIT_DATE = '21st August';
-
 
 /* =========================================================
    TYPES
@@ -161,7 +159,6 @@ interface TeamData {
   };
 }
 
-
 /* =========================================================
    COMPONENT LABELS
 ========================================================= */
@@ -171,6 +168,10 @@ const KIT_COMPONENT_LABELS: Record<string, string> = {
   piPico: 'Raspberry Pi Pico W',
   mpu6050: 'MPU 6050',
   esp01: 'ESP01',
+
+  /* NEW */
+  buckConverter: 'Buck Converter',
+
   solderGun: 'Solder Gun',
   solderStand: 'Solder Gun Stand',
   solderWire: 'Soldering Wire',
@@ -186,7 +187,6 @@ const KIT_COMPONENT_LABELS: Record<string, string> = {
   microUsb: 'Micro USB Cable',
   screwDriver: 'Black Tape',
 };
-
 
 /* =========================================================
    HELPERS
@@ -222,7 +222,6 @@ const getInitials = (
     .toUpperCase();
 };
 
-
 /* =========================================================
    LOGISTICS
 ========================================================= */
@@ -256,7 +255,6 @@ const LOGISTICS = [
     accent: 'purple',
   },
 ];
-
 
 /* =========================================================
    ACCENTS
@@ -296,13 +294,11 @@ const accentClasses = {
   },
 };
 
-
 /* =========================================================
    COMPONENT
 ========================================================= */
 
 const XLR8ParticipantDashboard: React.FC = () => {
-
   const {
     user,
     isLoggedIn,
@@ -310,7 +306,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
     user: SSOUser | null;
     isLoggedIn: boolean;
   };
-
 
   const [team, setTeam] =
     useState<TeamData | null>(null);
@@ -324,21 +319,17 @@ const XLR8ParticipantDashboard: React.FC = () => {
   const [error, setError] =
     useState('');
 
-
   /* =======================================================
      FETCH TEAM DATA
   ======================================================= */
 
   const fetchTeamData = async () => {
-
     if (!user?.roll) {
       return;
     }
 
     try {
-
       setError('');
-
 
       /* =====================================================
          REGISTRATION API
@@ -348,7 +339,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
         `${REGISTRATION_API_URL}?roll=${encodeURIComponent(
           user.roll.trim().toLowerCase()
         )}`;
-
 
       const response =
         await fetch(
@@ -364,29 +354,22 @@ const XLR8ParticipantDashboard: React.FC = () => {
           }
         );
 
-
       if (!response.ok) {
-
         throw new Error(
           `Registration API returned ${response.status}`
         );
-
       }
-
 
       const data:
         RegistrationResponse =
         await response.json();
-
 
       console.log(
         'XLR8 registration response:',
         data
       );
 
-
       if (!data.found) {
-
         setTeam(null);
 
         setError(
@@ -395,7 +378,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
         return;
       }
-
 
       /* =====================================================
          MEMBERS
@@ -416,7 +398,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   member,
                   index
                 ) => ({
-
                   name:
                     member.name,
 
@@ -438,7 +419,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           : [];
 
-
       /* =====================================================
          VEHICLE NUMBER
       ===================================================== */
@@ -447,7 +427,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
         String(
           data.vehicleNumber || ''
         ).trim();
-
 
       /* =====================================================
          DEFAULT ELECTRICAL KIT STATE
@@ -467,23 +446,18 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           venue:
             '',
-
         };
-
 
       /* =====================================================
          SLOT API
       ===================================================== */
 
       if (vehicleNumber) {
-
         try {
-
           const slotURL =
             `${SLOT_API_URL}?vehicle=${encodeURIComponent(
               vehicleNumber
             )}`;
-
 
           const slotResponse =
             await fetch(
@@ -500,32 +474,25 @@ const XLR8ParticipantDashboard: React.FC = () => {
               }
             );
 
-
           if (!slotResponse.ok) {
-
             throw new Error(
               `Slot API returned ${slotResponse.status}`
             );
-
           }
-
 
           const slotData:
             SlotResponse =
             await slotResponse.json();
-
 
           console.log(
             'XLR8 slot response:',
             slotData
           );
 
-
           if (
             slotData.success &&
             slotData.found
           ) {
-
             electricalKit = {
 
               status:
@@ -546,29 +513,22 @@ const XLR8ParticipantDashboard: React.FC = () => {
               details:
                 slotData.details ||
                 '',
-
             };
-
           }
 
         } catch (slotError) {
-
           console.warn(
             'Slot API error:',
             slotError
           );
-
         }
-
       }
-
 
       /* =====================================================
          KIT API
       ===================================================== */
 
       try {
-
         const kitResponse =
           await fetch(
             KIT_API_URL,
@@ -595,25 +555,20 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     vehicleNumber,
 
                 }),
-
             }
           );
-
 
         if (
           kitResponse.ok
         ) {
-
           const kitData:
             KitResponse =
             await kitResponse.json();
-
 
           console.log(
             'XLR8 kit response:',
             kitData
           );
-
 
           /* =================================================
              KIT COLLECTED
@@ -624,12 +579,16 @@ const XLR8ParticipantDashboard: React.FC = () => {
             kitData.isConfirmed &&
             kitData.confirmedData
           ) {
-
             const items =
               kitData
                 .confirmedData
                 .items || {};
 
+            /*
+              Count the TRUE components.
+              Buck Converter will automatically
+              be included when returned by the API.
+            */
 
             const total =
               kitData
@@ -638,12 +597,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               Object.values(items)
                 .filter(Boolean)
                 .length;
-
-
-            /*
-              Once collected, replace the
-              slot information.
-            */
 
             electricalKit = {
 
@@ -667,22 +620,16 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
               details:
                 'Electrical kit collected successfully.',
-
             };
-
           }
-
         }
 
       } catch (kitError) {
-
         console.warn(
           'Kit API error:',
           kitError
         );
-
       }
-
 
       /* =====================================================
          BUILD TEAM
@@ -745,65 +692,48 @@ const XLR8ParticipantDashboard: React.FC = () => {
               status:
                 'To Be Announced',
             },
-
           },
-
         };
-
 
       setTeam(
         resolvedTeam
       );
 
     } catch (err) {
-
       console.error(
         'Failed to fetch XLR8 participant data:',
         err
       );
 
-
       setTeam(null);
-
 
       setError(
         'Unable to load your XLR8 registration details. Please try again.'
       );
 
     } finally {
-
       setLoading(false);
       setRefreshing(false);
-
     }
-
   };
-
 
   /* =======================================================
      INITIAL LOAD
   ======================================================= */
 
   useEffect(() => {
-
     if (
       isLoggedIn &&
       user?.roll
     ) {
-
       fetchTeamData();
-
     } else {
-
       setLoading(false);
-
     }
-
   }, [
     isLoggedIn,
     user?.roll,
   ]);
-
 
   /* =======================================================
      REFRESH
@@ -811,13 +741,10 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
   const handleRefresh =
     async () => {
-
       setRefreshing(true);
 
       await fetchTeamData();
-
     };
-
 
   /* =======================================================
      MEMBERS
@@ -831,17 +758,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
           team?.members &&
           team.members.length > 0
         ) {
-
           return team.members;
-
         }
 
         return [];
-
       },
       [team]
     );
-
 
   /* =======================================================
      LOGOUT
@@ -849,11 +772,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
   const handleLogout =
     () => {
-
       logout();
-
     };
-
 
   /* =======================================================
      AUTH GUARD
@@ -863,9 +783,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
     !isLoggedIn ||
     !user
   ) {
-
     return (
-
       <div
         className="
           min-h-screen
@@ -878,7 +796,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
           pt-32
         "
       >
-
         <div
           className="
             w-full
@@ -891,7 +808,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
             text-center
           "
         >
-
           <div
             className="
               mx-auto
@@ -907,7 +823,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               justify-center
             "
           >
-
             <ShieldCheck
               className="
                 w-8
@@ -915,9 +830,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 text-cyan-400
               "
             />
-
           </div>
-
 
           <h1
             className="
@@ -928,7 +841,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
           >
             Participant Login Required
           </h1>
-
 
           <p
             className="
@@ -941,13 +853,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
             Please login using your ITC SSO account to access your XLR8 participant dashboard.
           </p>
 
-
           <button
             onClick={() => {
               window.location.href =
                 '/xlr8';
             }}
-
             className="
               mt-6
               w-full
@@ -963,24 +873,17 @@ const XLR8ParticipantDashboard: React.FC = () => {
           >
             Return to XLR8
           </button>
-
         </div>
-
       </div>
-
     );
-
   }
-
 
   /* =======================================================
      LOADING
   ======================================================= */
 
   if (loading) {
-
     return (
-
       <div
         className="
           min-h-screen
@@ -992,13 +895,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
           pt-32
         "
       >
-
         <div
           className="
             text-center
           "
         >
-
           <div
             className="
               w-14
@@ -1013,7 +914,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               mx-auto
             "
           >
-
             <RefreshCw
               className="
                 w-7
@@ -1022,9 +922,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 animate-spin
               "
             />
-
           </div>
-
 
           <p
             className="
@@ -1036,22 +934,16 @@ const XLR8ParticipantDashboard: React.FC = () => {
           >
             LOADING...
           </p>
-
         </div>
-
       </div>
-
     );
-
   }
-
 
   /* =======================================================
      MAIN
   ======================================================= */
 
   return (
-
     <main
       className="
         min-h-screen
@@ -1066,6 +958,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
       {/* ===================================================
           BACKGROUND
+          No grid
       =================================================== */}
 
       <div
@@ -1076,9 +969,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
           z-0
         "
       >
-
-        {/* No background grid */}
-
         <div
           className="
             absolute
@@ -1104,9 +994,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             blur-[140px]
           "
         />
-
       </div>
-
 
       {/* ===================================================
           CONTENT
@@ -1140,7 +1028,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
             mb-8
           "
         >
-
           <div>
 
             <span
@@ -1156,7 +1043,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               XLR8 2026
             </span>
 
-
             <h1
               className="
                 text-3xl
@@ -1171,7 +1057,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               Participant Dashboard
             </h1>
 
-
             <p
               className="
                 text-base
@@ -1185,7 +1070,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
-
           <div
             className="
               flex
@@ -1193,16 +1077,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
               gap-2
             "
           >
-
             <button
               onClick={
                 handleRefresh
               }
-
               disabled={
                 refreshing
               }
-
               className="
                 inline-flex
                 items-center
@@ -1220,7 +1101,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 transition
               "
             >
-
               <RefreshCw
                 className={`
                   w-5
@@ -1241,15 +1121,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 Refresh
               </span>
-
             </button>
-
 
             <button
               onClick={
                 handleLogout
               }
-
               className="
                 inline-flex
                 items-center
@@ -1267,7 +1144,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 transition
               "
             >
-
               <LogOut
                 className="
                   w-5
@@ -1283,20 +1159,15 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 Logout
               </span>
-
             </button>
-
           </div>
-
         </header>
-
 
         {/* =================================================
             ERROR
         ================================================= */}
 
         {error && (
-
           <div
             className="
               mb-7
@@ -1311,7 +1182,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               gap-3
             "
           >
-
             <AlertCircle
               className="
                 w-5
@@ -1322,13 +1192,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
               "
             />
 
-
             <div
               className="
                 flex-1
               "
             >
-
               <p
                 className="
                   text-sm
@@ -1339,12 +1207,10 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 {error}
               </p>
 
-
               <button
                 onClick={
                   handleRefresh
                 }
-
                 className="
                   mt-2
                   text-sm
@@ -1355,13 +1221,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 Try again →
               </button>
-
             </div>
-
           </div>
-
         )}
-
 
         {/* =================================================
             TEAM CARD
@@ -1378,7 +1240,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
             mb-7
           "
         >
-
           <div
             className="
               px-6
@@ -1389,7 +1250,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               bg-slate-950/30
             "
           >
-
             <div
               className="
                 flex
@@ -1408,7 +1268,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   gap-4
                 "
               >
-
                 <div
                   className="
                     w-16
@@ -1422,7 +1281,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     justify-center
                   "
                 >
-
                   <Users
                     className="
                       w-8
@@ -1430,25 +1288,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       text-cyan-400
                     "
                   />
-
                 </div>
 
-
                 <div>
-
-                  {/* <p
-                    className="
-                      text-[11px]
-                      font-mono
-                      tracking-[0.2em]
-                      text-cyan-400
-                      uppercase
-                    "
-                  >
-                    Registered Team
-                  </p> */}
-
-
                   <h2
                     className="
                       text-3xl
@@ -1463,11 +1305,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       team?.teamName
                     )}
                   </h2>
-
                 </div>
-
               </div>
-
 
               <div
                 className="
@@ -1487,7 +1326,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     border-emerald-500/20
                   "
                 >
-
                   <p
                     className="
                       text-[10px]
@@ -1498,7 +1336,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                     Registration
                   </p>
-
 
                   <p
                     className="
@@ -1511,7 +1348,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       gap-1.5
                     "
                   >
-
                     <CheckCircle2
                       className="
                         w-4
@@ -1520,11 +1356,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     />
 
                     COMPLETED
-
                   </p>
-
                 </div>
-
 
                 <div
                   className="
@@ -1536,7 +1369,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     border-slate-800
                   "
                 >
-
                   <p
                     className="
                       text-[10px]
@@ -1547,7 +1379,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                     Vehicle
                   </p>
-
 
                   <p
                     className="
@@ -1562,9 +1393,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       team?.vehicleNo
                     )}
                   </p>
-
                 </div>
-
 
                 <div
                   className="
@@ -1576,7 +1405,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     border-slate-800
                   "
                 >
-
                   <p
                     className="
                       text-[10px]
@@ -1587,7 +1415,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                     Roll Number
                   </p>
-
 
                   <p
                     className="
@@ -1602,15 +1429,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       user.roll
                     )}
                   </p>
-
                 </div>
 
               </div>
-
             </div>
-
           </div>
-
 
           {/* =================================================
               TEAM MEMBERS
@@ -1622,23 +1445,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               sm:p-8
             "
           >
-
-            {/* <div className="mb-5">
-
-              <h3
-                className="
-                  text-2xl
-                  sm:text-2xl
-                  font-bold
-                  text-gray-500
-                "
-              >
-                Team Members
-              </h3>
-
-            </div> */}
-
-
             <div
               className="
                 grid
@@ -1648,18 +1454,15 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 gap-4
               "
             >
-
               {members.map(
                 (
                   member,
                   index
                 ) => (
-
                   <div
                     key={
                       `${member.roll}-${index}`
                     }
-
                     className="
                       rounded-xl
                       bg-slate-950/60
@@ -1670,7 +1473,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       transition
                     "
                   >
-
                     <div
                       className="
                         flex
@@ -1679,7 +1481,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         mb-5
                       "
                     >
-
                       <div
                         className="
                           w-12
@@ -1701,13 +1502,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         )}
                       </div>
 
-
                       <div
                         className="
                           min-w-0
                         "
                       >
-
                         <p
                           className="
                             text-lg
@@ -1721,7 +1520,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             member.name
                           )}
                         </p>
-
 
                         <p
                           className="
@@ -1738,18 +1536,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                 : `Member ${index + 1}`
                             )}
                         </p>
-
                       </div>
-
                     </div>
-
 
                     <div
                       className="
                         space-y-3
                       "
                     >
-
                       <div
                         className="
                           flex
@@ -1758,7 +1552,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           text-sm
                         "
                       >
-
                         <BadgeCheck
                           className="
                             w-4
@@ -1766,7 +1559,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             text-cyan-400/70
                           "
                         />
-
 
                         <span
                           className="
@@ -1778,17 +1570,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             member.roll
                           )}
                         </span>
-
                       </div>
 
-
                       {member.phone && (
-
                         <a
                           href={
                             `tel:${member.phone}`
                           }
-
                           className="
                             flex
                             items-center
@@ -1799,7 +1587,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             transition
                           "
                         >
-
                           <Phone
                             className="
                               w-4
@@ -1809,19 +1596,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           />
 
                           {member.phone}
-
                         </a>
-
                       )}
 
-
                       {member.email && (
-
                         <a
                           href={
                             `mailto:${member.email}`
                           }
-
                           className="
                             flex
                             items-center
@@ -1833,7 +1615,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             truncate
                           "
                         >
-
                           <Mail
                             className="
                               w-4
@@ -1843,7 +1624,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             "
                           />
 
-
                           <span
                             className="
                               truncate
@@ -1851,24 +1631,15 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           >
                             {member.email}
                           </span>
-
                         </a>
-
                       )}
-
                     </div>
-
                   </div>
-
                 )
               )}
-
             </div>
-
           </div>
-
         </section>
-
 
         {/* =================================================
             KITS & SLOTS
@@ -1879,14 +1650,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
             space-y-4
           "
         >
-
           <div
             className="
               px-1
               mb-3
             "
           >
-
             <h2
               className="
                 text-2xl
@@ -1898,7 +1667,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
               Kits & Slots
             </h2>
 
-
             <p
               className="
                 text-sm
@@ -1909,16 +1677,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
             >
               Your collection, session and race details.
             </p>
-
           </div>
-
 
           {LOGISTICS.map(
             (item) => {
 
               const Icon =
                 item.icon;
-
 
               const info =
                 team?.logistics?.[
@@ -1927,29 +1692,24 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                 ];
 
-
               const accent =
                 accentClasses[
                   item.accent as keyof typeof accentClasses
                 ];
 
-
               const isElectricalKit =
                 item.key ===
                 'electricalKit';
-
 
               const isCollected =
                 isElectricalKit &&
                 info?.status ===
                   'Kit Collected';
 
-
               const hasSlot =
                 isElectricalKit &&
                 Boolean(info?.time) &&
                 !isCollected;
-
 
               const collectedItems =
                 isCollected
@@ -1961,14 +1721,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     )
                   : [];
 
-
               return (
-
                 <div
                   key={
                     item.key
                   }
-
                   className={`
                     rounded-2xl
                     bg-slate-900/80
@@ -1993,7 +1750,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       gap-4
                     "
                   >
-
                     <div
                       className="
                         flex
@@ -2002,7 +1758,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         min-w-0
                       "
                     >
-
                       <div
                         className={`
                           w-12
@@ -2017,7 +1772,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           shrink-0
                         `}
                       >
-
                         <Icon
                           className={`
                             w-6
@@ -2025,16 +1779,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             ${accent.icon}
                           `}
                         />
-
                       </div>
-
 
                       <div
                         className="
                           min-w-0
                         "
                       >
-
                         <h3
                           className="
                             text-base
@@ -2045,9 +1796,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         >
                           {item.label}
                         </h3>
-
                       </div>
-
                     </div>
 
                     {!isCollected && (
@@ -2086,7 +1835,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     )}
                   </div>
 
-
                   {/* =================================================
                       ELECTRICAL KIT — COLLECTED
                   ================================================= */}
@@ -2114,7 +1862,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           gap-4
                         "
                       >
-
                         <div
                           className="
                             flex
@@ -2122,7 +1869,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             gap-3
                           "
                         >
-
                           <CheckCircle2
                             className="
                               w-6
@@ -2132,22 +1878,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             "
                           />
 
-
                           <div>
-
-                            {/* <p
-                              className="
-                                text-[10px]
-                                uppercase
-                                tracking-wider
-                                font-mono
-                                text-slate-500
-                              "
-                            >
-                              Collection Status
-                            </p> */}
-
-
                             <p
                               className="
                                 text-base
@@ -2159,11 +1890,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             >
                               KIT COLLECTED
                             </p>
-
                           </div>
-
                         </div>
-
 
                         <div
                           className="
@@ -2171,7 +1899,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             shrink-0
                           "
                         >
-
                           <p
                             className="
                               text-[10px]
@@ -2183,7 +1910,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           >
                             Total Components
                           </p>
-
 
                           <p
                             className="
@@ -2197,16 +1923,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
                               collectedItems.length
                             )}
                           </p>
-
                         </div>
-
                       </div>
-
 
                       {/* COMPONENTS */}
 
                       <div>
-
                         <p
                           className="
                             text-[10px]
@@ -2219,7 +1941,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         >
                           Collected Components
                         </p>
-
 
                         <div
                           className="
@@ -2239,7 +1960,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                                 <div
                                   key={key}
-
                                   className="
                                     flex
                                     items-center
@@ -2252,7 +1972,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                     py-2.5
                                   "
                                 >
-
                                   <CheckCircle2
                                     className="
                                       w-4
@@ -2261,7 +1980,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                       shrink-0
                                     "
                                   />
-
 
                                   <span
                                     className="
@@ -2276,7 +1994,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                       key
                                     }
                                   </span>
-
                                 </div>
 
                               )
@@ -2296,9 +2013,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           )}
 
                         </div>
-
                       </div>
-
                     </div>
 
                   ) : isElectricalKit &&
@@ -2329,7 +2044,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           p-4
                         "
                       >
-
                         <div
                           className="
                             flex
@@ -2337,7 +2051,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             gap-3
                           "
                         >
-
                           <CalendarDays
                             className="
                               w-6
@@ -2352,20 +2065,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                               min-w-0
                             "
                           >
-
-                            {/* <p
-                              className="
-                                text-[10px]
-                                uppercase
-                                tracking-wider
-                                font-mono
-                                text-slate-500
-                              "
-                            >
-                              Date
-                            </p> */}
-
-
                             <p
                               className="
                                 text-xl
@@ -2377,13 +2076,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             >
                               {ELECTRICAL_KIT_DATE}
                             </p>
-
                           </div>
-
                         </div>
-
                       </div>
-
 
                       {/* TIME */}
 
@@ -2396,7 +2091,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           p-4
                         "
                       >
-
                         <div
                           className="
                             flex
@@ -2404,7 +2098,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             gap-3
                           "
                         >
-
                           <Clock3
                             className="
                               w-6
@@ -2414,26 +2107,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             "
                           />
 
-
                           <div
                             className="
                               min-w-0
                             "
                           >
-
-                            {/* <p
-                              className="
-                                text-[10px]
-                                uppercase
-                                tracking-wider
-                                font-mono
-                                text-slate-500
-                              "
-                            >
-                              Time Slot
-                            </p> */}
-
-
                             <p
                               className="
                                 text-xl
@@ -2448,13 +2126,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                 info?.slot
                               )}
                             </p>
-
                           </div>
-
                         </div>
-
                       </div>
-
 
                       {/* VENUE */}
 
@@ -2467,7 +2141,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           p-4
                         "
                       >
-
                         <div
                           className="
                             flex
@@ -2475,7 +2148,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             gap-3
                           "
                         >
-
                           <MapPin
                             className="
                               w-6
@@ -2485,26 +2157,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             "
                           />
 
-
                           <div
                             className="
                               min-w-0
                             "
                           >
-
-                            {/* <p
-                              className="
-                                text-[10px]
-                                uppercase
-                                tracking-wider
-                                font-mono
-                                text-slate-500
-                              "
-                            >
-                              Venue
-                            </p> */}
-
-
                             <p
                               className="
                                 text-xl
@@ -2519,13 +2176,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                 info?.venue
                               )}
                             </p>
-
                           </div>
-
                         </div>
-
                       </div>
-
                     </div>
 
                   ) : (
@@ -2544,7 +2197,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         p-4
                       "
                     >
-
                       <div
                         className="
                           flex
@@ -2552,7 +2204,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           gap-3
                         "
                       >
-
                         <Circle
                           className="
                             w-5
@@ -2560,7 +2211,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             text-slate-600
                           "
                         />
-
 
                         <p
                           className="
@@ -2572,26 +2222,18 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         >
                           To Be Announced
                         </p>
-
                       </div>
-
                     </div>
 
                   )}
 
                 </div>
-
               );
-
             }
           )}
-
         </section>
-
       </div>
-
     </main>
-
   );
 };
 
