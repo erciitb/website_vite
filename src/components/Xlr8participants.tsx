@@ -1,4 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   Users,
@@ -19,7 +23,11 @@ import {
   CalendarDays,
 } from 'lucide-react';
 
-import { useAuth, logout } from '../hooks/useAuth';
+import {
+  useAuth,
+  logout,
+} from '../hooks/useAuth';
+
 
 /* =========================================================
    APPS SCRIPT URLS
@@ -32,13 +40,19 @@ const KIT_API_URL =
   'https://script.google.com/macros/s/AKfycbyOlqOWSh4HX5F4yNeh3m0xvAfxrKMbbnfWX0dpElqCMcE5MlTzqODTfY29lLewQZra/exec';
 
 const SLOT_API_URL =
-  'https://script.google.com/macros/s/AKfycbx0qeEoZ15qVlaS7jgHs9uZnPQGeWOJnfKP9JPDXr_477POiVw7zzsNwGr31w5rT-Wy/exec';
+  'https://script.google.com/macros/s/AKfycbwHjNet27vQPH9fJ5_cKq2F6wkQNoEw71eOr2ITXn86tSTvQZFBIBQ-IyppulcurbPD/exec';
+
 
 /* =========================================================
-   FIXED ELECTRICAL KIT DATE
+   FIXED DATES
 ========================================================= */
 
-const ELECTRICAL_KIT_DATE = 'August 21';
+const ELECTRICAL_KIT_DATE =
+  'August 22';
+
+const SOFTWARE_SESSION_DATE =
+  'August 22';
+
 
 /* =========================================================
    TYPES
@@ -52,6 +66,7 @@ interface SSOUser {
   passing_year: number;
 }
 
+
 interface Member {
   name?: string;
   roll?: string;
@@ -59,6 +74,7 @@ interface Member {
   email?: string;
   role?: string;
 }
+
 
 interface RegistrationResponse {
   found?: boolean;
@@ -90,6 +106,7 @@ interface RegistrationResponse {
   error?: string;
 }
 
+
 interface KitResponse {
   success?: boolean;
   isConfirmed?: boolean;
@@ -100,11 +117,15 @@ interface KitResponse {
     vehicleNumber?: string;
     rollNumber?: string;
     total?: number;
-    items?: Record<string, boolean>;
+    items?: Record<
+      string,
+      boolean
+    >;
   };
 
   message?: string;
 }
+
 
 interface SlotResponse {
   success?: boolean;
@@ -113,80 +134,145 @@ interface SlotResponse {
   vehicleNumber?: string;
 
   teamName?: string;
+
   teamLeader?: string;
+
   rollNumber?: string;
 
   slot?: string;
+
   time?: string;
+
   date?: string;
 
   venue?: string;
+
   details?: string;
+
+  status?: string;
 
   message?: string;
 }
 
+
 interface SlotInfo {
   status?: string;
+
   date?: string;
+
   time?: string;
+
   slot?: string;
+
   venue?: string;
+
   details?: string;
+
   total?: number;
-  items?: Record<string, boolean>;
+
+  items?: Record<
+    string,
+    boolean
+  >;
 }
+
 
 interface TeamData {
   found?: boolean;
 
   teamName?: string;
+
   vehicleNo?: string;
 
   registrationStatus?: string;
+
   registeredAt?: string;
 
   members?: Member[];
 
   logistics?: {
     electricalKit?: SlotInfo;
-    mechanicalKit?: SlotInfo;
+
     softwareSession?: SlotInfo;
+
+    mechanicalKit?: SlotInfo;
+
     solderingSession?: SlotInfo;
+
     debuggingSession?: SlotInfo;
+
     checkpoint?: SlotInfo;
+
     finalRace?: SlotInfo;
   };
 }
 
+
 /* =========================================================
-   COMPONENT LABELS
+   KIT COMPONENT LABELS
 ========================================================= */
 
-const KIT_COMPONENT_LABELS: Record<string, string> = {
-  motorDriver: 'Motor Driver',
-  piPico: 'Raspberry Pi Pico W',
-  mpu6050: 'MPU 6050',
-  esp01: 'ESP01',
+const KIT_COMPONENT_LABELS:
+  Record<string, string> = {
 
-  /* NEW */
-  buckConverter: 'Buck Converter',
+  motorDriver:
+    'Motor Driver',
 
-  solderGun: 'Solder Gun',
-  solderStand: 'Solder Gun Stand',
-  solderWire: 'Soldering Wire',
-  pcb: 'PCB (Perforated Board)',
-  batteryHolder: 'Remote Battery Holder',
-  onOffSwitch: 'On/Off Switch',
-  jumperWires: 'Jumper Wires',
-  wires1m: 'Wires (1m)',
-  wireStripper: 'Wire Stripper',
-  multimeter: 'Digital Multimeter',
-  breadboard: 'Breadboard',
-  bergPins: 'Berg Pins',
-  microUsb: 'Micro USB Cable',
-  screwDriver: 'Black Tape',
+  piPico:
+    'Raspberry Pi Pico W',
+
+  mpu6050:
+    'MPU 6050',
+
+  esp01:
+    'ESP01',
+
+  buckConverter:
+    'Buck Converter',
+
+  solderGun:
+    'Solder Gun',
+
+  solderStand:
+    'Solder Gun Stand',
+
+  solderWire:
+    'Soldering Wire',
+
+  pcb:
+    'PCB (Perforated Board)',
+
+  batteryHolder:
+    'Remote Battery Holder',
+
+  onOffSwitch:
+    'On/Off Switch',
+
+  jumperWires:
+    'Jumper Wires',
+
+  wires1m:
+    'Wires (1m)',
+
+  wireStripper:
+    'Wire Stripper',
+
+  multimeter:
+    'Digital Multimeter',
+
+  breadboard:
+    'Breadboard',
+
+  bergPins:
+    'Berg Pins',
+
+  microUsb:
+    'Micro USB Cable',
+
+  screwDriver:
+    'Black Tape',
 };
+
 
 /* =========================================================
    HELPERS
@@ -195,545 +281,835 @@ const KIT_COMPONENT_LABELS: Record<string, string> = {
 const safe = (
   value?: string | number | null
 ) => {
+
   if (
     value === undefined ||
     value === null ||
     String(value).trim() === ''
   ) {
+
     return '—';
+
   }
 
   return String(value);
+
 };
+
 
 const getInitials = (
   name?: string
 ) => {
-  if (!name) return 'P';
+
+  if (!name) {
+    return 'P';
+  }
 
   return name
     .trim()
     .split(/\s+/)
     .map(
-      (part) => part[0]
+      part => part[0]
     )
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
 };
+
 
 /* =========================================================
    LOGISTICS
 ========================================================= */
 
 const LOGISTICS = [
+
   {
     key: 'electricalKit',
-    label: 'Electrical Kit Collection',
-    icon: Package,
-    accent: 'amber',
+
+    label:
+      'Electrical Kit Collection',
+
+    icon:
+      Package,
+
+    accent:
+      'amber',
+  },
+
+  {
+    key: 'softwareSession',
+
+    label:
+      'Software Session',
+
+    icon:
+      Clock3,
+
+    accent:
+      'cyan',
   },
 
   {
     key: 'solderingSession',
-    label: 'Soldering Session',
-    icon: Wrench,
-    accent: 'rose',
+
+    label:
+      'Soldering Session',
+
+    icon:
+      Wrench,
+
+    accent:
+      'rose',
   },
 
   {
     key: 'mechanicalKit',
-    label: 'Mechanical Kit Collection',
-    icon: Package,
-    accent: 'cyan',
+
+    label:
+      'Mechanical Kit Collection',
+
+    icon:
+      Package,
+
+    accent:
+      'cyan',
   },
 
   {
     key: 'finalRace',
-    label: 'Final Race',
-    icon: Trophy,
-    accent: 'purple',
+
+    label:
+      'Final Race',
+
+    icon:
+      Trophy,
+
+    accent:
+      'purple',
   },
+
 ];
+
 
 /* =========================================================
    ACCENTS
 ========================================================= */
 
 const accentClasses = {
+
   amber: {
-    border: 'border-amber-500/25',
-    iconBg: 'bg-amber-500/10',
-    iconBorder: 'border-amber-500/25',
-    icon: 'text-amber-400',
-    glow: 'shadow-[0_0_25px_rgba(245,158,11,0.06)]',
+
+    border:
+      'border-amber-500/25',
+
+    iconBg:
+      'bg-amber-500/10',
+
+    iconBorder:
+      'border-amber-500/25',
+
+    icon:
+      'text-amber-400',
+
+    glow:
+      'shadow-[0_0_25px_rgba(245,158,11,0.06)]',
+
   },
 
   cyan: {
-    border: 'border-cyan-500/25',
-    iconBg: 'bg-cyan-500/10',
-    iconBorder: 'border-cyan-500/25',
-    icon: 'text-cyan-400',
-    glow: 'shadow-[0_0_25px_rgba(6,182,212,0.06)]',
+
+    border:
+      'border-cyan-500/25',
+
+    iconBg:
+      'bg-cyan-500/10',
+
+    iconBorder:
+      'border-cyan-500/25',
+
+    icon:
+      'text-cyan-400',
+
+    glow:
+      'shadow-[0_0_25px_rgba(6,182,212,0.06)]',
+
   },
 
   rose: {
-    border: 'border-rose-500/25',
-    iconBg: 'bg-rose-500/10',
-    iconBorder: 'border-rose-500/25',
-    icon: 'text-rose-400',
-    glow: 'shadow-[0_0_25px_rgba(244,63,94,0.06)]',
+
+    border:
+      'border-rose-500/25',
+
+    iconBg:
+      'bg-rose-500/10',
+
+    iconBorder:
+      'border-rose-500/25',
+
+    icon:
+      'text-rose-400',
+
+    glow:
+      'shadow-[0_0_25px_rgba(244,63,94,0.06)]',
+
   },
 
   purple: {
-    border: 'border-purple-500/25',
-    iconBg: 'bg-purple-500/10',
-    iconBorder: 'border-purple-500/25',
-    icon: 'text-purple-400',
-    glow: 'shadow-[0_0_25px_rgba(168,85,247,0.06)]',
+
+    border:
+      'border-purple-500/25',
+
+    iconBg:
+      'bg-purple-500/10',
+
+    iconBorder:
+      'border-purple-500/25',
+
+    icon:
+      'text-purple-400',
+
+    glow:
+      'shadow-[0_0_25px_rgba(168,85,247,0.06)]',
+
   },
+
 };
+
 
 /* =========================================================
    COMPONENT
 ========================================================= */
 
-const XLR8ParticipantDashboard: React.FC = () => {
+const XLR8ParticipantDashboard:
+  React.FC =
+  () => {
+
   const {
     user,
     isLoggedIn,
   } = useAuth() as {
-    user: SSOUser | null;
-    isLoggedIn: boolean;
+    user:
+      SSOUser | null;
+
+    isLoggedIn:
+      boolean;
   };
 
-  const [team, setTeam] =
-    useState<TeamData | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    team,
+    setTeam,
+  ] = useState<TeamData | null>(
+    null
+  );
 
-  const [refreshing, setRefreshing] =
-    useState(false);
 
-  const [error, setError] =
-    useState('');
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    refreshing,
+    setRefreshing,
+  ] = useState(false);
+
+
+  const [
+    error,
+    setError,
+  ] = useState('');
+
 
   /* =======================================================
      FETCH TEAM DATA
   ======================================================= */
 
-  const fetchTeamData = async () => {
-    if (!user?.roll) {
-      return;
-    }
+  const fetchTeamData =
+    async () => {
 
-    try {
-      setError('');
-
-      /* =====================================================
-         REGISTRATION API
-      ===================================================== */
-
-      const registrationURL =
-        `${REGISTRATION_API_URL}?roll=${encodeURIComponent(
-          user.roll.trim().toLowerCase()
-        )}`;
-
-      const response =
-        await fetch(
-          registrationURL,
-          {
-            method: 'GET',
-
-            headers: {
-              Accept: 'application/json',
-            },
-
-            cache: 'no-store',
-          }
-        );
-
-      if (!response.ok) {
-        throw new Error(
-          `Registration API returned ${response.status}`
-        );
-      }
-
-      const data:
-        RegistrationResponse =
-        await response.json();
-
-      console.log(
-        'XLR8 registration response:',
-        data
-      );
-
-      if (!data.found) {
-        setTeam(null);
-
-        setError(
-          'No XLR8 registration was found for your roll number.'
-        );
-
+      if (!user?.roll) {
         return;
       }
 
-      /* =====================================================
-         MEMBERS
-      ===================================================== */
-
-      const members:
-        Member[] =
-        Array.isArray(data.members)
-
-          ? data.members
-              .filter(
-                (member) =>
-                  member?.name &&
-                  member?.roll
-              )
-              .map(
-                (
-                  member,
-                  index
-                ) => ({
-                  name:
-                    member.name,
-
-                  roll:
-                    member.roll,
-
-                  phone:
-                    member.phone,
-
-                  email:
-                    member.email,
-
-                  role:
-                    member.leader
-                      ? 'Team Leader'
-                      : `Member ${index + 1}`,
-                })
-              )
-
-          : [];
-
-      /* =====================================================
-         VEHICLE NUMBER
-      ===================================================== */
-
-      const vehicleNumber =
-        String(
-          data.vehicleNumber || ''
-        ).trim();
-
-      /* =====================================================
-         DEFAULT ELECTRICAL KIT STATE
-      ===================================================== */
-
-      let electricalKit:
-        SlotInfo = {
-
-          status:
-            'To Be Announced',
-
-          date:
-            ELECTRICAL_KIT_DATE,
-
-          time:
-            '',
-
-          venue:
-            '',
-        };
-
-      /* =====================================================
-         SLOT API
-      ===================================================== */
-
-      if (vehicleNumber) {
-        try {
-          const slotURL =
-            `${SLOT_API_URL}?vehicle=${encodeURIComponent(
-              vehicleNumber
-            )}`;
-
-          const slotResponse =
-            await fetch(
-              slotURL,
-              {
-                method: 'GET',
-
-                headers: {
-                  Accept:
-                    'application/json',
-                },
-
-                cache: 'no-store',
-              }
-            );
-
-          if (!slotResponse.ok) {
-            throw new Error(
-              `Slot API returned ${slotResponse.status}`
-            );
-          }
-
-          const slotData:
-            SlotResponse =
-            await slotResponse.json();
-
-          console.log(
-            'XLR8 slot response:',
-            slotData
-          );
-
-          if (
-            slotData.success &&
-            slotData.found
-          ) {
-            electricalKit = {
-
-              status:
-                'Slot Assigned',
-
-              date:
-                ELECTRICAL_KIT_DATE,
-
-              time:
-                slotData.time ||
-                slotData.slot ||
-                '',
-
-              venue:
-                slotData.venue ||
-                'To Be Announced',
-
-              details:
-                slotData.details ||
-                '',
-            };
-          }
-
-        } catch (slotError) {
-          console.warn(
-            'Slot API error:',
-            slotError
-          );
-        }
-      }
-
-      /* =====================================================
-         KIT API
-      ===================================================== */
 
       try {
-        const kitResponse =
+
+        setError('');
+
+
+        /* ===================================================
+           REGISTRATION API
+        =================================================== */
+
+        const registrationURL =
+          `${REGISTRATION_API_URL}?roll=${encodeURIComponent(
+            user.roll.trim().toLowerCase()
+          )}`;
+
+
+        const response =
           await fetch(
-            KIT_API_URL,
+            registrationURL,
             {
-              method: 'POST',
+              method:
+                'GET',
 
               headers: {
-                'Content-Type':
-                  'text/plain;charset=utf-8',
+                Accept:
+                  'application/json',
               },
 
-              redirect: 'follow',
-
-              body:
-                JSON.stringify({
-
-                  action:
-                    'fetchStatus',
-
-                  rollNumber:
-                    user.roll.trim(),
-
-                  vehicleNumber:
-                    vehicleNumber,
-
-                }),
+              cache:
+                'no-store',
             }
           );
 
-        if (
-          kitResponse.ok
-        ) {
-          const kitData:
-            KitResponse =
-            await kitResponse.json();
 
-          console.log(
-            'XLR8 kit response:',
-            kitData
+        if (!response.ok) {
+
+          throw new Error(
+            `Registration API returned ${response.status}`
           );
 
-          /* =================================================
-             KIT COLLECTED
-          ================================================= */
-
-          if (
-            kitData.success &&
-            kitData.isConfirmed &&
-            kitData.confirmedData
-          ) {
-            const items =
-              kitData
-                .confirmedData
-                .items || {};
-
-            /*
-              Count the TRUE components.
-              Buck Converter will automatically
-              be included when returned by the API.
-            */
-
-            const total =
-              kitData
-                .confirmedData
-                .total ??
-              Object.values(items)
-                .filter(Boolean)
-                .length;
-
-            electricalKit = {
-
-              status:
-                'Kit Collected',
-
-              date:
-                ELECTRICAL_KIT_DATE,
-
-              time:
-                '',
-
-              venue:
-                '',
-
-              total:
-                total,
-
-              items:
-                items,
-
-              details:
-                'Electrical kit collected successfully.',
-            };
-          }
         }
 
-      } catch (kitError) {
-        console.warn(
-          'Kit API error:',
-          kitError
+
+        const data:
+          RegistrationResponse =
+          await response.json();
+
+
+        console.log(
+          'XLR8 registration response:',
+          data
         );
+
+
+        if (!data.found) {
+
+          setTeam(null);
+
+          setError(
+            'No XLR8 registration was found for your roll number.'
+          );
+
+          return;
+
+        }
+
+
+        /* ===================================================
+           MEMBERS
+        =================================================== */
+
+        const members:
+          Member[] =
+          Array.isArray(
+            data.members
+          )
+            ? data.members
+                .filter(
+                  member =>
+                    member?.name &&
+                    member?.roll
+                )
+                .map(
+                  (
+                    member,
+                    index
+                  ) => ({
+
+                    name:
+                      member.name,
+
+                    roll:
+                      member.roll,
+
+                    phone:
+                      member.phone,
+
+                    email:
+                      member.email,
+
+                    role:
+                      member.leader
+                        ? 'Team Leader'
+                        : `Member ${index + 1}`,
+
+                  })
+                )
+            : [];
+
+
+        /* ===================================================
+           VEHICLE NUMBER
+
+           Comes from registration API.
+        =================================================== */
+
+        const vehicleNumber =
+          String(
+            data.vehicleNumber ||
+            ''
+          ).trim();
+
+
+        /* ===================================================
+           ELECTRICAL KIT DEFAULT
+        =================================================== */
+
+        let electricalKit:
+          SlotInfo = {
+
+            status:
+              'Kit Not Collected',
+
+            date:
+              ELECTRICAL_KIT_DATE,
+
+            time:
+              '',
+
+            venue:
+              '',
+
+          };
+
+
+        /* ===================================================
+           SOFTWARE DEFAULT
+
+           DATE = AUGUST 22
+
+           TIME + VENUE WILL COME FROM
+           THE SAME SLOT DATA AS ELECTRICAL KIT.
+        =================================================== */
+
+        let softwareSession:
+          SlotInfo = {
+
+            status:
+              'To Be Announced',
+
+            date:
+              SOFTWARE_SESSION_DATE,
+
+            time:
+              '',
+
+            venue:
+              '',
+
+          };
+
+
+        /* ===================================================
+           SLOT API
+
+           Uses vehicle number from registration API.
+        =================================================== */
+
+        if (vehicleNumber) {
+
+          try {
+
+            const slotURL =
+              `${SLOT_API_URL}?vehicle=${encodeURIComponent(
+                vehicleNumber
+              )}`;
+
+
+            const slotResponse =
+              await fetch(
+                slotURL,
+                {
+                  method:
+                    'GET',
+
+                  headers: {
+                    Accept:
+                      'application/json',
+                  },
+
+                  cache:
+                    'no-store',
+                }
+              );
+
+
+            if (!slotResponse.ok) {
+
+              throw new Error(
+                `Slot API returned ${slotResponse.status}`
+              );
+
+            }
+
+
+            const slotData:
+              SlotResponse =
+              await slotResponse.json();
+
+
+            console.log(
+              'XLR8 slot response:',
+              slotData
+            );
+
+
+            /* =================================================
+               SLOT FOUND
+            ================================================= */
+
+            if (
+              slotData.success &&
+              slotData.found
+            ) {
+
+              const slotTime =
+                slotData.time ||
+                slotData.slot ||
+                '';
+
+
+              const slotVenue =
+                slotData.venue ||
+                'To Be Announced';
+
+
+              /* =============================================
+                 ELECTRICAL KIT
+
+                 SAME SLOT SHEET DATA
+              ============================================= */
+
+              electricalKit = {
+
+                status:
+                  'Slot Assigned',
+
+                date:
+                  ELECTRICAL_KIT_DATE,
+
+                time:
+                  slotTime,
+
+                venue:
+                  slotVenue,
+
+                details:
+                  slotData.details ||
+                  '',
+
+              };
+
+
+              /* =============================================
+                 SOFTWARE SESSION
+
+                 SAME SLOT DATA
+
+                 ONLY DATE IS DIFFERENT /
+                 FIXED TO AUGUST 22.
+              ============================================= */
+
+              softwareSession = {
+
+                status:
+                  'Slot Assigned',
+
+                date:
+                  SOFTWARE_SESSION_DATE,
+
+                time:
+                  slotTime,
+
+                venue:
+                  slotVenue,
+
+                details:
+                  slotData.details ||
+                  '',
+
+              };
+
+            }
+
+          } catch (
+            slotError
+          ) {
+
+            console.warn(
+              'Slot API error:',
+              slotError
+            );
+
+          }
+
+        }
+
+
+        /* ===================================================
+           KIT API
+        =================================================== */
+
+        try {
+
+          const kitResponse =
+            await fetch(
+              KIT_API_URL,
+              {
+                method:
+                  'POST',
+
+                headers: {
+                  'Content-Type':
+                    'text/plain;charset=utf-8',
+                },
+
+                redirect:
+                  'follow',
+
+                body:
+                  JSON.stringify({
+
+                    action:
+                      'fetchStatus',
+
+                    rollNumber:
+                      user.roll.trim(),
+
+                    vehicleNumber:
+                      vehicleNumber,
+
+                  }),
+
+              }
+            );
+
+
+          if (
+            kitResponse.ok
+          ) {
+
+            const kitData:
+              KitResponse =
+              await kitResponse.json();
+
+
+            console.log(
+              'XLR8 kit response:',
+              kitData
+            );
+
+
+            /* =================================================
+               KIT COLLECTED
+            ================================================= */
+
+            if (
+              kitData.success &&
+              kitData.isConfirmed &&
+              kitData.confirmedData
+            ) {
+
+              const items =
+                kitData
+                  .confirmedData
+                  .items || {};
+
+
+              const total =
+                kitData
+                  .confirmedData
+                  .total ??
+                Object.values(
+                  items
+                ).filter(
+                  Boolean
+                ).length;
+
+
+              electricalKit = {
+
+                status:
+                  'Kit Collected',
+
+                date:
+                  ELECTRICAL_KIT_DATE,
+
+                time:
+                  electricalKit.time ||
+                  '',
+
+                venue:
+                  electricalKit.venue ||
+                  '',
+
+                total:
+                  total,
+
+                items:
+                  items,
+
+                details:
+                  'Electrical kit collected successfully.',
+
+              };
+
+            }
+
+          }
+
+        } catch (
+          kitError
+        ) {
+
+          console.warn(
+            'Kit API error:',
+            kitError
+          );
+
+        }
+
+
+        /* ===================================================
+           BUILD TEAM
+        =================================================== */
+
+        const resolvedTeam:
+          TeamData = {
+
+            found:
+              true,
+
+            teamName:
+              data.teamName ||
+              '—',
+
+            vehicleNo:
+              vehicleNumber ||
+              'Not Assigned',
+
+            registrationStatus:
+              'Completed',
+
+            registeredAt:
+              '',
+
+            members:
+              members,
+
+            logistics: {
+
+              electricalKit:
+                electricalKit,
+
+              softwareSession:
+                softwareSession,
+
+              mechanicalKit: {
+
+                status:
+                  'To Be Announced',
+
+              },
+
+              solderingSession: {
+
+                status:
+                  'To Be Announced',
+
+              },
+
+              debuggingSession: {
+
+                status:
+                  'To Be Announced',
+
+              },
+
+              checkpoint: {
+
+                status:
+                  'To Be Announced',
+
+              },
+
+              finalRace: {
+
+                status:
+                  'To Be Announced',
+
+              },
+
+            },
+
+          };
+
+
+        setTeam(
+          resolvedTeam
+        );
+
+
+      } catch (err) {
+
+        console.error(
+          'Failed to fetch XLR8 participant data:',
+          err
+        );
+
+
+        setTeam(null);
+
+
+        setError(
+          'Unable to load your XLR8 registration details. Please try again.'
+        );
+
+
+      } finally {
+
+        setLoading(false);
+
+        setRefreshing(false);
+
       }
 
-      /* =====================================================
-         BUILD TEAM
-      ===================================================== */
+    };
 
-      const resolvedTeam:
-        TeamData = {
-
-          found:
-            true,
-
-          teamName:
-            data.teamName ||
-            '—',
-
-          vehicleNo:
-            vehicleNumber ||
-            'Not Assigned',
-
-          registrationStatus:
-            'Completed',
-
-          registeredAt:
-            '',
-
-          members:
-            members,
-
-          logistics: {
-
-            electricalKit:
-              electricalKit,
-
-            mechanicalKit: {
-              status:
-                'To Be Announced',
-            },
-
-            softwareSession: {
-              status:
-                'To Be Announced',
-            },
-
-            solderingSession: {
-              status:
-                'To Be Announced',
-            },
-
-            debuggingSession: {
-              status:
-                'To Be Announced',
-            },
-
-            checkpoint: {
-              status:
-                'To Be Announced',
-            },
-
-            finalRace: {
-              status:
-                'To Be Announced',
-            },
-          },
-        };
-
-      setTeam(
-        resolvedTeam
-      );
-
-    } catch (err) {
-      console.error(
-        'Failed to fetch XLR8 participant data:',
-        err
-      );
-
-      setTeam(null);
-
-      setError(
-        'Unable to load your XLR8 registration details. Please try again.'
-      );
-
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
 
   /* =======================================================
      INITIAL LOAD
   ======================================================= */
 
-  useEffect(() => {
-    if (
-      isLoggedIn &&
-      user?.roll
-    ) {
-      fetchTeamData();
-    } else {
-      setLoading(false);
-    }
-  }, [
-    isLoggedIn,
-    user?.roll,
-  ]);
+  useEffect(
+    () => {
+
+      if (
+        isLoggedIn &&
+        user?.roll
+      ) {
+
+        fetchTeamData();
+
+      } else {
+
+        setLoading(false);
+
+      }
+
+    },
+    [
+      isLoggedIn,
+      user?.roll,
+    ]
+  );
+
 
   /* =======================================================
      REFRESH
@@ -741,10 +1117,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
   const handleRefresh =
     async () => {
+
       setRefreshing(true);
 
       await fetchTeamData();
+
     };
+
 
   /* =======================================================
      MEMBERS
@@ -758,13 +1137,17 @@ const XLR8ParticipantDashboard: React.FC = () => {
           team?.members &&
           team.members.length > 0
         ) {
+
           return team.members;
+
         }
 
         return [];
+
       },
       [team]
     );
+
 
   /* =======================================================
      LOGOUT
@@ -772,8 +1155,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
   const handleLogout =
     () => {
+
       logout();
+
     };
+
 
   /* =======================================================
      AUTH GUARD
@@ -783,7 +1169,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
     !isLoggedIn ||
     !user
   ) {
+
     return (
+
       <div
         className="
           min-h-screen
@@ -796,6 +1184,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
           pt-32
         "
       >
+
         <div
           className="
             w-full
@@ -808,6 +1197,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             text-center
           "
         >
+
           <div
             className="
               mx-auto
@@ -823,6 +1213,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               justify-center
             "
           >
+
             <ShieldCheck
               className="
                 w-8
@@ -830,7 +1221,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 text-cyan-400
               "
             />
+
           </div>
+
 
           <h1
             className="
@@ -842,6 +1235,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             Participant Login Required
           </h1>
 
+
           <p
             className="
               text-base
@@ -852,6 +1246,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
           >
             Please login using your ITC SSO account to access your XLR8 participant dashboard.
           </p>
+
 
           <button
             onClick={() => {
@@ -873,17 +1268,24 @@ const XLR8ParticipantDashboard: React.FC = () => {
           >
             Return to XLR8
           </button>
+
         </div>
+
       </div>
+
     );
+
   }
+
 
   /* =======================================================
      LOADING
   ======================================================= */
 
   if (loading) {
+
     return (
+
       <div
         className="
           min-h-screen
@@ -895,11 +1297,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
           pt-32
         "
       >
+
         <div
           className="
             text-center
           "
         >
+
           <div
             className="
               w-14
@@ -914,6 +1318,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               mx-auto
             "
           >
+
             <RefreshCw
               className="
                 w-7
@@ -922,7 +1327,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 animate-spin
               "
             />
+
           </div>
+
 
           <p
             className="
@@ -934,16 +1341,22 @@ const XLR8ParticipantDashboard: React.FC = () => {
           >
             LOADING...
           </p>
+
         </div>
+
       </div>
+
     );
+
   }
 
+
   /* =======================================================
-     MAIN
+     MAIN PAGE
   ======================================================= */
 
   return (
+
     <main
       className="
         min-h-screen
@@ -958,7 +1371,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
       {/* ===================================================
           BACKGROUND
-          No grid
+          NO GRID
       =================================================== */}
 
       <div
@@ -969,6 +1382,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
           z-0
         "
       >
+
         <div
           className="
             absolute
@@ -994,7 +1408,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
             blur-[140px]
           "
         />
+
       </div>
+
 
       {/* ===================================================
           CONTENT
@@ -1013,6 +1429,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
         "
       >
 
+
         {/* =================================================
             TOP BAR
         ================================================= */}
@@ -1028,6 +1445,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             mb-8
           "
         >
+
           <div>
 
             <span
@@ -1043,6 +1461,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               XLR8 2026
             </span>
 
+
             <h1
               className="
                 text-3xl
@@ -1057,6 +1476,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               Participant Dashboard
             </h1>
 
+
             <p
               className="
                 text-base
@@ -1070,6 +1490,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
+
           <div
             className="
               flex
@@ -1077,6 +1498,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               gap-2
             "
           >
+
             <button
               onClick={
                 handleRefresh
@@ -1101,6 +1523,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 transition
               "
             >
+
               <RefreshCw
                 className={`
                   w-5
@@ -1121,7 +1544,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 Refresh
               </span>
+
             </button>
+
 
             <button
               onClick={
@@ -1144,6 +1569,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 transition
               "
             >
+
               <LogOut
                 className="
                   w-5
@@ -1159,15 +1585,20 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 Logout
               </span>
+
             </button>
+
           </div>
+
         </header>
+
 
         {/* =================================================
             ERROR
         ================================================= */}
 
         {error && (
+
           <div
             className="
               mb-7
@@ -1182,6 +1613,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               gap-3
             "
           >
+
             <AlertCircle
               className="
                 w-5
@@ -1192,11 +1624,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
               "
             />
 
+
             <div
               className="
                 flex-1
               "
             >
+
               <p
                 className="
                   text-sm
@@ -1206,6 +1640,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 {error}
               </p>
+
 
               <button
                 onClick={
@@ -1221,9 +1656,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
               >
                 Try again →
               </button>
+
             </div>
+
           </div>
+
         )}
+
 
         {/* =================================================
             TEAM CARD
@@ -1240,6 +1679,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
             mb-7
           "
         >
+
           <div
             className="
               px-6
@@ -1250,6 +1690,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               bg-slate-950/30
             "
           >
+
             <div
               className="
                 flex
@@ -1268,6 +1709,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   gap-4
                 "
               >
+
                 <div
                   className="
                     w-16
@@ -1281,6 +1723,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     justify-center
                   "
                 >
+
                   <Users
                     className="
                       w-8
@@ -1288,9 +1731,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       text-cyan-400
                     "
                   />
+
                 </div>
 
+
                 <div>
+
                   <h2
                     className="
                       text-3xl
@@ -1305,8 +1751,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       team?.teamName
                     )}
                   </h2>
+
                 </div>
+
               </div>
+
 
               <div
                 className="
@@ -1315,6 +1764,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   gap-3
                 "
               >
+
+                {/* REGISTRATION */}
 
                 <div
                   className="
@@ -1326,6 +1777,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     border-emerald-500/20
                   "
                 >
+
                   <p
                     className="
                       text-[10px]
@@ -1336,6 +1788,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                     Registration
                   </p>
+
 
                   <p
                     className="
@@ -1348,6 +1801,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       gap-1.5
                     "
                   >
+
                     <CheckCircle2
                       className="
                         w-4
@@ -1356,8 +1810,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     />
 
                     COMPLETED
+
                   </p>
+
                 </div>
+
+
+                {/* VEHICLE */}
 
                 <div
                   className="
@@ -1369,6 +1828,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     border-slate-800
                   "
                 >
+
                   <p
                     className="
                       text-[10px]
@@ -1379,6 +1839,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                     Vehicle
                   </p>
+
 
                   <p
                     className="
@@ -1393,7 +1854,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       team?.vehicleNo
                     )}
                   </p>
+
                 </div>
+
+
+                {/* ROLL NUMBER */}
 
                 <div
                   className="
@@ -1405,6 +1870,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     border-slate-800
                   "
                 >
+
                   <p
                     className="
                       text-[10px]
@@ -1415,6 +1881,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                     Roll Number
                   </p>
+
 
                   <p
                     className="
@@ -1429,11 +1896,15 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       user.roll
                     )}
                   </p>
+
                 </div>
 
               </div>
+
             </div>
+
           </div>
+
 
           {/* =================================================
               TEAM MEMBERS
@@ -1445,6 +1916,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               sm:p-8
             "
           >
+
             <div
               className="
                 grid
@@ -1454,11 +1926,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 gap-4
               "
             >
+
               {members.map(
                 (
                   member,
                   index
                 ) => (
+
                   <div
                     key={
                       `${member.roll}-${index}`
@@ -1473,6 +1947,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       transition
                     "
                   >
+
                     <div
                       className="
                         flex
@@ -1481,6 +1956,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         mb-5
                       "
                     >
+
                       <div
                         className="
                           w-12
@@ -1502,11 +1978,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         )}
                       </div>
 
+
                       <div
                         className="
                           min-w-0
                         "
                       >
+
                         <p
                           className="
                             text-lg
@@ -1520,6 +1998,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             member.name
                           )}
                         </p>
+
 
                         <p
                           className="
@@ -1536,14 +2015,18 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                 : `Member ${index + 1}`
                             )}
                         </p>
+
                       </div>
+
                     </div>
+
 
                     <div
                       className="
                         space-y-3
                       "
                     >
+
                       <div
                         className="
                           flex
@@ -1552,6 +2035,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           text-sm
                         "
                       >
+
                         <BadgeCheck
                           className="
                             w-4
@@ -1570,9 +2054,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             member.roll
                           )}
                         </span>
+
                       </div>
 
+
                       {member.phone && (
+
                         <a
                           href={
                             `tel:${member.phone}`
@@ -1587,6 +2074,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             transition
                           "
                         >
+
                           <Phone
                             className="
                               w-4
@@ -1596,10 +2084,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           />
 
                           {member.phone}
+
                         </a>
+
                       )}
 
+
                       {member.email && (
+
                         <a
                           href={
                             `mailto:${member.email}`
@@ -1615,6 +2107,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             truncate
                           "
                         >
+
                           <Mail
                             className="
                               w-4
@@ -1631,15 +2124,24 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           >
                             {member.email}
                           </span>
+
                         </a>
+
                       )}
+
                     </div>
+
                   </div>
+
                 )
               )}
+
             </div>
+
           </div>
+
         </section>
+
 
         {/* =================================================
             KITS & SLOTS
@@ -1650,12 +2152,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
             space-y-4
           "
         >
+
           <div
             className="
               px-1
               mb-3
             "
           >
+
             <h2
               className="
                 text-2xl
@@ -1667,6 +2171,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               Kits & Slots
             </h2>
 
+
             <p
               className="
                 text-sm
@@ -1677,13 +2182,16 @@ const XLR8ParticipantDashboard: React.FC = () => {
             >
               Your collection, session and race details.
             </p>
+
           </div>
 
+
           {LOGISTICS.map(
-            (item) => {
+            item => {
 
               const Icon =
                 item.icon;
+
 
               const info =
                 team?.logistics?.[
@@ -1692,24 +2200,39 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                 ];
 
+
               const accent =
                 accentClasses[
                   item.accent as keyof typeof accentClasses
                 ];
 
+
               const isElectricalKit =
                 item.key ===
                 'electricalKit';
+
+
+              const isSoftwareSession =
+                item.key ===
+                'softwareSession';
+
 
               const isCollected =
                 isElectricalKit &&
                 info?.status ===
                   'Kit Collected';
 
+
               const hasSlot =
-                isElectricalKit &&
-                Boolean(info?.time) &&
-                !isCollected;
+                (
+                  isElectricalKit ||
+                  isSoftwareSession
+                ) &&
+                Boolean(
+                  info?.time ||
+                  info?.slot
+                );
+
 
               const collectedItems =
                 isCollected
@@ -1721,7 +2244,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     )
                   : [];
 
+
               return (
+
                 <div
                   key={
                     item.key
@@ -1740,7 +2265,10 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   `}
                 >
 
-                  {/* HEADER */}
+
+                  {/* =================================================
+                      HEADER
+                  ================================================= */}
 
                   <div
                     className="
@@ -1750,6 +2278,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       gap-4
                     "
                   >
+
                     <div
                       className="
                         flex
@@ -1758,6 +2287,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         min-w-0
                       "
                     >
+
                       <div
                         className={`
                           w-12
@@ -1772,6 +2302,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           shrink-0
                         `}
                       >
+
                         <Icon
                           className={`
                             w-6
@@ -1779,13 +2310,16 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             ${accent.icon}
                           `}
                         />
+
                       </div>
+
 
                       <div
                         className="
                           min-w-0
                         "
                       >
+
                         <h3
                           className="
                             text-base
@@ -1796,10 +2330,60 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         >
                           {item.label}
                         </h3>
+
                       </div>
+
                     </div>
 
-                    {!isCollected && (
+
+                    {/* STATUS */}
+
+                    {isCollected ? (
+
+                      <span
+                        className="
+                          shrink-0
+                          text-[10px]
+                          sm:text-xs
+                          font-semibold
+                          uppercase
+                          tracking-wide
+                          px-3
+                          py-1.5
+                          rounded-md
+                          border
+                          bg-emerald-500/10
+                          text-emerald-400
+                          border-emerald-500/20
+                        "
+                      >
+                        COLLECTED
+                      </span>
+
+                    ) : isElectricalKit ? (
+
+                      <span
+                        className="
+                          shrink-0
+                          text-[10px]
+                          sm:text-xs
+                          font-semibold
+                          uppercase
+                          tracking-wide
+                          px-3
+                          py-1.5
+                          rounded-md
+                          border
+                          bg-rose-500/10
+                          text-rose-400
+                          border-rose-500/20
+                        "
+                      >
+                        NOT COLLECTED
+                      </span>
+
+                    ) : (
+
                       <span
                         className={`
                           shrink-0
@@ -1828,12 +2412,17 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           }
                         `}
                       >
+
                         {hasSlot
                           ? 'SLOT ASSIGNED'
                           : 'TO BE ANNOUNCED'}
+
                       </span>
+
                     )}
+
                   </div>
+
 
                   {/* =================================================
                       ELECTRICAL KIT — COLLECTED
@@ -1862,6 +2451,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           gap-4
                         "
                       >
+
                         <div
                           className="
                             flex
@@ -1869,6 +2459,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             gap-3
                           "
                         >
+
                           <CheckCircle2
                             className="
                               w-6
@@ -1878,7 +2469,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             "
                           />
 
+
                           <div>
+
                             <p
                               className="
                                 text-base
@@ -1890,8 +2483,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             >
                               KIT COLLECTED
                             </p>
+
                           </div>
+
                         </div>
+
 
                         <div
                           className="
@@ -1899,6 +2495,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             shrink-0
                           "
                         >
+
                           <p
                             className="
                               text-[10px]
@@ -1910,6 +2507,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           >
                             Total Components
                           </p>
+
 
                           <p
                             className="
@@ -1923,12 +2521,16 @@ const XLR8ParticipantDashboard: React.FC = () => {
                               collectedItems.length
                             )}
                           </p>
+
                         </div>
+
                       </div>
+
 
                       {/* COMPONENTS */}
 
                       <div>
+
                         <p
                           className="
                             text-[10px]
@@ -1941,6 +2543,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         >
                           Collected Components
                         </p>
+
 
                         <div
                           className="
@@ -1959,7 +2562,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                               ([key]) => (
 
                                 <div
-                                  key={key}
+                                  key={
+                                    key
+                                  }
                                   className="
                                     flex
                                     items-center
@@ -1972,6 +2577,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                     py-2.5
                                   "
                                 >
+
                                   <CheckCircle2
                                     className="
                                       w-4
@@ -1981,19 +2587,23 @@ const XLR8ParticipantDashboard: React.FC = () => {
                                     "
                                   />
 
+
                                   <span
                                     className="
                                       text-sm
                                       text-slate-300
                                     "
                                   >
+
                                     {
                                       KIT_COMPONENT_LABELS[
                                         key
                                       ] ||
                                       key
                                     }
+
                                   </span>
+
                                 </div>
 
                               )
@@ -2013,190 +2623,30 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           )}
 
                         </div>
+
                       </div>
+
                     </div>
 
-                  ) : isElectricalKit &&
-                    hasSlot ? (
+
+                  ) : isElectricalKit ? (
+
 
                     /* =================================================
-                       ELECTRICAL KIT — SLOT
-                    ================================================= */
-
-                    <div
-                      className="
-                        mt-5
-                        grid
-                        grid-cols-1
-                        sm:grid-cols-3
-                        gap-6
-                      "
-                    >
-
-                      {/* DATE */}
-
-                      <div
-                        className="
-                          rounded-xl
-                          bg-slate-950/70
-                          border
-                          border-slate-800
-                          p-4
-                        "
-                      >
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-3
-                          "
-                        >
-                          <CalendarDays
-                            className="
-                              w-6
-                              h-6
-                              text-cyan-400
-                              shrink-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              min-w-0
-                            "
-                          >
-                            <p
-                              className="
-                                text-xl
-                                sm:text-[1.35rem]
-                                font-bold
-                                text-white
-                                mt-1
-                              "
-                            >
-                              {ELECTRICAL_KIT_DATE}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* TIME */}
-
-                      <div
-                        className="
-                          rounded-xl
-                          bg-slate-950/70
-                          border
-                          border-slate-800
-                          p-4
-                        "
-                      >
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-3
-                          "
-                        >
-                          <Clock3
-                            className="
-                              w-6
-                              h-6
-                              text-cyan-400
-                              shrink-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              min-w-0
-                            "
-                          >
-                            <p
-                              className="
-                                text-xl
-                                sm:text-[1.35rem]
-                                font-bold
-                                text-white
-                                mt-1
-                              "
-                            >
-                              {safe(
-                                info?.time ||
-                                info?.slot
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* VENUE */}
-
-                      <div
-                        className="
-                          rounded-xl
-                          bg-slate-950/70
-                          border
-                          border-slate-800
-                          p-4
-                        "
-                      >
-                        <div
-                          className="
-                            flex
-                            items-center
-                            gap-3
-                          "
-                        >
-                          <MapPin
-                            className="
-                              w-6
-                              h-6
-                              text-cyan-400
-                              shrink-0
-                            "
-                          />
-
-                          <div
-                            className="
-                              min-w-0
-                            "
-                          >
-                            <p
-                              className="
-                                text-xl
-                                sm:text-[1.35rem]
-                                font-bold
-                                text-white
-                                mt-1
-                                leading-snug
-                              "
-                            >
-                              {safe(
-                                info?.venue
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                  ) : (
-
-                    /* =================================================
-                       OTHER CARDS
+                       ELECTRICAL KIT — NOT COLLECTED
                     ================================================= */
 
                     <div
                       className="
                         mt-5
                         rounded-xl
-                        bg-slate-950/70
+                        bg-rose-500/5
                         border
-                        border-slate-800
+                        border-rose-500/15
                         p-4
                       "
                     >
+
                       <div
                         className="
                           flex
@@ -2204,37 +2654,319 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           gap-3
                         "
                       >
-                        <Circle
+
+                        <AlertCircle
                           className="
-                            w-5
-                            h-5
-                            text-slate-600
+                            w-6
+                            h-6
+                            text-rose-400
+                            shrink-0
                           "
                         />
 
-                        <p
+
+                        <div>
+
+                          <p
+                            className="
+                              text-base
+                              sm:text-lg
+                              font-bold
+                              text-rose-400
+                            "
+                          >
+                            YOU HAVEN'T COLLECTED YOUR ELECTRICAL KIT YET
+                          </p>
+
+
+                          <p
+                            className="
+                              text-sm
+                              text-slate-400
+                              mt-1
+                            "
+                          >
+                            Please contact any convenors to collect your kit.
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+                  ) : (
+
+
+                    /* =================================================
+                       SOFTWARE + OTHER SESSION CARDS
+                    ================================================= */
+
+                    <div
+                      className="
+                        mt-5
+                      "
+                    >
+
+                      {hasSlot ? (
+
+                        <div
                           className="
-                            text-sm
-                            sm:text-base
-                            font-semibold
-                            text-slate-300
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-3
+                            gap-6
                           "
                         >
-                          To Be Announced
-                        </p>
-                      </div>
+
+                          {/* =================================================
+                              DATE
+                          ================================================= */}
+
+                          <div
+                            className="
+                              rounded-xl
+                              bg-slate-950/70
+                              border
+                              border-slate-800
+                              p-4
+                            "
+                          >
+
+                            <div
+                              className="
+                                flex
+                                items-center
+                                gap-3
+                              "
+                            >
+
+                              <CalendarDays
+                                className="
+                                  w-6
+                                  h-6
+                                  text-cyan-400
+                                  shrink-0
+                                "
+                              />
+
+
+                              <div
+                                className="
+                                  min-w-0
+                                "
+                              >
+
+                                <p
+                                  className="
+                                    text-xl
+                                    sm:text-[1.35rem]
+                                    font-bold
+                                    text-white
+                                    mt-1
+                                  "
+                                >
+                                  {safe(
+                                    info?.date
+                                  )}
+                                </p>
+
+                              </div>
+
+                            </div>
+
+                          </div>
+
+
+                          {/* =================================================
+                              TIME
+                          ================================================= */}
+
+                          <div
+                            className="
+                              rounded-xl
+                              bg-slate-950/70
+                              border
+                              border-slate-800
+                              p-4
+                            "
+                          >
+
+                            <div
+                              className="
+                                flex
+                                items-center
+                                gap-3
+                              "
+                            >
+
+                              <Clock3
+                                className="
+                                  w-6
+                                  h-6
+                                  text-cyan-400
+                                  shrink-0
+                                "
+                              />
+
+
+                              <div
+                                className="
+                                  min-w-0
+                                "
+                              >
+
+                                <p
+                                  className="
+                                    text-xl
+                                    sm:text-[1.35rem]
+                                    font-bold
+                                    text-white
+                                    mt-1
+                                  "
+                                >
+                                  {safe(
+                                    info?.time ||
+                                    info?.slot
+                                  )}
+                                </p>
+
+                              </div>
+
+                            </div>
+
+                          </div>
+
+
+                          {/* =================================================
+                              VENUE
+                          ================================================= */}
+
+                          <div
+                            className="
+                              rounded-xl
+                              bg-slate-950/70
+                              border
+                              border-slate-800
+                              p-4
+                            "
+                          >
+
+                            <div
+                              className="
+                                flex
+                                items-center
+                                gap-3
+                              "
+                            >
+
+                              <MapPin
+                                className="
+                                  w-6
+                                  h-6
+                                  text-cyan-400
+                                  shrink-0
+                                "
+                              />
+
+
+                              <div
+                                className="
+                                  min-w-0
+                                "
+                              >
+
+                                <p
+                                  className="
+                                    text-xl
+                                    sm:text-[1.35rem]
+                                    font-bold
+                                    text-white
+                                    mt-1
+                                    leading-snug
+                                  "
+                                >
+                                  {safe(
+                                    info?.venue
+                                  )}
+                                </p>
+
+                              </div>
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+
+                      ) : (
+
+                        <div
+                          className="
+                            rounded-xl
+                            bg-slate-950/70
+                            border
+                            border-slate-800
+                            p-4
+                          "
+                        >
+
+                          <div
+                            className="
+                              flex
+                              items-center
+                              gap-3
+                            "
+                          >
+
+                            <Circle
+                              className="
+                                w-5
+                                h-5
+                                text-slate-600
+                              "
+                            />
+
+
+                            <p
+                              className="
+                                text-sm
+                                sm:text-base
+                                font-semibold
+                                text-slate-300
+                              "
+                            >
+                              To Be Announced
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      )}
+
                     </div>
 
                   )}
 
                 </div>
+
               );
+
             }
           )}
+
         </section>
+
       </div>
+
     </main>
+
   );
+
 };
+
 
 export default XLR8ParticipantDashboard;
