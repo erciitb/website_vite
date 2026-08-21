@@ -39,7 +39,7 @@ const SLOT_API_URL =
    FIXED ELECTRICAL KIT DATE
 ========================================================= */
 
-const ELECTRICAL_KIT_DATE = '21st August';
+const ELECTRICAL_KIT_DATE = 'August 21';
 
 
 /* =========================================================
