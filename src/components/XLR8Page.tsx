@@ -906,14 +906,14 @@ const XLR8: React.FC = () => {
     !!user &&
     [
       '25b2254',
-      '25b2234',
+      '25b2134',
       '25b2465',
       '25b2149',
       '25b2203',
       '25b0325',
       '25b3973',
       '25b0661',
-      '25b3905',
+      '25b3907',
       '25b1308',
       '24b3949',
       '24b2471',
@@ -1109,7 +1109,7 @@ const XLR8: React.FC = () => {
 
                           <p className="text-xs font-mono text-slate-500 uppercase tracking-wider font-semibold">
 
-                            Registered Team
+                            Team Name
 
                           </p>
 

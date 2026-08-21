@@ -5,7 +5,6 @@ import {
   Phone,
   Mail,
   BadgeCheck,
-  Car,
   Package,
   Wrench,
   Trophy,
@@ -15,6 +14,9 @@ import {
   AlertCircle,
   RefreshCw,
   LogOut,
+  Clock3,
+  MapPin,
+  CalendarDays,
 } from 'lucide-react';
 
 import { useAuth, logout } from '../hooks/useAuth';
@@ -27,7 +29,18 @@ const REGISTRATION_API_URL =
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
 
 const KIT_API_URL =
-  'https://script.google.com/macros/s/AKfycbx9luLGT0Q8rAs_3TbBA-oXjsoq8acUVV07hkefGVlzFjB3n_0qtlWcecT2M3b6k7k2/exec';
+  'https://script.google.com/macros/s/AKfycbzg8r2g7-VqAkJKjfClt3s9jP-F1aP_7_lACQQRolm4vD5DlpLjL7vmBxm1HVSMQ-kE/exec';
+
+const SLOT_API_URL =
+  'https://script.google.com/macros/s/AKfycbx0qeEoZ15qVlaS7jgHs9uZnPQGeWOJnfKP9JPDXr_477POiVw7zzsNwGr31w5rT-Wy/exec';
+
+
+/* =========================================================
+   FIXED ELECTRICAL KIT DATE
+========================================================= */
+
+const ELECTRICAL_KIT_DATE = '21st August';
+
 
 /* =========================================================
    TYPES
@@ -86,8 +99,31 @@ interface KitResponse {
   teamName?: string;
 
   confirmedData?: {
+    vehicleNumber?: string;
+    rollNumber?: string;
+    total?: number;
     items?: Record<string, boolean>;
   };
+
+  message?: string;
+}
+
+interface SlotResponse {
+  success?: boolean;
+  found?: boolean;
+
+  vehicleNumber?: string;
+
+  teamName?: string;
+  teamLeader?: string;
+  rollNumber?: string;
+
+  slot?: string;
+  time?: string;
+  date?: string;
+
+  venue?: string;
+  details?: string;
 
   message?: string;
 }
@@ -99,6 +135,8 @@ interface SlotInfo {
   slot?: string;
   venue?: string;
   details?: string;
+  total?: number;
+  items?: Record<string, boolean>;
 }
 
 interface TeamData {
@@ -123,11 +161,40 @@ interface TeamData {
   };
 }
 
+
+/* =========================================================
+   COMPONENT LABELS
+========================================================= */
+
+const KIT_COMPONENT_LABELS: Record<string, string> = {
+  motorDriver: 'Motor Driver',
+  piPico: 'Raspberry Pi Pico W',
+  mpu6050: 'MPU 6050',
+  esp01: 'ESP01',
+  solderGun: 'Solder Gun',
+  solderStand: 'Solder Gun Stand',
+  solderWire: 'Soldering Wire',
+  pcb: 'PCB (Perforated Board)',
+  batteryHolder: 'Remote Battery Holder',
+  onOffSwitch: 'On/Off Switch',
+  jumperWires: 'Jumper Wires',
+  wires1m: 'Wires (1m)',
+  wireStripper: 'Wire Stripper',
+  multimeter: 'Digital Multimeter',
+  breadboard: 'Breadboard',
+  bergPins: 'Berg Pins',
+  microUsb: 'Micro USB Cable',
+  screwDriver: 'Black Tape',
+};
+
+
 /* =========================================================
    HELPERS
 ========================================================= */
 
-const safe = (value?: string | number | null) => {
+const safe = (
+  value?: string | number | null
+) => {
   if (
     value === undefined ||
     value === null ||
@@ -139,25 +206,22 @@ const safe = (value?: string | number | null) => {
   return String(value);
 };
 
-const normalizeStatus = (value?: string) => {
-  if (!value) return 'To Be Announced';
-
-  return value
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const getInitials = (name?: string) => {
+const getInitials = (
+  name?: string
+) => {
   if (!name) return 'P';
 
   return name
     .trim()
     .split(/\s+/)
-    .map((part) => part[0])
+    .map(
+      (part) => part[0]
+    )
     .join('')
     .slice(0, 2)
     .toUpperCase();
 };
+
 
 /* =========================================================
    LOGISTICS
@@ -166,22 +230,25 @@ const getInitials = (name?: string) => {
 const LOGISTICS = [
   {
     key: 'electricalKit',
-    label: 'Electrical Kit',
+    label: 'Electrical Kit Collection',
     icon: Package,
     accent: 'amber',
   },
-  {
-    key: 'mechanicalKit',
-    label: 'Mechanical Kit',
-    icon: Package,
-    accent: 'cyan',
-  },
+
   {
     key: 'solderingSession',
     label: 'Soldering Session',
     icon: Wrench,
     accent: 'rose',
   },
+
+  {
+    key: 'mechanicalKit',
+    label: 'Mechanical Kit Collection',
+    icon: Package,
+    accent: 'cyan',
+  },
+
   {
     key: 'finalRace',
     label: 'Final Race',
@@ -189,6 +256,7 @@ const LOGISTICS = [
     accent: 'purple',
   },
 ];
+
 
 /* =========================================================
    ACCENTS
@@ -228,59 +296,97 @@ const accentClasses = {
   },
 };
 
+
 /* =========================================================
    COMPONENT
 ========================================================= */
 
 const XLR8ParticipantDashboard: React.FC = () => {
-  const { user, isLoggedIn } = useAuth() as {
+
+  const {
+    user,
+    isLoggedIn,
+  } = useAuth() as {
     user: SSOUser | null;
     isLoggedIn: boolean;
   };
 
-  const [team, setTeam] = useState<TeamData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState('');
+
+  const [team, setTeam] =
+    useState<TeamData | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [error, setError] =
+    useState('');
+
 
   /* =======================================================
      FETCH TEAM DATA
   ======================================================= */
 
   const fetchTeamData = async () => {
-    if (!user?.roll) return;
+
+    if (!user?.roll) {
+      return;
+    }
 
     try {
+
       setError('');
+
+
+      /* =====================================================
+         REGISTRATION API
+      ===================================================== */
 
       const registrationURL =
         `${REGISTRATION_API_URL}?roll=${encodeURIComponent(
           user.roll.trim().toLowerCase()
         )}`;
 
-      const response = await fetch(registrationURL, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-        cache: 'no-store',
-      });
+
+      const response =
+        await fetch(
+          registrationURL,
+          {
+            method: 'GET',
+
+            headers: {
+              Accept: 'application/json',
+            },
+
+            cache: 'no-store',
+          }
+        );
+
 
       if (!response.ok) {
+
         throw new Error(
           `Registration API returned ${response.status}`
         );
+
       }
 
-      const data: RegistrationResponse =
+
+      const data:
+        RegistrationResponse =
         await response.json();
+
 
       console.log(
         'XLR8 registration response:',
         data
       );
 
+
       if (!data.found) {
+
         setTeam(null);
 
         setError(
@@ -290,193 +396,464 @@ const XLR8ParticipantDashboard: React.FC = () => {
         return;
       }
 
+
       /* =====================================================
          MEMBERS
       ===================================================== */
 
-      const members: Member[] = Array.isArray(
-        data.members
-      )
-        ? data.members
-            .filter(
-              (member) =>
-                member?.name &&
-                member?.roll
-            )
-            .map((member, index) => ({
-              name: member.name,
-              roll: member.roll,
-              phone: member.phone,
-              email: member.email,
+      const members:
+        Member[] =
+        Array.isArray(data.members)
 
-              role: member.leader
-                ? 'Team Leader'
-                : `Member ${index + 1}`,
-            }))
-        : [];
+          ? data.members
+              .filter(
+                (member) =>
+                  member?.name &&
+                  member?.roll
+              )
+              .map(
+                (
+                  member,
+                  index
+                ) => ({
+
+                  name:
+                    member.name,
+
+                  roll:
+                    member.roll,
+
+                  phone:
+                    member.phone,
+
+                  email:
+                    member.email,
+
+                  role:
+                    member.leader
+                      ? 'Team Leader'
+                      : `Member ${index + 1}`,
+                })
+              )
+
+          : [];
+
 
       /* =====================================================
-         KIT BACKEND
+         VEHICLE NUMBER
+      ===================================================== */
+
+      const vehicleNumber =
+        String(
+          data.vehicleNumber || ''
+        ).trim();
+
+
+      /* =====================================================
+         DEFAULT ELECTRICAL KIT STATE
+      ===================================================== */
+
+      let electricalKit:
+        SlotInfo = {
+
+          status:
+            'To Be Announced',
+
+          date:
+            ELECTRICAL_KIT_DATE,
+
+          time:
+            '',
+
+          venue:
+            '',
+
+        };
+
+
+      /* =====================================================
+         SLOT API
+      ===================================================== */
+
+      if (vehicleNumber) {
+
+        try {
+
+          const slotURL =
+            `${SLOT_API_URL}?vehicle=${encodeURIComponent(
+              vehicleNumber
+            )}`;
+
+
+          const slotResponse =
+            await fetch(
+              slotURL,
+              {
+                method: 'GET',
+
+                headers: {
+                  Accept:
+                    'application/json',
+                },
+
+                cache: 'no-store',
+              }
+            );
+
+
+          if (!slotResponse.ok) {
+
+            throw new Error(
+              `Slot API returned ${slotResponse.status}`
+            );
+
+          }
+
+
+          const slotData:
+            SlotResponse =
+            await slotResponse.json();
+
+
+          console.log(
+            'XLR8 slot response:',
+            slotData
+          );
+
+
+          if (
+            slotData.success &&
+            slotData.found
+          ) {
+
+            electricalKit = {
+
+              status:
+                'Slot Assigned',
+
+              date:
+                ELECTRICAL_KIT_DATE,
+
+              time:
+                slotData.time ||
+                slotData.slot ||
+                '',
+
+              venue:
+                slotData.venue ||
+                'To Be Announced',
+
+              details:
+                slotData.details ||
+                '',
+
+            };
+
+          }
+
+        } catch (slotError) {
+
+          console.warn(
+            'Slot API error:',
+            slotError
+          );
+
+        }
+
+      }
+
+
+      /* =====================================================
+         KIT API
       ===================================================== */
 
       try {
+
         const kitResponse =
-          await fetch(KIT_API_URL, {
-            method: 'POST',
+          await fetch(
+            KIT_API_URL,
+            {
+              method: 'POST',
 
-            headers: {
-              'Content-Type':
-                'text/plain;charset=utf-8',
-            },
+              headers: {
+                'Content-Type':
+                  'text/plain;charset=utf-8',
+              },
 
-            redirect: 'follow',
+              redirect: 'follow',
 
-            body: JSON.stringify({
-              action: 'fetchStatus',
+              body:
+                JSON.stringify({
 
-              rollNumber:
-                user.roll.trim(),
+                  action:
+                    'fetchStatus',
 
-              vehicleNumber:
-                data.vehicleNumber || '',
-            }),
-          });
+                  rollNumber:
+                    user.roll.trim(),
 
-        if (kitResponse.ok) {
-          const kitData: KitResponse =
+                  vehicleNumber:
+                    vehicleNumber,
+
+                }),
+
+            }
+          );
+
+
+        if (
+          kitResponse.ok
+        ) {
+
+          const kitData:
+            KitResponse =
             await kitResponse.json();
+
 
           console.log(
             'XLR8 kit response:',
             kitData
           );
+
+
+          /* =================================================
+             KIT COLLECTED
+          ================================================= */
+
+          if (
+            kitData.success &&
+            kitData.isConfirmed &&
+            kitData.confirmedData
+          ) {
+
+            const items =
+              kitData
+                .confirmedData
+                .items || {};
+
+
+            const total =
+              kitData
+                .confirmedData
+                .total ??
+              Object.values(items)
+                .filter(Boolean)
+                .length;
+
+
+            /*
+              Once collected, replace the
+              slot information.
+            */
+
+            electricalKit = {
+
+              status:
+                'Kit Collected',
+
+              date:
+                ELECTRICAL_KIT_DATE,
+
+              time:
+                '',
+
+              venue:
+                '',
+
+              total:
+                total,
+
+              items:
+                items,
+
+              details:
+                'Electrical kit collected successfully.',
+
+            };
+
+          }
+
         }
+
       } catch (kitError) {
+
         console.warn(
-          'Kit status could not be loaded:',
+          'Kit API error:',
           kitError
         );
+
       }
+
 
       /* =====================================================
          BUILD TEAM
       ===================================================== */
 
-      const resolvedTeam: TeamData = {
-        found: true,
+      const resolvedTeam:
+        TeamData = {
 
-        teamName:
-          data.teamName || '—',
+          found:
+            true,
 
-        vehicleNo:
-          data.vehicleNumber ||
-          'Not Assigned',
+          teamName:
+            data.teamName ||
+            '—',
 
-        registrationStatus: 'Completed',
+          vehicleNo:
+            vehicleNumber ||
+            'Not Assigned',
 
-        registeredAt: '',
+          registrationStatus:
+            'Completed',
 
-        members,
+          registeredAt:
+            '',
 
-        logistics: {
-          electricalKit: {
-            status: 'To Be Announced',
+          members:
+            members,
+
+          logistics: {
+
+            electricalKit:
+              electricalKit,
+
+            mechanicalKit: {
+              status:
+                'To Be Announced',
+            },
+
+            softwareSession: {
+              status:
+                'To Be Announced',
+            },
+
+            solderingSession: {
+              status:
+                'To Be Announced',
+            },
+
+            debuggingSession: {
+              status:
+                'To Be Announced',
+            },
+
+            checkpoint: {
+              status:
+                'To Be Announced',
+            },
+
+            finalRace: {
+              status:
+                'To Be Announced',
+            },
+
           },
 
-          mechanicalKit: {
-            status: 'To Be Announced',
-          },
+        };
 
-          softwareSession: {
-            status: 'To Be Announced',
-          },
 
-          solderingSession: {
-            status: 'To Be Announced',
-          },
-
-          debuggingSession: {
-            status: 'To Be Announced',
-          },
-
-          checkpoint: {
-            status: 'To Be Announced',
-          },
-
-          finalRace: {
-            status: 'To Be Announced',
-          },
-        },
-      };
-
-      setTeam(resolvedTeam);
+      setTeam(
+        resolvedTeam
+      );
 
     } catch (err) {
+
       console.error(
         'Failed to fetch XLR8 participant data:',
         err
       );
 
+
       setTeam(null);
+
 
       setError(
         'Unable to load your XLR8 registration details. Please try again.'
       );
+
     } finally {
+
       setLoading(false);
       setRefreshing(false);
+
     }
+
   };
+
 
   /* =======================================================
      INITIAL LOAD
   ======================================================= */
 
   useEffect(() => {
+
     if (
       isLoggedIn &&
       user?.roll
     ) {
+
       fetchTeamData();
+
     } else {
+
       setLoading(false);
+
     }
+
   }, [
     isLoggedIn,
     user?.roll,
   ]);
 
+
   /* =======================================================
      REFRESH
   ======================================================= */
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchTeamData();
-  };
+  const handleRefresh =
+    async () => {
+
+      setRefreshing(true);
+
+      await fetchTeamData();
+
+    };
+
 
   /* =======================================================
      MEMBERS
   ======================================================= */
 
-  const members = useMemo(() => {
-    if (
-      team?.members &&
-      team.members.length > 0
-    ) {
-      return team.members;
-    }
+  const members =
+    useMemo(
+      () => {
 
-    return [];
-  }, [team]);
+        if (
+          team?.members &&
+          team.members.length > 0
+        ) {
+
+          return team.members;
+
+        }
+
+        return [];
+
+      },
+      [team]
+    );
+
 
   /* =======================================================
      LOGOUT
   ======================================================= */
 
-  const handleLogout = () => {
-    logout();
-  };
+  const handleLogout =
+    () => {
+
+      logout();
+
+    };
+
 
   /* =======================================================
      AUTH GUARD
@@ -486,29 +863,91 @@ const XLR8ParticipantDashboard: React.FC = () => {
     !isLoggedIn ||
     !user
   ) {
+
     return (
-      <div className="min-h-screen bg-[#070D18] text-white flex items-center justify-center px-4 pt-32">
 
-        <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-8 text-center">
+      <div
+        className="
+          min-h-screen
+          bg-[#070D18]
+          text-white
+          flex
+          items-center
+          justify-center
+          px-4
+          pt-32
+        "
+      >
 
-          <div className="mx-auto mb-5 w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center">
+        <div
+          className="
+            w-full
+            max-w-md
+            rounded-2xl
+            border
+            border-slate-800
+            bg-slate-900/80
+            p-8
+            text-center
+          "
+        >
 
-            <ShieldCheck className="w-8 h-8 text-cyan-400" />
+          <div
+            className="
+              mx-auto
+              mb-5
+              w-16
+              h-16
+              rounded-2xl
+              bg-cyan-500/10
+              border
+              border-cyan-500/25
+              flex
+              items-center
+              justify-center
+            "
+          >
+
+            <ShieldCheck
+              className="
+                w-8
+                h-8
+                text-cyan-400
+              "
+            />
 
           </div>
 
-          <h1 className="text-3xl font-bold font-heading">
+
+          <h1
+            className="
+              text-3xl
+              font-bold
+              font-heading
+            "
+          >
             Participant Login Required
           </h1>
 
-          <p className="text-base text-slate-400 mt-3 leading-relaxed">
+
+          <p
+            className="
+              text-base
+              text-slate-400
+              mt-3
+              leading-relaxed
+            "
+          >
             Please login using your ITC SSO account to access your XLR8 participant dashboard.
           </p>
 
+
           <button
             onClick={() => {
-              window.location.href = '/xlr8';
+              window.location.href =
+                '/xlr8';
             }}
+
             className="
               mt-6
               w-full
@@ -526,43 +965,93 @@ const XLR8ParticipantDashboard: React.FC = () => {
           </button>
 
         </div>
+
       </div>
+
     );
+
   }
+
 
   /* =======================================================
      LOADING
   ======================================================= */
 
   if (loading) {
+
     return (
-      <div className="min-h-screen bg-[#070D18] text-white flex items-center justify-center pt-32">
 
-        <div className="text-center">
+      <div
+        className="
+          min-h-screen
+          bg-[#070D18]
+          text-white
+          flex
+          items-center
+          justify-center
+          pt-32
+        "
+      >
 
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center mx-auto">
+        <div
+          className="
+            text-center
+          "
+        >
+
+          <div
+            className="
+              w-14
+              h-14
+              rounded-2xl
+              bg-cyan-500/10
+              border
+              border-cyan-500/25
+              flex
+              items-center
+              justify-center
+              mx-auto
+            "
+          >
 
             <RefreshCw
-              className="w-7 h-7 text-cyan-400 animate-spin"
+              className="
+                w-7
+                h-7
+                text-cyan-400
+                animate-spin
+              "
             />
 
           </div>
 
-          <p className="mt-5 text-base text-slate-400 font-mono">
+
+          <p
+            className="
+              mt-5
+              text-base
+              text-slate-400
+              font-mono
+            "
+          >
             LOADING...
           </p>
 
         </div>
 
       </div>
+
     );
+
   }
+
 
   /* =======================================================
      MAIN
   ======================================================= */
 
   return (
+
     <main
       className="
         min-h-screen
@@ -579,22 +1068,45 @@ const XLR8ParticipantDashboard: React.FC = () => {
           BACKGROUND
       =================================================== */}
 
-      <div className="fixed inset-0 pointer-events-none z-0">
+      <div
+        className="
+          fixed
+          inset-0
+          pointer-events-none
+          z-0
+        "
+      >
+
+        {/* No background grid */}
 
         <div
           className="
             absolute
-            inset-0
-            bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)]
-            bg-[size:4rem_4rem]
+            top-0
+            left-1/4
+            w-[500px]
+            h-[500px]
+            bg-cyan-500/5
+            rounded-full
+            blur-[140px]
           "
         />
 
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[140px]" />
-
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[140px]" />
+        <div
+          className="
+            absolute
+            bottom-0
+            right-1/4
+            w-[500px]
+            h-[500px]
+            bg-purple-500/5
+            rounded-full
+            blur-[140px]
+          "
+        />
 
       </div>
+
 
       {/* ===================================================
           CONTENT
@@ -631,22 +1143,19 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           <div>
 
-            <div className="flex items-center gap-2">
+            <span
+              className="
+                text-[22px]
+                sm:text-[24px]
+                font-mono
+                tracking-[0.25em]
+                text-cyan-400
+                uppercase
+              "
+            >
+              XLR8 2026
+            </span>
 
-              <span
-                className="
-                  text-[22px]
-                  sm:text-[24px]
-                  font-mono
-                  tracking-[0.25em]
-                  text-cyan-400
-                  uppercase
-                "
-              >
-                XLR8 2026
-              </span>
-
-            </div>
 
             <h1
               className="
@@ -662,6 +1171,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
               Participant Dashboard
             </h1>
 
+
             <p
               className="
                 text-base
@@ -675,11 +1185,24 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
-          <div className="flex items-center gap-2">
+
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+            "
+          >
 
             <button
-              onClick={handleRefresh}
-              disabled={refreshing}
+              onClick={
+                handleRefresh
+              }
+
+              disabled={
+                refreshing
+              }
+
               className="
                 inline-flex
                 items-center
@@ -699,21 +1222,34 @@ const XLR8ParticipantDashboard: React.FC = () => {
             >
 
               <RefreshCw
-                className={`w-5 h-5 ${
-                  refreshing
-                    ? 'animate-spin'
-                    : ''
-                }`}
+                className={`
+                  w-5
+                  h-5
+                  ${
+                    refreshing
+                      ? 'animate-spin'
+                      : ''
+                  }
+                `}
               />
 
-              <span className="hidden sm:inline">
+              <span
+                className="
+                  hidden
+                  sm:inline
+                "
+              >
                 Refresh
               </span>
 
             </button>
 
+
             <button
-              onClick={handleLogout}
+              onClick={
+                handleLogout
+              }
+
               className="
                 inline-flex
                 items-center
@@ -732,9 +1268,19 @@ const XLR8ParticipantDashboard: React.FC = () => {
               "
             >
 
-              <LogOut className="w-5 h-5" />
+              <LogOut
+                className="
+                  w-5
+                  h-5
+                "
+              />
 
-              <span className="hidden sm:inline">
+              <span
+                className="
+                  hidden
+                  sm:inline
+                "
+              >
                 Logout
               </span>
 
@@ -744,11 +1290,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
         </header>
 
+
         {/* =================================================
             ERROR
         ================================================= */}
 
         {error && (
+
           <div
             className="
               mb-7
@@ -764,16 +1312,39 @@ const XLR8ParticipantDashboard: React.FC = () => {
             "
           >
 
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <AlertCircle
+              className="
+                w-5
+                h-5
+                text-amber-400
+                shrink-0
+                mt-0.5
+              "
+            />
 
-            <div className="flex-1">
 
-              <p className="text-sm sm:text-base text-amber-200/80">
+            <div
+              className="
+                flex-1
+              "
+            >
+
+              <p
+                className="
+                  text-sm
+                  sm:text-base
+                  text-amber-200/80
+                "
+              >
                 {error}
               </p>
 
+
               <button
-                onClick={handleRefresh}
+                onClick={
+                  handleRefresh
+                }
+
                 className="
                   mt-2
                   text-sm
@@ -788,7 +1359,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
             </div>
 
           </div>
+
         )}
+
 
         {/* =================================================
             TEAM CARD
@@ -805,8 +1378,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
             mb-7
           "
         >
-
-          {/* HEADER */}
 
           <div
             className="
@@ -830,7 +1401,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
               "
             >
 
-              <div className="flex items-center gap-4">
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-4
+                "
+              >
 
                 <div
                   className="
@@ -846,13 +1423,20 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   "
                 >
 
-                  <Users className="w-8 h-8 text-cyan-400" />
+                  <Users
+                    className="
+                      w-8
+                      h-8
+                      text-cyan-400
+                    "
+                  />
 
                 </div>
 
+
                 <div>
 
-                  <p
+                  {/* <p
                     className="
                       text-[11px]
                       font-mono
@@ -862,7 +1446,8 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     "
                   >
                     Registered Team
-                  </p>
+                  </p> */}
+
 
                   <h2
                     className="
@@ -870,19 +1455,27 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       sm:text-4xl
                       font-bold
                       font-heading
+                      text-cyan-400
                       mt-1
                     "
                   >
-                    {safe(team?.teamName)}
+                    {safe(
+                      team?.teamName
+                    )}
                   </h2>
 
                 </div>
 
               </div>
 
-              <div className="flex flex-wrap gap-3">
 
-                {/* REGISTRATION */}
+              <div
+                className="
+                  flex
+                  flex-wrap
+                  gap-3
+                "
+              >
 
                 <div
                   className="
@@ -906,6 +1499,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     Registration
                   </p>
 
+
                   <p
                     className="
                       text-sm
@@ -918,7 +1512,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     "
                   >
 
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2
+                      className="
+                        w-4
+                        h-4
+                      "
+                    />
 
                     COMPLETED
 
@@ -926,7 +1525,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                 </div>
 
-                {/* VEHICLE */}
 
                 <div
                   className="
@@ -950,6 +1548,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     Vehicle
                   </p>
 
+
                   <p
                     className="
                       text-sm
@@ -957,21 +1556,15 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       text-white
                       mt-1
                       font-mono
-                      flex
-                      items-center
-                      gap-1.5
                     "
                   >
-
-                    <Car className="w-4 h-4 text-cyan-400" />
-
-                    {safe(team?.vehicleNo)}
-
+                    {safe(
+                      team?.vehicleNo
+                    )}
                   </p>
 
                 </div>
 
-                {/* USER ROLL */}
 
                 <div
                   className="
@@ -995,6 +1588,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     Roll Number
                   </p>
 
+
                   <p
                     className="
                       text-sm
@@ -1002,16 +1596,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                       text-white
                       mt-1
                       font-mono
-                      flex
-                      items-center
-                      gap-1.5
                     "
                   >
-
-                    <BadgeCheck className="w-4 h-4 text-cyan-400" />
-
-                    {safe(user.roll)}
-
+                    {safe(
+                      user.roll
+                    )}
                   </p>
 
                 </div>
@@ -1022,37 +1611,33 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
+
           {/* =================================================
               TEAM MEMBERS
           ================================================= */}
 
-          <div className="p-6 sm:p-8">
+          <div
+            className="
+              p-6
+              sm:p-8
+            "
+          >
 
-            <div
-              className="
-                flex
-                items-center
-                justify-between
-                mb-5
-              "
-            >
+            {/* <div className="mb-5">
 
-              <div>
+              <h3
+                className="
+                  text-2xl
+                  sm:text-2xl
+                  font-bold
+                  text-gray-500
+                "
+              >
+                Team Members
+              </h3>
 
-                <h3
-                  className="
-                    text-2xl
-                    sm:text-3xl
-                    font-bold
-                    mt-1
-                  "
-                >
-                  Team Members
-                </h3>
+            </div> */}
 
-              </div>
-
-            </div>
 
             <div
               className="
@@ -1071,7 +1656,10 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 ) => (
 
                   <div
-                    key={`${member.roll}-${index}`}
+                    key={
+                      `${member.roll}-${index}`
+                    }
+
                     className="
                       rounded-xl
                       bg-slate-950/60
@@ -1113,7 +1701,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="min-w-0">
+
+                      <div
+                        className="
+                          min-w-0
+                        "
+                      >
 
                         <p
                           className="
@@ -1129,26 +1722,33 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           )}
                         </p>
 
+
                         <p
                           className="
                             text-sm
                             sm:text-base
                             font-mono
                             text-cyan-400
-                            uppercase
                           "
                         >
                           {member.role ||
-                            (index === 0
-                              ? 'Team Leader'
-                              : `Member ${index + 1}`)}
+                            (
+                              index === 0
+                                ? 'Team Leader'
+                                : `Member ${index + 1}`
+                            )}
                         </p>
 
                       </div>
 
                     </div>
 
-                    <div className="space-y-3">
+
+                    <div
+                      className="
+                        space-y-3
+                      "
+                    >
 
                       <div
                         className="
@@ -1159,7 +1759,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
                         "
                       >
 
-                        <BadgeCheck className="w-4 h-4 text-cyan-400/70" />
+                        <BadgeCheck
+                          className="
+                            w-4
+                            h-4
+                            text-cyan-400/70
+                          "
+                        />
+
 
                         <span
                           className="
@@ -1174,9 +1781,14 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                       </div>
 
+
                       {member.phone && (
+
                         <a
-                          href={`tel:${member.phone}`}
+                          href={
+                            `tel:${member.phone}`
+                          }
+
                           className="
                             flex
                             items-center
@@ -1188,16 +1800,28 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           "
                         >
 
-                          <Phone className="w-4 h-4 text-slate-500" />
+                          <Phone
+                            className="
+                              w-4
+                              h-4
+                              text-slate-500
+                            "
+                          />
 
                           {member.phone}
 
                         </a>
+
                       )}
 
+
                       {member.email && (
+
                         <a
-                          href={`mailto:${member.email}`}
+                          href={
+                            `mailto:${member.email}`
+                          }
+
                           className="
                             flex
                             items-center
@@ -1210,13 +1834,26 @@ const XLR8ParticipantDashboard: React.FC = () => {
                           "
                         >
 
-                          <Mail className="w-4 h-4 text-slate-500 shrink-0" />
+                          <Mail
+                            className="
+                              w-4
+                              h-4
+                              text-slate-500
+                              shrink-0
+                            "
+                          />
 
-                          <span className="truncate">
+
+                          <span
+                            className="
+                              truncate
+                            "
+                          >
                             {member.email}
                           </span>
 
                         </a>
+
                       )}
 
                     </div>
@@ -1232,13 +1869,23 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
         </section>
 
+
         {/* =================================================
             KITS & SLOTS
         ================================================= */}
 
-        <section className="space-y-4">
+        <section
+          className="
+            space-y-4
+          "
+        >
 
-          <div className="px-1 mb-3">
+          <div
+            className="
+              px-1
+              mb-3
+            "
+          >
 
             <h2
               className="
@@ -1246,11 +1893,11 @@ const XLR8ParticipantDashboard: React.FC = () => {
                 sm:text-3xl
                 font-bold
                 font-heading
-                mt-1
               "
             >
               Kits & Slots
             </h2>
+
 
             <p
               className="
@@ -1265,10 +1912,13 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
           </div>
 
+
           {LOGISTICS.map(
             (item) => {
 
-              const Icon = item.icon;
+              const Icon =
+                item.icon;
+
 
               const info =
                 team?.logistics?.[
@@ -1277,19 +1927,48 @@ const XLR8ParticipantDashboard: React.FC = () => {
                   >
                 ];
 
+
               const accent =
                 accentClasses[
                   item.accent as keyof typeof accentClasses
                 ];
 
-              const status =
-                normalizeStatus(
-                  info?.status
-                );
+
+              const isElectricalKit =
+                item.key ===
+                'electricalKit';
+
+
+              const isCollected =
+                isElectricalKit &&
+                info?.status ===
+                  'Kit Collected';
+
+
+              const hasSlot =
+                isElectricalKit &&
+                Boolean(info?.time) &&
+                !isCollected;
+
+
+              const collectedItems =
+                isCollected
+                  ? Object.entries(
+                      info?.items || {}
+                    ).filter(
+                      ([, value]) =>
+                        Boolean(value)
+                    )
+                  : [];
+
 
               return (
+
                 <div
-                  key={item.key}
+                  key={
+                    item.key
+                  }
+
                   className={`
                     rounded-2xl
                     bg-slate-900/80
@@ -1298,8 +1977,9 @@ const XLR8ParticipantDashboard: React.FC = () => {
                     ${accent.glow}
                     p-5
                     sm:p-6
-                    transition
-                    hover:-translate-y-0.5
+                    transition-all
+                    duration-200
+                    hover:shadow-[0_0_30px_rgba(255,255,255,0.035)]
                   `}
                 >
 
@@ -1348,7 +2028,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                       </div>
 
-                      <div className="min-w-0">
+
+                      <div
+                        className="
+                          min-w-0
+                        "
+                      >
 
                         <h3
                           className="
@@ -1356,7 +2041,6 @@ const XLR8ParticipantDashboard: React.FC = () => {
                             sm:text-lg
                             font-bold
                             text-white
-                            truncate
                           "
                         >
                           {item.label}
@@ -1366,52 +2050,517 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                     </div>
 
-                    <span
-                      className="
-                        shrink-0
-                        text-[10px]
-                        sm:text-xs
-                        font-semibold
-                        uppercase
-                        tracking-wide
-                        px-3
-                        py-1.5
-                        rounded-md
-                        bg-indigo-500/5
-                        text-indigo-400
-                        border
-                        border-indigo-500/15
-                      "
-                    >
-                      TO BE ANNOUNCED
-                    </span>
+                    {!isCollected && (
+                      <span
+                        className={`
+                          shrink-0
+                          text-[10px]
+                          sm:text-xs
+                          font-semibold
+                          uppercase
+                          tracking-wide
+                          px-3
+                          py-1.5
+                          rounded-md
+                          border
 
+                          ${
+                            hasSlot
+                              ? `
+                                bg-cyan-500/10
+                                text-cyan-400
+                                border-cyan-500/20
+                              `
+                              : `
+                                bg-indigo-500/5
+                                text-indigo-400
+                                border-indigo-500/15
+                              `
+                          }
+                        `}
+                      >
+                        {hasSlot
+                          ? 'SLOT ASSIGNED'
+                          : 'TO BE ANNOUNCED'}
+                      </span>
+                    )}
                   </div>
 
-                  {/* DETAILS */}
 
-                  <div
-                    className="
-                      mt-5
-                      rounded-xl
-                      bg-slate-950/70
-                      border
-                      border-slate-800
-                      p-4
-                    "
-                  >
+                  {/* =================================================
+                      ELECTRICAL KIT — COLLECTED
+                  ================================================= */}
+
+                  {isElectricalKit &&
+                  isCollected ? (
 
                     <div
                       className="
-                        flex
-                        items-center
-                        gap-3
+                        mt-5
+                        space-y-4
                       "
                     >
 
-                      <Circle className="w-5 h-5 text-slate-600" />
+                      <div
+                        className="
+                          rounded-xl
+                          bg-emerald-500/5
+                          border
+                          border-emerald-500/15
+                          p-4
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
+
+                          <CheckCircle2
+                            className="
+                              w-6
+                              h-6
+                              text-emerald-400
+                              shrink-0
+                            "
+                          />
+
+
+                          <div>
+
+                            {/* <p
+                              className="
+                                text-[10px]
+                                uppercase
+                                tracking-wider
+                                font-mono
+                                text-slate-500
+                              "
+                            >
+                              Collection Status
+                            </p> */}
+
+
+                            <p
+                              className="
+                                text-base
+                                sm:text-lg
+                                font-bold
+                                text-emerald-400
+                                mt-1
+                              "
+                            >
+                              KIT COLLECTED
+                            </p>
+
+                          </div>
+
+                        </div>
+
+
+                        <div
+                          className="
+                            text-right
+                            shrink-0
+                          "
+                        >
+
+                          <p
+                            className="
+                              text-[10px]
+                              uppercase
+                              tracking-wider
+                              font-mono
+                              text-slate-500
+                            "
+                          >
+                            Total Components
+                          </p>
+
+
+                          <p
+                            className="
+                              text-2xl
+                              font-bold
+                              text-white
+                            "
+                          >
+                            {safe(
+                              info?.total ??
+                              collectedItems.length
+                            )}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* COMPONENTS */}
 
                       <div>
+
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-[0.15em]
+                            font-mono
+                            text-slate-500
+                            mb-3
+                          "
+                        >
+                          Collected Components
+                        </p>
+
+
+                        <div
+                          className="
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-2
+                            lg:grid-cols-3
+                            gap-2
+                          "
+                        >
+
+                          {collectedItems.length >
+                          0 ? (
+
+                            collectedItems.map(
+                              ([key]) => (
+
+                                <div
+                                  key={key}
+
+                                  className="
+                                    flex
+                                    items-center
+                                    gap-2.5
+                                    rounded-lg
+                                    bg-slate-950/70
+                                    border
+                                    border-slate-800
+                                    px-3
+                                    py-2.5
+                                  "
+                                >
+
+                                  <CheckCircle2
+                                    className="
+                                      w-4
+                                      h-4
+                                      text-emerald-400
+                                      shrink-0
+                                    "
+                                  />
+
+
+                                  <span
+                                    className="
+                                      text-sm
+                                      text-slate-300
+                                    "
+                                  >
+                                    {
+                                      KIT_COMPONENT_LABELS[
+                                        key
+                                      ] ||
+                                      key
+                                    }
+                                  </span>
+
+                                </div>
+
+                              )
+                            )
+
+                          ) : (
+
+                            <p
+                              className="
+                                text-sm
+                                text-slate-500
+                              "
+                            >
+                              No component details available.
+                            </p>
+
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  ) : isElectricalKit &&
+                    hasSlot ? (
+
+                    /* =================================================
+                       ELECTRICAL KIT — SLOT
+                    ================================================= */
+
+                    <div
+                      className="
+                        mt-5
+                        grid
+                        grid-cols-1
+                        sm:grid-cols-3
+                        gap-6
+                      "
+                    >
+
+                      {/* DATE */}
+
+                      <div
+                        className="
+                          rounded-xl
+                          bg-slate-950/70
+                          border
+                          border-slate-800
+                          p-4
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
+
+                          <CalendarDays
+                            className="
+                              w-6
+                              h-6
+                              text-cyan-400
+                              shrink-0
+                            "
+                          />
+
+                          <div
+                            className="
+                              min-w-0
+                            "
+                          >
+
+                            {/* <p
+                              className="
+                                text-[10px]
+                                uppercase
+                                tracking-wider
+                                font-mono
+                                text-slate-500
+                              "
+                            >
+                              Date
+                            </p> */}
+
+
+                            <p
+                              className="
+                                text-xl
+                                sm:text-[1.35rem]
+                                font-bold
+                                text-white
+                                mt-1
+                              "
+                            >
+                              {ELECTRICAL_KIT_DATE}
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* TIME */}
+
+                      <div
+                        className="
+                          rounded-xl
+                          bg-slate-950/70
+                          border
+                          border-slate-800
+                          p-4
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
+
+                          <Clock3
+                            className="
+                              w-6
+                              h-6
+                              text-cyan-400
+                              shrink-0
+                            "
+                          />
+
+
+                          <div
+                            className="
+                              min-w-0
+                            "
+                          >
+
+                            {/* <p
+                              className="
+                                text-[10px]
+                                uppercase
+                                tracking-wider
+                                font-mono
+                                text-slate-500
+                              "
+                            >
+                              Time Slot
+                            </p> */}
+
+
+                            <p
+                              className="
+                                text-xl
+                                sm:text-[1.35rem]
+                                font-bold
+                                text-white
+                                mt-1
+                              "
+                            >
+                              {safe(
+                                info?.time ||
+                                info?.slot
+                              )}
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+
+                      {/* VENUE */}
+
+                      <div
+                        className="
+                          rounded-xl
+                          bg-slate-950/70
+                          border
+                          border-slate-800
+                          p-4
+                        "
+                      >
+
+                        <div
+                          className="
+                            flex
+                            items-center
+                            gap-3
+                          "
+                        >
+
+                          <MapPin
+                            className="
+                              w-6
+                              h-6
+                              text-cyan-400
+                              shrink-0
+                            "
+                          />
+
+
+                          <div
+                            className="
+                              min-w-0
+                            "
+                          >
+
+                            {/* <p
+                              className="
+                                text-[10px]
+                                uppercase
+                                tracking-wider
+                                font-mono
+                                text-slate-500
+                              "
+                            >
+                              Venue
+                            </p> */}
+
+
+                            <p
+                              className="
+                                text-xl
+                                sm:text-[1.35rem]
+                                font-bold
+                                text-white
+                                mt-1
+                                leading-snug
+                              "
+                            >
+                              {safe(
+                                info?.venue
+                              )}
+                            </p>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  ) : (
+
+                    /* =================================================
+                       OTHER CARDS
+                    ================================================= */
+
+                    <div
+                      className="
+                        mt-5
+                        rounded-xl
+                        bg-slate-950/70
+                        border
+                        border-slate-800
+                        p-4
+                      "
+                    >
+
+                      <div
+                        className="
+                          flex
+                          items-center
+                          gap-3
+                        "
+                      >
+
+                        <Circle
+                          className="
+                            w-5
+                            h-5
+                            text-slate-600
+                          "
+                        />
+
 
                         <p
                           className="
@@ -1428,10 +2577,12 @@ const XLR8ParticipantDashboard: React.FC = () => {
 
                     </div>
 
-                  </div>
+                  )}
 
                 </div>
+
               );
+
             }
           )}
 
@@ -1440,6 +2591,7 @@ const XLR8ParticipantDashboard: React.FC = () => {
       </div>
 
     </main>
+
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useState, FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
+
 import {
   CheckCircle2,
   Search,
@@ -24,10 +25,11 @@ import {
 // - Roll number search
 // - Vehicle number search
 const SEARCH_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec'
+  'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
+
 // Kit Distribution Apps Script
 const KIT_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbw0H67jJU6OomSyWXpGyL3ubbdzIMBI-S5rU185yn4rbqKtk1QjP-NR_dTY29zjdrcd/exec';
+  'https://script.google.com/macros/s/AKfycbytaSKQeVekdnel6lHiI_ysa1BM41ylVghQjGs3NsWNFEevEMyZsgubw3MLNOfLyuE/exec';
 
 // =======================================================================
 // TEAM DATA
@@ -73,7 +75,7 @@ interface TeamData {
 
 const kitItems = [
   { id: 'motorDriver', label: 'Motor Driver' },
-  { id: 'piPico', label: 'Raspberry Pi Pico 2W' },
+  { id: 'piPico', label: 'Raspberry Pi Pico W' },
   { id: 'mpu6050', label: 'MPU 6050' },
   { id: 'esp01', label: 'ESP01' },
   { id: 'solderGun', label: 'Solder Gun' },
@@ -81,15 +83,15 @@ const kitItems = [
   { id: 'solderWire', label: 'Soldering Wire' },
   { id: 'pcb', label: 'PCB (perforated board)' },
   { id: 'batteryHolder', label: 'Remote Battery Holder' },
-  { id: 'onOffSwitch', label: 'On/Off switch' },
-  { id: 'jumperWires', label: 'Jumper wires' },
-  { id: 'wires1m', label: 'Wires (1m)' },
+  { id: 'onOffSwitch', label: 'On/Off switch(2 QTY)' },
+  { id: 'jumperWires', label: 'Jumper wires(MM/MF/FF)' },
+  { id: 'wires1m', label: 'Wires (Black/Red 1m each)' },
   { id: 'wireStripper', label: 'Wire Stripper' },
   { id: 'multimeter', label: 'Digital Multimeter' },
   { id: 'breadboard', label: 'Breadboard' },
-  { id: 'bergPins', label: 'Berg Pins' },
+  { id: 'bergPins', label: 'Berg Pins(M/F)' },
   { id: 'microUsb', label: 'Micro USB Cable' },
-  { id: 'screwDriver', label: 'Screw Driver' },
+  { id: 'screwDriver', label: 'Black Electric Tape' },
 ];
 
 // =======================================================================
@@ -116,14 +118,20 @@ const Xlr8Conveners = () => {
   const [isKitConfirmed, setIsKitConfirmed] = useState(false);
   const [isSubmittingKit, setIsSubmittingKit] = useState(false);
 
-  const [checkedItems, setCheckedItems] = useState<
-    Record<string, boolean>
-  >(() =>
-    kitItems.reduce<Record<string, boolean>>((acc, item) => {
-      acc[item.id] = false;
-      return acc;
-    }, {})
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
+    () =>
+      kitItems.reduce<Record<string, boolean>>((acc, item) => {
+        acc[item.id] = false;
+        return acc;
+      }, {})
   );
+
+  // =====================================================================
+  // SELECTED COMPONENT COUNT
+  // =====================================================================
+
+  const selectedItemCount =
+    Object.values(checkedItems).filter(Boolean).length;
 
   // =====================================================================
   // LOGIN CHECK
@@ -230,17 +238,6 @@ const Xlr8Conveners = () => {
 
   // =====================================================================
   // CONVERT ROLL / VEHICLE SEARCH RESPONSE
-  //
-  // Expected Apps Script response:
-  //
-  // {
-  //   found: true,
-  //   teamName: "...",
-  //   vehicleNumber: "...",
-  //   leader: {...},
-  //   members: [...]
-  // }
-  //
   // =====================================================================
 
   const convertFoundResponseToTeam = (
@@ -347,11 +344,6 @@ const Xlr8Conveners = () => {
 
   // =====================================================================
   // MAIN SEARCH
-  //
-  // 1. Team Name
-  // 2. Roll Number
-  // 3. Vehicle Number
-  //
   // =====================================================================
 
   const handleSearch = async (e: FormEvent) => {
@@ -438,7 +430,7 @@ const Xlr8Conveners = () => {
 
           team = convertFoundResponseToTeam(data);
         } catch (err) {
-          console.warn('Vehicle number search failed:', err);
+          console.warn('Vehicle search failed:', err);
         }
       }
 
@@ -464,7 +456,6 @@ const Xlr8Conveners = () => {
 
       // ===============================================================
       // FETCH KIT STATUS
-      //
       // Both roll + vehicle are sent.
       // ===============================================================
 
@@ -637,6 +628,7 @@ const Xlr8Conveners = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+
           {/* NAME */}
 
           <div>
@@ -700,6 +692,7 @@ const Xlr8Conveners = () => {
               {mentorPhone || 'N/A'}
             </span>
           </div>
+
         </div>
       </div>
     );
@@ -717,8 +710,11 @@ const Xlr8Conveners = () => {
       =============================================================== */}
 
       <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-8 w-full max-w-4xl shadow-2xl">
+
         <div className="flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+
           <div className="flex items-center gap-6">
+
             <div className="w-24 h-24 shrink-0 rounded-2xl bg-[#1e293b] flex items-center justify-center text-4xl font-bold text-blue-400 border border-slate-700 shadow-[0_0_25px_rgba(59,130,246,0.15)]">
               {getInitials(user?.name || '')}
             </div>
@@ -728,9 +724,11 @@ const Xlr8Conveners = () => {
                 {user?.name}
               </h1>
             </div>
+
           </div>
 
           <div className="flex flex-col items-start md:items-end gap-2 mt-4 md:mt-0">
+
             <span className="text-[11px] font-bold text-slate-400 tracking-[0.2em] uppercase">
               Account Status
             </span>
@@ -739,10 +737,13 @@ const Xlr8Conveners = () => {
               <CheckCircle2 className="w-4 h-4 text-blue-400" />
               Convener
             </div>
+
           </div>
+
         </div>
 
         <div className="h-px w-full bg-slate-800/60 my-8" />
+
       </div>
 
       {/* ===============================================================
@@ -750,12 +751,15 @@ const Xlr8Conveners = () => {
       =============================================================== */}
 
       <div className="bg-[#111827] border border-slate-800/80 rounded-3xl p-8 w-full max-w-4xl shadow-2xl">
+
         <div className="flex items-center gap-3 mb-6">
+
           <Users className="w-6 h-6 text-blue-400" />
 
           <h2 className="text-2xl font-bold text-white tracking-tight">
             Team Lookup Database
           </h2>
+
         </div>
 
         {/* SEARCH FORM */}
@@ -764,7 +768,9 @@ const Xlr8Conveners = () => {
           onSubmit={handleSearch}
           className="flex gap-4 mb-8"
         >
+
           <div className="relative flex-1">
+
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
 
             <input
@@ -776,6 +782,7 @@ const Xlr8Conveners = () => {
               placeholder="Enter Team Name, Roll Number or Vehicle Number..."
               className="w-full bg-[#0b1120] border border-slate-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
             />
+
           </div>
 
           <button
@@ -792,17 +799,20 @@ const Xlr8Conveners = () => {
               'Search'
             )}
           </button>
+
         </form>
 
         {/* ERROR */}
 
         {error && (
           <div className="bg-red-900/20 border border-red-500/30 text-red-400 p-4 rounded-xl flex items-center gap-3 mb-6">
+
             <AlertCircle className="w-5 h-5" />
 
             <p className="text-sm font-medium">
               {error}
             </p>
+
           </div>
         )}
 
@@ -816,7 +826,9 @@ const Xlr8Conveners = () => {
             {/* TEAM DETAILS */}
 
             <div>
+
               <div className="border-b border-slate-800 pb-4 mb-6">
+
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">
                   Found Team
                 </span>
@@ -824,11 +836,13 @@ const Xlr8Conveners = () => {
                 <h3 className="text-3xl font-bold text-blue-400">
                   {searchResult.teamName}
                 </h3>
+
               </div>
 
               {/* PARTICIPANTS */}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                 <ParticipantCard
                   title="Participant 1 (Leader)"
                   name={searchResult.leaderName}
@@ -873,6 +887,7 @@ const Xlr8Conveners = () => {
                     searchResult.p4MentorPhone
                   }
                 />
+
               </div>
 
               {/* REGISTRATION STATUS */}
@@ -884,24 +899,31 @@ const Xlr8Conveners = () => {
                     : 'bg-orange-900/20 border-orange-500/40 text-orange-400'
                 }`}
               >
+
                 {searchResult.isConfirmed ? (
                   <div className="flex items-center gap-3">
+
                     <CheckCircle2 className="w-5 h-5" />
 
                     <span className="text-sm font-bold tracking-widest uppercase">
                       Registration Confirmed
                     </span>
+
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
+
                     <AlertCircle className="w-5 h-5" />
 
                     <span className="text-sm font-bold tracking-widest uppercase">
                       Pending Registration Confirmation
                     </span>
+
                   </div>
                 )}
+
               </div>
+
             </div>
 
             <div className="h-px w-full bg-slate-800/60" />
@@ -911,24 +933,31 @@ const Xlr8Conveners = () => {
             ========================================================= */}
 
             <div>
+
               <div className="flex items-center gap-3 mb-6">
+
                 <Package className="w-6 h-6 text-blue-400" />
 
                 <h3 className="text-2xl font-bold text-white tracking-tight">
                   Electrical Kit Distribution
                 </h3>
+
               </div>
 
               {/* LOADING */}
 
               {isFetchingKit ? (
+
                 <div className="flex items-center justify-center py-8">
+
                   <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
 
                   <span className="ml-3 text-slate-400 font-medium">
                     Checking kit status...
                   </span>
+
                 </div>
+
               ) : isKitConfirmed ? (
 
                 /* =====================================================
@@ -936,7 +965,9 @@ const Xlr8Conveners = () => {
                 ===================================================== */
 
                 <div className="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-6">
+
                   <div className="flex flex-col items-center text-center border-b border-slate-700/80 pb-6 mb-6">
+
                     <CheckCircle2 className="w-14 h-14 text-green-500 mb-3" />
 
                     <h4 className="text-xl font-bold text-slate-100">
@@ -945,24 +976,32 @@ const Xlr8Conveners = () => {
 
                     <p className="text-slate-400 text-sm mt-1">
                       Components have been handed over to{' '}
+
                       <span className="text-slate-200 font-semibold">
                         {searchResult.teamName}
                       </span>
                       .
                     </p>
+
                   </div>
 
                   <h5 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+
                     <Package className="w-4 h-4 text-slate-400" />
+
                     Recorded Components
+
                   </h5>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
                     {kitItems.map((item) => (
+
                       <div
                         key={item.id}
                         className="flex items-center gap-3 p-3 rounded-lg bg-[#0b1120] border border-slate-700/50"
                       >
+
                         {checkedItems[item.id] ? (
                           <CheckSquare className="w-4 h-4 text-blue-500" />
                         ) : (
@@ -978,10 +1017,15 @@ const Xlr8Conveners = () => {
                         >
                           {item.label}
                         </span>
+
                       </div>
+
                     ))}
+
                   </div>
+
                 </div>
+
               ) : (
 
                 /* =====================================================
@@ -992,19 +1036,27 @@ const Xlr8Conveners = () => {
                   onSubmit={handleKitSubmit}
                   className="space-y-6"
                 >
+
                   <div className="bg-yellow-900/10 border border-yellow-900/40 rounded-xl p-4 flex gap-3 text-yellow-500/90">
+
                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
 
                     <p className="text-sm leading-relaxed">
+
                       <strong className="font-semibold text-yellow-500">
                         Convener Notice:
                       </strong>{' '}
+
                       Verify all hardware components carefully before handing them to the team.
+
                     </p>
+
                   </div>
 
                   <div className="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-6">
+
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/80">
+
                       <h4 className="text-md font-bold text-slate-200">
                         Select Items to Distribute
                       </h4>
@@ -1020,10 +1072,13 @@ const Xlr8Conveners = () => {
                           ? 'Deselect All'
                           : 'Select All'}
                       </button>
+
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
                       {kitItems.map((item) => (
+
                         <label
                           key={item.id}
                           className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition-colors select-none ${
@@ -1032,20 +1087,21 @@ const Xlr8Conveners = () => {
                               : 'bg-[#0b1120] border-slate-800 text-slate-400 hover:border-slate-700'
                           }`}
                         >
+
                           <div className="flex-shrink-0">
+
                             {checkedItems[item.id] ? (
                               <CheckSquare className="w-5 h-5 text-blue-500" />
                             ) : (
                               <Square className="w-5 h-5 text-slate-500" />
                             )}
+
                           </div>
 
                           <input
                             type="checkbox"
                             className="hidden"
-                            checked={
-                              checkedItems[item.id]
-                            }
+                            checked={checkedItems[item.id]}
                             onChange={() =>
                               handleToggle(item.id)
                             }
@@ -1054,19 +1110,45 @@ const Xlr8Conveners = () => {
                           <span className="text-sm font-medium">
                             {item.label}
                           </span>
+
                         </label>
+
                       ))}
+
                     </div>
+
                   </div>
 
-                  {/* SUBMIT */}
+                  {/* =================================================
+                      SUBMIT
+                  ================================================= */}
 
-                  <div className="flex justify-end pt-2">
+                  <div className="flex items-center justify-between gap-4 pt-2">
+
+                    {/* SELECTED COMPONENT COUNT */}
+
+                    <div className="flex items-center gap-2 text-slate-400">
+
+                      <Package className="w-5 h-5 text-blue-400" />
+
+                      <span className="text-md font-medium">
+                        Total Components Selected:
+                      </span>
+
+                      <span className="text-lg font-bold text-white">
+                        {selectedItemCount}
+                      </span>
+
+                    </div>
+
+                    {/* CONFIRM BUTTON */}
+
                     <button
                       type="submit"
                       disabled={isSubmittingKit}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:opacity-50 text-white font-medium transition-colors shadow-lg shadow-blue-900/20"
+                      className="flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:opacity-50 text-white font-medium transition-colors shadow-lg shadow-blue-900/20"
                     >
+
                       {isSubmittingKit ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
@@ -1076,14 +1158,22 @@ const Xlr8Conveners = () => {
                       {!isSubmittingKit && (
                         <Send className="w-4 h-4" />
                       )}
+
                     </button>
+
                   </div>
+
                 </form>
+
               )}
+
             </div>
+
           </div>
         )}
+
       </div>
+
     </div>
   );
 };
