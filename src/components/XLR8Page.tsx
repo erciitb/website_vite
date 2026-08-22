@@ -546,7 +546,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     description:
       'Learn the fundamentals of programming your bot and get it moving with the right code.',
     icon: <Cpu className="w-6 h-6 text-amber-400" />,
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-amber-950/60',
     tagText: 'text-amber-400',
     tagBorder: 'border-amber-800/50',

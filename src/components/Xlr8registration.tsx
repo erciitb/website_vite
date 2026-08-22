@@ -1,300 +1,659 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
-import aditya from '../assets/aditya_qr.jpeg';
-import daksh from '../assets/WhatsApp Image 2026-08-16 at 1.13.08 PM.jpeg'
-import daksh_1 from '../assets/WhatsApp Image 2026-08-16 at 1.30.36 PM.jpeg'
-import qr from '../assets/IMG-20260816-WA0044(1).jpg'
-import rr_qr from '../assets/RR_QR.png'
-import aditya_qr2 from '../assets/aditya_qr2.jpeg'
+import React, {
+  ChangeEvent,
+  FormEvent,
+  useState,
+} from 'react';
+
 import {
-  Users,
-  User,
-  Camera,
-  Receipt,
-  Link as LinkIcon,
-  CheckCircle2,
+  ArrowLeft,
   AlertCircle,
+  Check,
+  CheckCircle2,
+  CreditCard,
+  Loader2,
+  Package,
   Send,
+  User,
+  Car,
+  Minus,
+  Plus,
+  BatteryCharging,
+  Box,
+  Cog,
+  Gauge,
 } from 'lucide-react';
 
-// Replace with your actual deployed Google Apps Script Web App URL
-const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyKa8OrzJkB7xJUrvQq-hVC0cp0RwF5xbXJFhmVLjo1POBAAT30y4a6oRMl3s62EURVrA/exec";
+import { useAuth } from '../hooks/useAuth';
+
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const MECHANICAL_KIT_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbzFyJAqhhlHhHXkS1eQB9uqExfn7VcRVrF7hqcBDnh7BtlxrruOUFjTo1_MMsMOHz4y/exec';
+
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type AddOnType =
+  | ''
+  | 'None'
+  | 'Servo mounted Ultrasonic'
+  | 'IR based line follower';
+
+type ChasisType =
+  | ''
+  | 'Acrylic'
+  | 'Black metal chasis'
+  | 'White metal chasis';
+
+type BatteryType =
+  | ''
+  | 'LiPo'
+  | 'Li-ion';
+
 
 interface FormData {
-  // Team
-  teamName: string;
+  vehicleNo: string;
 
-  // Leader
-  leaderName: string;
-  leaderRollNumber: string;
-  leaderPhone: string;
-  leaderEmail: string;
-  leaderMentorName: string;
-  leaderMentorPhone: string;
+  addOnType: AddOnType;
 
-  // Participant 2
-  p2Name: string;
-  p2RollNumber: string;
-  p2Phone: string;
-  p2MentorName: string;
-  p2MentorPhone: string;
+  ultrasonicSensorHC_SR04: string;
+  servoSG90: string;
+  noOfIRs: string;
 
-  // Participant 3
-  p3Name: string;
-  p3RollNumber: string;
-  p3Phone: string;
-  p3MentorName: string;
-  p3MentorPhone: string;
+  chasisType: ChasisType;
 
-  // Participant 4
-  p4Name: string;
-  p4RollNumber: string;
-  p4Phone: string;
-  p4MentorName: string;
-  p4MentorPhone: string;
+  wheels7x2: string;
+  wheels7x4: string;
+  wheels10x4: string;
 
-  // Submission Links
-  teamSelfieLink: string;
-  paymentScreenshotLink: string;
+  noOfMotors: string;
+  motorRPM: string;
+
+  controllerBattery: string;
+  batteryType: BatteryType;
+  batteryCharger: string;
+
+  screwDriver: string;
+
+  paymentSS: string;
+  transactionID: string;
 }
 
+
+/* =========================================================
+   URL DATA
+========================================================= */
+
+const searchParams =
+  new URLSearchParams(window.location.search);
+
+const vehicleNoFromURL =
+  searchParams.get('vehicleNo') || '';
+
+const teamNameFromURL =
+  searchParams.get('teamName') || '';
+
+
+/* =========================================================
+   INITIAL FORM
+========================================================= */
+
 const initialFormData: FormData = {
-  teamName: '',
+  vehicleNo: vehicleNoFromURL,
 
-  leaderName: '',
-  leaderRollNumber: '',
-  leaderPhone: '',
-  leaderEmail: '',
-  leaderMentorName: '',
-  leaderMentorPhone: '',
+  addOnType: '',
 
-  p2Name: '',
-  p2RollNumber: '',
-  p2Phone: '',
-  p2MentorName: '',
-  p2MentorPhone: '',
+  ultrasonicSensorHC_SR04: '0',
+  servoSG90: '0',
+  noOfIRs: '0',
 
-  p3Name: '',
-  p3RollNumber: '',
-  p3Phone: '',
-  p3MentorName: '',
-  p3MentorPhone: '',
+  chasisType: '',
 
-  p4Name: '',
-  p4RollNumber: '',
-  p4Phone: '',
-  p4MentorName: '',
-  p4MentorPhone: '',
+  wheels7x2: '0',
+  wheels7x4: '0',
+  wheels10x4: '0',
 
-  teamSelfieLink: '',
-  paymentScreenshotLink: '',
+  noOfMotors: '0',
+  motorRPM: '',
+
+  controllerBattery: '1',
+  batteryType: '',
+  batteryCharger: '0',
+
+  screwDriver: '1',
+
+  paymentSS: '',
+  transactionID: '',
 };
 
-export default function XLR8Registration() {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [submitted, setSubmitted] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
 
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof FormData, string>>
-  >({});
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+export default function Xlr8Registration() {
+
+  const {
+    user,
+    isLoggedIn,
+  } = useAuth() as {
+    user: {
+      name?: string;
+      roll?: string;
+    } | null;
+    isLoggedIn: boolean;
+  };
+
+
+  const [formData, setFormData] =
+    useState<FormData>(initialFormData);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [submitted, setSubmitted] =
+    useState(false);
+
+  const [submitError, setSubmitError] =
+    useState('');
+
+
+  /* =======================================================
+     INPUT CHANGE
+  ======================================================= */
+
+  const handleChange = (
+    e: ChangeEvent<
+      HTMLInputElement |
+      HTMLSelectElement
+    >
+  ) => {
+
+    const {
+      name,
+      value,
+    } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
-    if (errors[name as keyof FormData]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
+    setSubmitError('');
   };
+
+
+  /* =======================================================
+     QUANTITY
+  ======================================================= */
+
+  const updateQuantity = (
+    field: keyof FormData,
+    amount: number
+  ) => {
+
+    setFormData((prev) => {
+
+      const current =
+        Number(prev[field]) || 0;
+
+      const next =
+        Math.max(
+          0,
+          current + amount
+        );
+
+      return {
+        ...prev,
+        [field]: String(next),
+      };
+
+    });
+
+    setSubmitError('');
+  };
+
+
+  /* =======================================================
+     ADD-ON
+  ======================================================= */
+
+  const handleAddOnChange = (
+    value: AddOnType
+  ) => {
+
+    if (
+      value ===
+      'Servo mounted Ultrasonic'
+    ) {
+
+      setFormData((prev) => ({
+        ...prev,
+
+        addOnType: value,
+
+        ultrasonicSensorHC_SR04: '1',
+        servoSG90: '1',
+        noOfIRs: '0',
+      }));
+
+    } else if (
+      value ===
+      'IR based line follower'
+    ) {
+
+      setFormData((prev) => ({
+        ...prev,
+
+        addOnType: value,
+
+        ultrasonicSensorHC_SR04: '0',
+        servoSG90: '0',
+        noOfIRs: '2',
+      }));
+
+    } else {
+
+      setFormData((prev) => ({
+        ...prev,
+
+        addOnType: value,
+
+        ultrasonicSensorHC_SR04: '0',
+        servoSG90: '0',
+        noOfIRs: '0',
+      }));
+
+    }
+
+    setSubmitError('');
+  };
+
+
+  /* =======================================================
+     BATTERY TYPE
+  ======================================================= */
+
+  const handleBatteryTypeChange = (
+    e: ChangeEvent<HTMLSelectElement>
+  ) => {
+
+    const value =
+      e.target.value as BatteryType;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      batteryType: value,
+      batteryCharger: '0',
+    }));
+
+    setSubmitError('');
+  };
+
+
+  /* =======================================================
+     VALIDATION
+  ======================================================= */
 
   const validate = (): boolean => {
-    const newErrors: Partial<Record<keyof FormData, string>> = {};
 
-    const phoneRegex = /^\+?[0-9\s-]{8,15}$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setSubmitError('');
 
-    // Team
-    if (!formData.teamName.trim()) {
-      newErrors.teamName = 'Team name is required';
+
+    if (
+      !formData.vehicleNo.trim()
+    ) {
+
+      setSubmitError(
+        'Vehicle number could not be loaded. Please open this page from your participant dashboard.'
+      );
+
+      return false;
     }
 
-    // Leader
-    if (!formData.leaderName.trim()) {
-      newErrors.leaderName = 'Leader name is required';
+
+    if (
+      !formData.addOnType
+    ) {
+
+      setSubmitError(
+        'Please select an add-on type.'
+      );
+
+      return false;
     }
 
-    if (!formData.leaderRollNumber.trim()) {
-      newErrors.leaderRollNumber = 'Roll number is required';
+
+    if (
+      formData.addOnType ===
+      'Servo mounted Ultrasonic'
+    ) {
+
+      if (
+        formData.ultrasonicSensorHC_SR04 !== '1' ||
+        formData.servoSG90 !== '1'
+      ) {
+
+        setSubmitError(
+          'Servo mounted Ultrasonic requires 1 HC-SR04 and 1 SG90.'
+        );
+
+        return false;
+      }
     }
 
-    if (!formData.leaderPhone.trim()) {
-      newErrors.leaderPhone = 'Phone number is required';
-    } else if (!phoneRegex.test(formData.leaderPhone.trim())) {
-      newErrors.leaderPhone = 'Enter a valid phone number';
+
+    if (
+      formData.addOnType ===
+      'IR based line follower'
+    ) {
+
+      if (
+        !['2', '3', '4'].includes(
+          formData.noOfIRs
+        )
+      ) {
+
+        setSubmitError(
+          'Please select the number of IR sensors.'
+        );
+
+        return false;
+      }
     }
 
-    if (!formData.leaderEmail.trim()) {
-      newErrors.leaderEmail = 'Email is required';
-    } else if (!emailRegex.test(formData.leaderEmail.trim())) {
-      newErrors.leaderEmail = 'Enter a valid email address';
+
+    if (
+      !formData.chasisType
+    ) {
+
+      setSubmitError(
+        'Please select one chassis type.'
+      );
+
+      return false;
     }
 
-    if (!formData.leaderMentorName.trim()) {
-      newErrors.leaderMentorName = 'ISMP Mentor Name is required';
+
+    const totalWheels =
+      Number(formData.wheels7x2) +
+      Number(formData.wheels7x4) +
+      Number(formData.wheels10x4);
+
+
+    if (
+      totalWheels < 1
+    ) {
+
+      setSubmitError(
+        'Please select at least one wheel type.'
+      );
+
+      return false;
     }
 
-    if (!formData.leaderMentorPhone.trim()) {
-      newErrors.leaderMentorPhone =
-        'ISMP Mentor Phone Number is required';
-    } else if (!phoneRegex.test(formData.leaderMentorPhone.trim())) {
-      newErrors.leaderMentorPhone = 'Enter a valid phone number';
+
+    if (
+      Number(formData.noOfMotors) < 1
+    ) {
+
+      setSubmitError(
+        'Please enter the number of motors required.'
+      );
+
+      return false;
     }
 
-    // Participant 2
-    if (!formData.p2Name.trim()) {
-      newErrors.p2Name = 'Name is required';
+
+    if (
+      !formData.motorRPM
+    ) {
+
+      setSubmitError(
+        'Please select the motor RPM.'
+      );
+
+      return false;
     }
 
-    if (!formData.p2RollNumber.trim()) {
-      newErrors.p2RollNumber = 'Roll number is required';
+
+    if (
+      !formData.batteryType
+    ) {
+
+      setSubmitError(
+        'Please select the battery type.'
+      );
+
+      return false;
     }
 
-    if (!formData.p2Phone.trim()) {
-      newErrors.p2Phone = 'Phone number is required';
-    } else if (!phoneRegex.test(formData.p2Phone.trim())) {
-      newErrors.p2Phone = 'Enter a valid phone number';
+
+    if (
+      formData.batteryType === 'Li-ion' &&
+      formData.batteryCharger !== '1'
+    ) {
+
+      setSubmitError(
+        'Battery charger is required for Li-ion battery.'
+      );
+
+      return false;
     }
 
-    if (!formData.p2MentorName.trim()) {
-      newErrors.p2MentorName = 'ISMP Mentor Name is required';
+
+    if (
+      !formData.paymentSS.trim()
+    ) {
+
+      setSubmitError(
+        'Please provide the payment screenshot Drive link.'
+      );
+
+      return false;
     }
 
-    if (!formData.p2MentorPhone.trim()) {
-      newErrors.p2MentorPhone =
-        'ISMP Mentor Phone Number is required';
-    } else if (!phoneRegex.test(formData.p2MentorPhone.trim())) {
-      newErrors.p2MentorPhone = 'Enter a valid phone number';
+
+    if (
+      !formData.paymentSS
+        .trim()
+        .startsWith('http')
+    ) {
+
+      setSubmitError(
+        'Please enter a valid payment screenshot link.'
+      );
+
+      return false;
     }
 
-    // Participant 3
-    if (!formData.p3Name.trim()) {
-      newErrors.p3Name = 'Name is required';
+
+    if (
+      !formData.transactionID.trim()
+    ) {
+
+      setSubmitError(
+        'Please enter the kit payment transaction ID.'
+      );
+
+      return false;
     }
 
-    if (!formData.p3RollNumber.trim()) {
-      newErrors.p3RollNumber = 'Roll number is required';
-    }
 
-    if (!formData.p3Phone.trim()) {
-      newErrors.p3Phone = 'Phone number is required';
-    } else if (!phoneRegex.test(formData.p3Phone.trim())) {
-      newErrors.p3Phone = 'Enter a valid phone number';
-    }
-
-    if (!formData.p3MentorName.trim()) {
-      newErrors.p3MentorName = 'ISMP Mentor Name is required';
-    }
-
-    if (!formData.p3MentorPhone.trim()) {
-      newErrors.p3MentorPhone =
-        'ISMP Mentor Phone Number is required';
-    } else if (!phoneRegex.test(formData.p3MentorPhone.trim())) {
-      newErrors.p3MentorPhone = 'Enter a valid phone number';
-    }
-
-    // Participant 4
-    if (!formData.p4Name.trim()) {
-      newErrors.p4Name = 'Name is required';
-    }
-
-    if (!formData.p4RollNumber.trim()) {
-      newErrors.p4RollNumber = 'Roll number is required';
-    }
-
-    if (!formData.p4Phone.trim()) {
-      newErrors.p4Phone = 'Phone number is required';
-    } else if (!phoneRegex.test(formData.p4Phone.trim())) {
-      newErrors.p4Phone = 'Enter a valid phone number';
-    }
-
-    if (!formData.p4MentorName.trim()) {
-      newErrors.p4MentorName = 'ISMP Mentor Name is required';
-    }
-
-    if (!formData.p4MentorPhone.trim()) {
-      newErrors.p4MentorPhone =
-        'ISMP Mentor Phone Number is required';
-    } else if (!phoneRegex.test(formData.p4MentorPhone.trim())) {
-      newErrors.p4MentorPhone = 'Enter a valid phone number';
-    }
-
-    // Submission links
-    if (!formData.teamSelfieLink.trim()) {
-      newErrors.teamSelfieLink = 'Team Selfie link is required';
-    } else if (!formData.teamSelfieLink.startsWith('http')) {
-      newErrors.teamSelfieLink =
-        'Must be a valid URL starting with http:// or https://';
-    }
-
-    if (!formData.paymentScreenshotLink.trim()) {
-      newErrors.paymentScreenshotLink =
-        'Payment Screenshot link is required';
-    } else if (!formData.paymentScreenshotLink.startsWith('http')) {
-      newErrors.paymentScreenshotLink =
-        'Must be a valid URL starting with http:// or https://';
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
+
+
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
 
   const handleSubmit = async (
     e: FormEvent<HTMLFormElement>
   ) => {
+
     e.preventDefault();
 
-    if (!validate()) {
-      const firstError =
-        document.querySelector('.border-red-500');
 
-      if (firstError) {
-        firstError.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      }
+    if (!validate()) {
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
 
       return;
     }
 
+
     setLoading(true);
+    setSubmitError('');
+
 
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        redirect: 'follow',
-        body: JSON.stringify(formData),
-      });
 
-      const result = await response.json();
+      const payload = {
 
-      if (result.success) {
-        console.log(
-          'XLR8 Registration Submitted Data:',
-          formData
+        vehicleNo:
+          formData.vehicleNo.trim(),
+
+        teamName:
+          teamNameFromURL.trim(),
+
+        addOnType:
+          formData.addOnType,
+
+        ultrasonicSensorHC_SR04:
+          formData.ultrasonicSensorHC_SR04,
+
+        servoSG90:
+          formData.servoSG90,
+
+        noOfIRs:
+          formData.addOnType ===
+          'IR based line follower'
+            ? formData.noOfIRs
+            : '0',
+
+        acrylic:
+          formData.chasisType ===
+          'Acrylic'
+            ? '1'
+            : '0',
+
+        blackMetalChasis:
+          formData.chasisType ===
+          'Black metal chasis'
+            ? '1'
+            : '0',
+
+        whiteMetalChasis:
+          formData.chasisType ===
+          'White metal chasis'
+            ? '1'
+            : '0',
+
+        noOfWheels:
+          `7x2: ${formData.wheels7x2} | 7x4: ${formData.wheels7x4} | 10x4: ${formData.wheels10x4}`,
+
+        typeOfWheels:
+          [
+            Number(formData.wheels7x2) > 0
+              ? `7x2 (${formData.wheels7x2})`
+              : '',
+
+            Number(formData.wheels7x4) > 0
+              ? `7x4 (${formData.wheels7x4})`
+              : '',
+
+            Number(formData.wheels10x4) > 0
+              ? `10x4 (${formData.wheels10x4})`
+              : '',
+          ]
+            .filter(Boolean)
+            .join(' | '),
+
+        noOfMotors:
+          formData.noOfMotors,
+
+        motorRPM:
+          formData.motorRPM,
+
+        controllerBattery:
+          '1',
+
+        batteryType:
+          formData.batteryType,
+
+        batteryCharger:
+          formData.batteryType === 'Li-ion'
+            ? formData.batteryCharger
+            : '0',
+
+        screwDriver:
+          '1',
+
+        paymentSS:
+          formData.paymentSS.trim(),
+
+        transactionID:
+          formData.transactionID.trim(),
+      };
+
+
+      console.log(
+        'Mechanical Kit Payload:',
+        payload
+      );
+
+
+      const response =
+        await fetch(
+          MECHANICAL_KIT_SCRIPT_URL,
+          {
+            method: 'POST',
+
+            headers: {
+              'Content-Type':
+                'text/plain;charset=utf-8',
+            },
+
+            body:
+              JSON.stringify(payload),
+          }
         );
+
+
+      let result: any = null;
+
+
+      try {
+
+        result =
+          await response.json();
+
+      } catch {
+
+        result = null;
+      }
+
+
+      console.log(
+        'Mechanical Kit Response:',
+        result
+      );
+
+
+      if (
+        result?.success === true ||
+        result?.status === 'success'
+      ) {
 
         setSubmitted(true);
 
@@ -302,1081 +661,1986 @@ export default function XLR8Registration() {
           top: 0,
           behavior: 'smooth',
         });
-      } else {
-        alert(
-          `Submission failed: ${
-            result.message || result.error
-          }`
-        );
 
-        console.error(
-          'Submission Error:',
-          result.error
-        );
+        return;
       }
-    } catch (error) {
-      alert(
-        'An error occurred while submitting the form.'
+
+
+      if (response.ok) {
+
+        setSubmitted(true);
+
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+
+        return;
+      }
+
+
+      throw new Error(
+        result?.message ||
+        result?.error ||
+        'Submission failed.'
       );
+
+    } catch (error) {
 
       console.error(
-        'Network/Submission Error:',
+        'Mechanical Kit Submission Error:',
         error
       );
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const getSectionStatus = (
-    fields: (keyof FormData)[]
-  ) => {
-    const filledCount = fields.filter(
-      (field) =>
-        formData[field].trim().length > 0
-    ).length;
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to submit the form. Please try again.'
+      );
 
-    if (filledCount === 0) return 'empty';
-
-    if (filledCount === fields.length)
-      return 'complete';
-
-    return 'partial';
-  };
-
-  const sections = [
-    {
-      id: 'sec-team',
-      label: 'Team Details',
-      fields: ['teamName'] as (keyof FormData)[],
-    },
-    {
-      id: 'sec-leader',
-      label: 'Leader',
-      fields: [
-        'leaderName',
-        'leaderRollNumber',
-        'leaderPhone',
-        'leaderEmail',
-        'leaderMentorName',
-        'leaderMentorPhone',
-      ] as (keyof FormData)[],
-    },
-    {
-      id: 'sec-p2',
-      label: 'Participant 2',
-      fields: [
-        'p2Name',
-        'p2RollNumber',
-        'p2Phone',
-        'p2MentorName',
-        'p2MentorPhone',
-      ] as (keyof FormData)[],
-    },
-    {
-      id: 'sec-p3',
-      label: 'Participant 3',
-      fields: [
-        'p3Name',
-        'p3RollNumber',
-        'p3Phone',
-        'p3MentorName',
-        'p3MentorPhone',
-      ] as (keyof FormData)[],
-    },
-    {
-      id: 'sec-p4',
-      label: 'Participant 4',
-      fields: [
-        'p4Name',
-        'p4RollNumber',
-        'p4Phone',
-        'p4MentorName',
-        'p4MentorPhone',
-      ] as (keyof FormData)[],
-    },
-    {
-      id: 'sec-sub',
-      label: 'Submission',
-      fields: [
-        'teamSelfieLink',
-        'paymentScreenshotLink',
-      ] as (keyof FormData)[],
-    },
-  ];
-
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-
-    if (el) {
-      el.scrollIntoView({
+      window.scrollTo({
+        top: 0,
         behavior: 'smooth',
-        block: 'start',
       });
+
+    } finally {
+
+      setLoading(false);
+
     }
   };
 
-  const inputClass = (
-    field: keyof FormData
-  ) =>
-    `w-full rounded-xl bg-gray-900/60 border ${
-      errors[field]
-        ? 'border-red-500'
-        : 'border-white/10'
-    } text-white placeholder-gray-500 px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all outline-none`;
 
-  const renderError = (
-    field: keyof FormData
-  ) => {
-    if (!errors[field]) return null;
+  /* =======================================================
+     LOGIN
+  ======================================================= */
+
+  if (
+    !isLoggedIn ||
+    !user
+  ) {
 
     return (
-      <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1">
-        <AlertCircle className="w-3.5 h-3.5" />
-        {errors[field]}
-      </p>
+      <div className="
+        min-h-screen
+        bg-[#070D18]
+        text-white
+        flex
+        items-center
+        justify-center
+        px-4
+      ">
+
+        <div className="
+          w-full
+          max-w-md
+          rounded-2xl
+          border
+          border-white/10
+          bg-[#0B1424]
+          p-8
+          text-center
+        ">
+
+          <AlertCircle
+            className="
+              mx-auto
+              mb-4
+              h-10
+              w-10
+              text-amber-400
+            "
+          />
+
+          <h2 className="
+            text-xl
+            font-semibold
+          ">
+            Login Required
+          </h2>
+
+          <p className="
+            mt-2
+            text-sm
+            leading-6
+            text-slate-400
+          ">
+            Please login using your IIT Bombay
+            SSO account to access the Mechanical
+            Kit registration.
+          </p>
+
+        </div>
+
+      </div>
     );
-  };
+  }
 
-  return (
-    <div className="relative min-h-screen bg-gray-900 text-white font-sans antialiased selection:bg-blue-500 selection:text-white pb-24 overflow-hidden">
 
-      {/* Background Effects */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[500px] bg-blue-600/10 blur-[120px] rounded-full z-0" />
+  /* =======================================================
+     VEHICLE NUMBER MISSING
+  ======================================================= */
 
-      <div className="pointer-events-none absolute top-1/3 -right-20 w-96 h-96 bg-indigo-500/10 blur-[140px] rounded-full z-0" />
+  if (!formData.vehicleNo) {
 
-      <div className="pointer-events-none absolute bottom-10 -left-20 w-96 h-96 bg-blue-500/10 blur-[140px] rounded-full z-0" />
+    return (
+      <div className="
+        min-h-screen
+        bg-[#070D18]
+        text-white
+        flex
+        items-center
+        justify-center
+        px-4
+      ">
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28">
+        <div className="
+          w-full
+          max-w-lg
+          rounded-2xl
+          border
+          border-red-500/20
+          bg-[#0B1424]
+          p-8
+          text-center
+        ">
 
-        {/* Header */}
-        <div className="text-center max-w-8xl mx-auto mb-12">
+          <AlertCircle
+            className="
+              mx-auto
+              mb-4
+              h-10
+              w-10
+              text-red-400
+            "
+          />
 
-          <h1 className="text-5xl md:text-6xl font-bold font-heading mb-6 tracking-tight">
-            Welcome to{' '}
-            <span className="text-blue-500">
-              XLR8 !
-            </span>
-          </h1>
+          <h2 className="
+            text-xl
+            font-semibold
+          ">
+            Vehicle Number Not Found
+          </h2>
 
-          <div className="w-24 h-1 bg-blue-500 mx-auto mb-6 rounded-full" />
-
-          <p className="text-base sm:text-lg text-gray-400 leading-relaxed">
-            Feel the adrenaline and race for glory in
-            XLR8, ERC's flagship high-speed robotics
-            competition. Join 900+ participants to
-            design, build, and race robots where every
-            millisecond counts. Whether you're a
-            beginner or a seasoned competitor, XLR8 is
-            your chance to innovate, compete, and
-            experience robotics at full throttle.
+          <p className="
+            mt-3
+            text-sm
+            leading-6
+            text-slate-400
+          ">
+            Please open the Mechanical Kit
+            Registration from your participant
+            dashboard.
           </p>
 
-          <p className="text-base sm:text-lg text-gray-400 leading-relaxed mt-2">
-            Register your team below and claim your spot
-            on the starting grid!
-          </p>
-
-        </div>
-
-        {/* Progress Navigation */}
-        <div className="mb-12 overflow-x-auto pb-4 scrollbar-none">
-
-          <div className="flex items-center justify-between min-w-[650px] bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
-
-            {sections.map((sec, idx) => {
-              const status =
-                getSectionStatus(sec.fields);
-
-              return (
-                <button
-                  key={sec.id}
-                  type="button"
-                  onClick={() =>
-                    scrollToSection(sec.id)
-                  }
-                  className="flex items-center gap-2 group focus:outline-none"
-                >
-
-                  <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                      status === 'complete'
-                        ? 'bg-blue-500 text-white shadow-[0_0_12px_rgba(59,130,246,0.6)]'
-                        : status === 'partial'
-                        ? 'bg-blue-900/60 text-blue-300 border border-blue-500/50'
-                        : 'bg-gray-800 text-gray-500 border border-white/5 group-hover:border-white/20'
-                    }`}
-                  >
-                    {status === 'complete' ? (
-                      <CheckCircle2 className="w-4 h-4" />
-                    ) : (
-                      idx + 1
-                    )}
-                  </div>
-
-                  <span
-                    className={`text-xs sm:text-sm font-semibold transition-colors ${
-                      status === 'complete'
-                        ? 'text-blue-400'
-                        : status === 'partial'
-                        ? 'text-gray-200'
-                        : 'text-gray-500 group-hover:text-gray-300'
-                    }`}
-                  >
-                    {sec.label}
-                  </span>
-
-                  {idx < sections.length - 1 && (
-                    <div className="w-6 sm:w-10 h-[1px] bg-white/10 mx-1 sm:mx-2" />
-                  )}
-
-                </button>
-              );
-            })}
-
-          </div>
-        </div>
-
-        {/* Success */}
-        {submitted ? (
-
-          <div className="max-w-2xl mx-auto bg-blue-900/20 border border-blue-500/30 rounded-2xl p-8 backdrop-blur-md text-center shadow-[0_0_35px_rgba(59,130,246,0.2)] animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-            <div className="w-16 h-16 bg-blue-500/20 border border-blue-500/50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-400">
-
-              <CheckCircle2 className="w-10 h-10" />
-
-            </div>
-
-            <h2 className="text-2xl font-bold font-heading text-white mb-2">
-              Registration Submitted!
-            </h2>
-
-            <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-6">
-              Thank you for registering team{' '}
-              <span className="text-blue-400 font-semibold">
-                {formData.teamName}
-              </span>{' '}
-              for XLR8. Your details have been
-              recorded successfully.
-            </p>
-
-          </div>
-
-        ) : (
-
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            className="space-y-8"
+          <button
+            type="button"
+            onClick={() =>
+              window.history.back()
+            }
+            className="
+              mt-6
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              bg-amber-400
+              px-5
+              py-3
+              text-sm
+              font-semibold
+              text-slate-950
+              transition
+              hover:bg-amber-300
+            "
           >
 
-            {/* TEAM DETAILS */}
-            <div
-              id="sec-team"
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-blue-500/30 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]"
-            >
+            <ArrowLeft size={17} />
 
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+            Back to Dashboard
 
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <Users className="w-6 h-6" />
-                </div>
+          </button>
 
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Team Details
-                  </h2>
+        </div>
 
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Enter your official team name
-                  </p>
-                </div>
+      </div>
+    );
+  }
 
-              </div>
 
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                Team Name{' '}
-                <span className="text-red-500">*</span>
-              </label>
+  /* =======================================================
+     SUCCESS
+  ======================================================= */
 
-              <input
-                type="text"
-                name="teamName"
-                value={formData.teamName}
-                onChange={handleChange}
-                placeholder="Be creative :)"
-                className={inputClass('teamName')}
+  if (submitted) {
+
+    return (
+      <div className="
+        min-h-screen
+        bg-[#070D18]
+        text-white
+        flex
+        items-center
+        justify-center
+        px-4
+        py-12
+      ">
+
+        <div className="
+          w-full
+          max-w-2xl
+          rounded-3xl
+          border
+          border-amber-400/20
+          bg-[#0B1424]
+          p-8
+          text-center
+          sm:p-12
+        ">
+
+          <div className="
+            mx-auto
+            flex
+            h-20
+            w-20
+            items-center
+            justify-center
+            rounded-2xl
+            border
+            border-amber-400/30
+            bg-amber-400/10
+          ">
+
+            <CheckCircle2
+              className="
+                h-10
+                w-10
+                text-amber-400
+              "
+            />
+
+          </div>
+
+          <h1 className="
+            mt-6
+            text-2xl
+            font-bold
+            sm:text-3xl
+          ">
+            Mechanical Kit Request Submitted
+          </h1>
+
+          <p className="
+            mt-3
+            text-sm
+            leading-6
+            text-slate-400
+          ">
+            Your mechanical kit request has been
+            successfully recorded for vehicle
+
+            <span className="
+              ml-1
+              font-semibold
+              text-amber-400
+            ">
+              {formData.vehicleNo}
+            </span>
+            .
+          </p>
+
+          <div className="
+            mx-auto
+            mt-8
+            max-w-sm
+            rounded-2xl
+            border
+            border-white/10
+            bg-white/[0.03]
+            p-5
+            text-left
+          ">
+
+            <div className="
+              flex
+              justify-between
+              border-b
+              border-white/10
+              pb-3
+            ">
+
+              <span className="
+                text-xs
+                uppercase
+                tracking-wider
+                text-slate-500
+              ">
+                Vehicle
+              </span>
+
+              <span className="
+                font-semibold
+                text-white
+              ">
+                {formData.vehicleNo}
+              </span>
+
+            </div>
+
+            <div className="
+              flex
+              justify-between
+              gap-4
+              border-b
+              border-white/10
+              py-3
+            ">
+
+              <span className="
+                text-xs
+                uppercase
+                tracking-wider
+                text-slate-500
+              ">
+                Team
+              </span>
+
+              <span className="
+                text-right
+                text-sm
+                font-medium
+                text-slate-200
+              ">
+                {teamNameFromURL || 'Team'}
+              </span>
+
+            </div>
+
+            <div className="
+              flex
+              justify-between
+              gap-4
+              pt-3
+            ">
+
+              <span className="
+                text-xs
+                uppercase
+                tracking-wider
+                text-slate-500
+              ">
+                Add-on
+              </span>
+
+              <span className="
+                text-right
+                text-sm
+                font-medium
+                text-slate-200
+              ">
+                {formData.addOnType}
+              </span>
+
+            </div>
+
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              window.history.back()
+            }
+            className="
+              mt-8
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              bg-amber-400
+              px-6
+              py-3
+              text-sm
+              font-semibold
+              text-slate-950
+              transition
+              hover:bg-amber-300
+            "
+          >
+
+            <ArrowLeft size={17} />
+
+            Back to Dashboard
+
+          </button>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
+  /* =======================================================
+     MAIN PAGE
+  ======================================================= */
+
+  return (
+    <div className="
+      min-h-screen
+      bg-[#070D18]
+      text-white
+    ">
+
+      {/* 
+        Extra top spacing added here so the page
+        clears the fixed site header.
+      */}
+
+      <div className="
+        mx-auto
+        w-full
+        max-w-5xl
+        px-4
+        pt-28
+        pb-8
+        sm:px-6
+        sm:pt-32
+        sm:pb-12
+        lg:px-8
+      ">
+
+        {/* HEADER */}
+
+        <div className="
+          mb-10
+          max-w-3xl
+        ">
+
+          <div className="
+            mb-4
+            inline-flex
+            items-center
+            gap-2
+            rounded-lg
+            border
+            border-amber-400/20
+            bg-amber-400/5
+            px-3
+            py-1.5
+            text-sm
+            font-semibold
+            tracking-wide
+            text-amber-400
+          ">
+            XLR8 2026
+          </div>
+
+          <h1 className="
+            text-3xl
+            font-bold
+            tracking-tight
+            sm:text-4xl
+          ">
+            Mechanical Kit
+          </h1>
+
+          <p className="
+            mt-3
+            max-w-2xl
+            text-sm
+            leading-6
+            text-slate-400
+            sm:text-base
+          ">
+            Choose the components your team needs
+            for the vehicle. Make sure the quantities
+            and payment details are correct before
+            submitting.
+          </p>
+
+        </div>
+
+
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="space-y-5"
+        >
+
+          {/* =================================================
+              PARTICIPANT
+          ================================================= */}
+
+          <Section
+            icon={<User size={18} />}
+            title="Participant Details"
+            subtitle="Fetched from your participant dashboard"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-4
+              md:grid-cols-2
+            ">
+
+              <ReadOnlyField
+                label="Vehicle Number"
+                value={formData.vehicleNo}
+                icon={<Car size={15} />}
               />
 
-              {renderError('teamName')}
+              <ReadOnlyField
+                label="Team Name"
+                value={teamNameFromURL || 'Team'}
+                icon={<User size={15} />}
+              />
 
             </div>
 
-            {/* LEADER */}
-            <div
-              id="sec-leader"
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-blue-500/30 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]"
-            >
+          </Section>
 
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
 
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <User className="w-6 h-6" />
-                </div>
+          {/* =================================================
+              ADD-ON
+          ================================================= */}
 
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Participant 1 (Team Leader)
-                  </h2>
+          <Section
+            icon={<Package size={18} />}
+            title="Add-on"
+            subtitle="Choose one configuration for your vehicle"
+          >
 
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Primary point of contact for the team
-                  </p>
-                </div>
+            <div className="
+              grid
+              grid-cols-1
+              gap-3
+              md:grid-cols-3
+            ">
 
-              </div>
+              <AddOnOption
+                selected={
+                  formData.addOnType === 'None'
+                }
+                title="None"
+                description="No additional sensor setup"
+                onClick={() =>
+                  handleAddOnChange('None')
+                }
+              />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AddOnOption
+                selected={
+                  formData.addOnType ===
+                  'Servo mounted Ultrasonic'
+                }
+                title="Servo mounted Ultrasonic"
+                description="HC-SR04 + SG90"
+                onClick={() =>
+                  handleAddOnChange(
+                    'Servo mounted Ultrasonic'
+                  )
+                }
+              />
 
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Leader Name{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
+              <AddOnOption
+                selected={
+                  formData.addOnType ===
+                  'IR based line follower'
+                }
+                title="IR based line follower"
+                description="Choose 2, 3 or 4 IR sensors"
+                onClick={() =>
+                  handleAddOnChange(
+                    'IR based line follower'
+                  )
+                }
+              />
 
-                  <input
-                    type="text"
-                    name="leaderName"
-                    value={formData.leaderName}
-                    onChange={handleChange}
-                    placeholder="Full Name"
-                    className={inputClass('leaderName')}
-                  />
-
-                  {renderError('leaderName')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Roll Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="leaderRollNumber"
-                    value={formData.leaderRollNumber}
-                    onChange={handleChange}
-                    placeholder="e.g. 26BXXXX"
-                    className={inputClass(
-                      'leaderRollNumber'
-                    )}
-                  />
-
-                  {renderError('leaderRollNumber')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="leaderPhone"
-                    value={formData.leaderPhone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'leaderPhone'
-                    )}
-                  />
-
-                  {renderError('leaderPhone')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Email ID{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="email"
-                    name="leaderEmail"
-                    value={formData.leaderEmail}
-                    onChange={handleChange}
-                    placeholder="Provide active email"
-                    className={inputClass(
-                      'leaderEmail'
-                    )}
-                  />
-
-                  {renderError('leaderEmail')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Name{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="leaderMentorName"
-                    value={formData.leaderMentorName}
-                    onChange={handleChange}
-                    placeholder="Mentor Full Name"
-                    className={inputClass(
-                      'leaderMentorName'
-                    )}
-                  />
-
-                  {renderError(
-                    'leaderMentorName'
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="leaderMentorPhone"
-                    value={formData.leaderMentorPhone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'leaderMentorPhone'
-                    )}
-                  />
-
-                  {renderError(
-                    'leaderMentorPhone'
-                  )}
-                </div>
-
-              </div>
             </div>
 
-            {/* PARTICIPANT 2 */}
-            <div
-              id="sec-p2"
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-blue-500/30 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]"
-            >
 
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <User className="w-6 h-6" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Participant 2
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Team member details
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p2Name"
-                    value={formData.p2Name}
-                    onChange={handleChange}
-                    placeholder="Full Name"
-                    className={inputClass('p2Name')}
-                  />
-
-                  {renderError('p2Name')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Roll Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p2RollNumber"
-                    value={formData.p2RollNumber}
-                    onChange={handleChange}
-                    placeholder="e.g. 26BXXXX"
-                    className={inputClass(
-                      'p2RollNumber'
-                    )}
-                  />
-
-                  {renderError('p2RollNumber')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="p2Phone"
-                    value={formData.p2Phone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'p2Phone'
-                    )}
-                  />
-
-                  {renderError('p2Phone')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Name{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p2MentorName"
-                    value={formData.p2MentorName}
-                    onChange={handleChange}
-                    placeholder="Mentor Full Name"
-                    className={inputClass(
-                      'p2MentorName'
-                    )}
-                  />
-
-                  {renderError('p2MentorName')}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="p2MentorPhone"
-                    value={formData.p2MentorPhone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'p2MentorPhone'
-                    )}
-                  />
-
-                  {renderError(
-                    'p2MentorPhone'
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-            {/* PARTICIPANT 3 */}
-            <div
-              id="sec-p3"
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-blue-500/30 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]"
-            >
-
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <User className="w-6 h-6" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Participant 3
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Team member details
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p3Name"
-                    value={formData.p3Name}
-                    onChange={handleChange}
-                    placeholder="Full Name"
-                    className={inputClass('p3Name')}
-                  />
-
-                  {renderError('p3Name')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Roll Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p3RollNumber"
-                    value={formData.p3RollNumber}
-                    onChange={handleChange}
-                    placeholder="e.g. 26BXXXX"
-                    className={inputClass(
-                      'p3RollNumber'
-                    )}
-                  />
-
-                  {renderError('p3RollNumber')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="p3Phone"
-                    value={formData.p3Phone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'p3Phone'
-                    )}
-                  />
-
-                  {renderError('p3Phone')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Name{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p3MentorName"
-                    value={formData.p3MentorName}
-                    onChange={handleChange}
-                    placeholder="Mentor Full Name"
-                    className={inputClass(
-                      'p3MentorName'
-                    )}
-                  />
-
-                  {renderError('p3MentorName')}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="p3MentorPhone"
-                    value={formData.p3MentorPhone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'p3MentorPhone'
-                    )}
-                  />
-
-                  {renderError(
-                    'p3MentorPhone'
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-            {/* PARTICIPANT 4 */}
-            <div
-              id="sec-p4"
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-blue-500/30 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]"
-            >
-
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <User className="w-6 h-6" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Participant 4
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Team member details
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p4Name"
-                    value={formData.p4Name}
-                    onChange={handleChange}
-                    placeholder="Full Name"
-                    className={inputClass('p4Name')}
-                  />
-
-                  {renderError('p4Name')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Roll Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p4RollNumber"
-                    value={formData.p4RollNumber}
-                    onChange={handleChange}
-                    placeholder="e.g. 26BXXXX"
-                    className={inputClass(
-                      'p4RollNumber'
-                    )}
-                  />
-
-                  {renderError('p4RollNumber')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="p4Phone"
-                    value={formData.p4Phone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'p4Phone'
-                    )}
-                  />
-
-                  {renderError('p4Phone')}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Name{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    name="p4MentorName"
-                    value={formData.p4MentorName}
-                    onChange={handleChange}
-                    placeholder="Mentor Full Name"
-                    className={inputClass(
-                      'p4MentorName'
-                    )}
-                  />
-
-                  {renderError('p4MentorName')}
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-                    ISMP Mentor Phone Number{' '}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  <input
-                    type="tel"
-                    name="p4MentorPhone"
-                    value={formData.p4MentorPhone}
-                    onChange={handleChange}
-                    placeholder="9876543210"
-                    className={inputClass(
-                      'p4MentorPhone'
-                    )}
-                  />
-
-                  {renderError(
-                    'p4MentorPhone'
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-            {/* KIT & PAYMENT DETAILS */}
-            <div className="bg-amber-500/5 backdrop-blur-md border border-amber-400/25 rounded-2xl p-5 sm:p-6">
-
-              <div className="flex items-start gap-3">
-
-                <div className="shrink-0 text-xl sm:text-2xl">
-                  ⚠️
-                </div>
-
-                <div className="min-w-0">
-
-                  <h3 className="text-base sm:text-lg font-bold text-amber-300 mb-3 font-heading">
-                    IMPORTANT — KIT & PAYMENT DETAILS
-                  </h3>
-
-                  <ul className="space-y-2.5 text-sm sm:text-base text-gray-300 leading-relaxed">
-
-                    <li>
-                      •{' '}
-                      <strong className="text-white">
-                        Electrical Kit:
-                      </strong>{' '}
-                      You will receive the electrical kit
-                      first. Payment for the kit will need
-                      to be completed as instructed.
-                    </li>
-
-                    <li>
-                      •{' '}
-                      <strong className="text-white">
-                        Mechanical Kit:
-                      </strong>{' '}
-                      The mechanical kit will be provided
-                      at a later stage.
-                    </li>
-
-                    <li>
-                      •{' '}
-                      <strong className="text-white">
-                        Electrical Kit Payment:
-                      </strong>{' '}
-                      Please use{' '}
-                      <strong className="text-white">
-                        any one of the two QR code below
-                      </strong>{' '}
-                      to make the{' '}
-                      <strong className="text-amber-300">
-                        ₹1,800 payment
-                      </strong>.
-                    </li>
-
-                    <li>
-                      • After completing the payment,
-                      proceed to the{' '}
-                      <strong className="text-white">
-                        submission link
-                      </strong>{' '}
-                      below.
-                    </li>
-
-                  </ul>
-
-                </div>
-              </div>
-            </div>
-
-            {/* PAYMENT SCANNERS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
-                <p className="text-sm font-semibold text-cyan-300 mb-4">
-                  Pay Rs. 1800 using the QR code below 
-                </p>
-
-                <img
-                  src={aditya_qr2}
-                  alt="Scanner 1 - ₹1,800 Payment"
-                  className="w-full max-w-xs rounded-xl object-contain"
+            {formData.addOnType ===
+              'Servo mounted Ultrasonic' && (
+
+              <div className="
+                mt-4
+                grid
+                grid-cols-1
+                gap-3
+                sm:grid-cols-2
+              ">
+
+                <FixedComponent
+                  label="Ultrasonic Sensor HC-SR04"
+                  value="1"
                 />
-              </div>
 
-              <div className="bg-slate-900/60 backdrop-blur-md border border-cyan-400/20 rounded-2xl p-5 flex flex-col items-center">
-                <p className="text-sm font-semibold text-cyan-300 mb-4">
-                  Pay Rs. 1800 using the QR code below 
-                </p>
-
-                <img
-                  src={rr_qr}
-                  alt="Scanner 2 - ₹1,800 Payment"
-                  className="w-full max-w-xs rounded-xl object-contain"
+                <FixedComponent
+                  label="Servo SG90"
+                  value="1"
                 />
+
               </div>
+
+            )}
+
+
+            {formData.addOnType ===
+              'IR based line follower' && (
+
+              <div className="
+                mt-4
+                max-w-sm
+              ">
+
+                <SelectField
+                  label="No. of IRs"
+                  name="noOfIRs"
+                  value={formData.noOfIRs}
+                  onChange={handleChange}
+                  options={[
+                    {
+                      value: '2',
+                      label: '2 IR Sensors',
+                    },
+                    {
+                      value: '3',
+                      label: '3 IR Sensors',
+                    },
+                    {
+                      value: '4',
+                      label: '4 IR Sensors',
+                    },
+                  ]}
+                />
+
+              </div>
+
+            )}
+
+          </Section>
+
+
+          {/* =================================================
+              CHASSIS
+          ================================================= */}
+
+          <Section
+            icon={<Box size={18} />}
+            title="Chassis"
+            subtitle="Select one chassis type"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-3
+              md:grid-cols-3
+            ">
+
+              <ChasisOption
+                title="Acrylic"
+                selected={
+                  formData.chasisType === 'Acrylic'
+                }
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    chasisType: 'Acrylic',
+                  }))
+                }
+              />
+
+              <ChasisOption
+                title="Black Metal Chassis"
+                selected={
+                  formData.chasisType ===
+                  'Black metal chasis'
+                }
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    chasisType:
+                      'Black metal chasis',
+                  }))
+                }
+              />
+
+              <ChasisOption
+                title="White Metal Chassis"
+                selected={
+                  formData.chasisType ===
+                  'White metal chasis'
+                }
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    chasisType:
+                      'White metal chasis',
+                  }))
+                }
+              />
+
             </div>
 
-            {/* SUBMISSION LINKS */}
-            <div
-              id="sec-sub"
-              className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:-translate-y-2 hover:border-blue-500/30 hover:shadow-[0_0_35px_rgba(59,130,246,0.35)]"
+          </Section>
+
+
+          {/* =================================================
+              WHEELS
+          ================================================= */}
+
+          <Section
+            icon={<Cog size={18} />}
+            title="Wheels"
+            subtitle="Set the quantity for each wheel type"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-3
+              md:grid-cols-3
+            ">
+
+              <QuantityField
+                label="7 × 2"
+                value={formData.wheels7x2}
+                onMinus={() =>
+                  updateQuantity(
+                    'wheels7x2',
+                    -1
+                  )
+                }
+                onPlus={() =>
+                  updateQuantity(
+                    'wheels7x2',
+                    1
+                  )
+                }
+              />
+
+              <QuantityField
+                label="7 × 4"
+                value={formData.wheels7x4}
+                onMinus={() =>
+                  updateQuantity(
+                    'wheels7x4',
+                    -1
+                  )
+                }
+                onPlus={() =>
+                  updateQuantity(
+                    'wheels7x4',
+                    1
+                  )
+                }
+              />
+
+              <QuantityField
+                label="10 × 4"
+                value={formData.wheels10x4}
+                onMinus={() =>
+                  updateQuantity(
+                    'wheels10x4',
+                    -1
+                  )
+                }
+                onPlus={() =>
+                  updateQuantity(
+                    'wheels10x4',
+                    1
+                  )
+                }
+              />
+
+            </div>
+
+          </Section>
+
+
+          {/* =================================================
+              MOTORS
+          ================================================= */}
+
+          <Section
+            icon={<Gauge size={18} />}
+            title="Motors"
+            subtitle="Specify the number and RPM"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-4
+              md:grid-cols-2
+            ">
+
+              <div>
+
+                <label className="
+                  mb-2
+                  block
+                  text-sm
+                  font-medium
+                  text-slate-300
+                ">
+                  No. of Motors
+
+                  <span className="
+                    ml-1
+                    text-amber-400
+                  ">
+                    *
+                  </span>
+                </label>
+
+                <input
+                  type="number"
+                  min="1"
+                  name="noOfMotors"
+                  value={formData.noOfMotors}
+                  onChange={handleChange}
+                  className="
+                    h-[50px]
+                    w-full
+                    rounded-xl
+                    border
+                    border-white/10
+                    bg-[#0B1424]
+                    px-4
+                    text-sm
+                    text-white
+                    outline-none
+                    transition
+                    focus:border-amber-400/40
+                    focus:ring-2
+                    focus:ring-amber-400/10
+                  "
+                  placeholder="Enter quantity"
+                />
+
+              </div>
+
+
+              <SelectField
+                label="Motor RPM"
+                name="motorRPM"
+                value={formData.motorRPM}
+                onChange={handleChange}
+                options={[
+                  {
+                    value: '100',
+                    label: '100 RPM',
+                  },
+                  {
+                    value: '200',
+                    label: '200 RPM',
+                  },
+                  {
+                    value: '300',
+                    label: '300 RPM',
+                  },
+                ]}
+              />
+
+            </div>
+
+          </Section>
+
+
+          {/* =================================================
+              BATTERY
+          ================================================= */}
+
+          <Section
+            icon={<BatteryCharging size={18} />}
+            title="Battery & Accessories"
+            subtitle="Controller battery and screwdriver are included by default"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-3
+              md:grid-cols-2
+            ">
+
+              <FixedComponent
+                label="Controller Battery"
+                value="1"
+              />
+
+              <SelectField
+                label="Battery Type"
+                name="batteryType"
+                value={formData.batteryType}
+                onChange={handleBatteryTypeChange}
+                options={[
+                  {
+                    value: 'LiPo',
+                    label: 'LiPo',
+                  },
+                  {
+                    value: 'Li-ion',
+                    label: 'Li-ion',
+                  },
+                ]}
+              />
+
+
+              {formData.batteryType ===
+                'Li-ion' && (
+
+                <BatteryChargerCheckbox
+                  checked={
+                    formData.batteryCharger === '1'
+                  }
+                  onChange={(checked) => {
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      batteryCharger:
+                        checked
+                          ? '1'
+                          : '0',
+                    }));
+
+                    setSubmitError('');
+
+                  }}
+                />
+
+              )}
+
+
+              <FixedComponent
+                label="Screw Driver"
+                value="1"
+              />
+
+            </div>
+
+          </Section>
+
+
+          {/* =================================================
+              PAYMENT
+          ================================================= */}
+
+          <Section
+            icon={<CreditCard size={18} />}
+            title="Payment"
+            subtitle="Add the payment proof for your kit"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-4
+            ">
+
+              <InputField
+                label="Payment Screenshot"
+                name="paymentSS"
+                type="url"
+                value={formData.paymentSS}
+                onChange={handleChange}
+                placeholder="Paste Google Drive link"
+              />
+
+              <InputField
+                label="Transaction ID"
+                name="transactionID"
+                type="text"
+                value={formData.transactionID}
+                onChange={handleChange}
+                placeholder="Enter payment transaction ID"
+              />
+
+            </div>
+
+          </Section>
+
+
+          {/* =================================================
+              ERROR
+          ================================================= */}
+
+          {submitError && (
+
+            <div className="
+              flex
+              items-start
+              gap-3
+              rounded-xl
+              border
+              border-red-500/20
+              bg-red-500/5
+              px-4
+              py-4
+              text-sm
+              text-red-300
+            ">
+
+              <AlertCircle
+                size={18}
+                className="
+                  mt-0.5
+                  shrink-0
+                  text-red-400
+                "
+              />
+
+              <span>
+                {submitError}
+              </span>
+
+            </div>
+
+          )}
+
+
+          {/* =================================================
+              SUBMIT
+          ================================================= */}
+
+          <div className="
+            flex
+            flex-col
+            gap-4
+            border-t
+            border-white/10
+            pt-5
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          ">
+
+            <p className="
+              max-w-md
+              text-xs
+              leading-5
+              text-slate-500
+            ">
+              Check your component quantities and
+              payment details before submitting.
+            </p>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-amber-400
+                px-7
+                py-3.5
+                text-sm
+                font-bold
+                text-slate-950
+                transition
+                hover:bg-amber-300
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+                sm:min-w-[220px]
+              "
             >
 
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <LinkIcon className="w-6 h-6" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-bold text-white">
-                    Submission Links
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-gray-400">
-                    Provide drive links for verification
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="space-y-6">
-
-                {/* TEAM SELFIE */}
-                <div>
-
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2 flex items-center gap-1.5">
-
-                    <Camera className="w-4 h-4 text-blue-400" />
-
-                    Team Selfie Google Drive Link{' '}
-                    <span className="text-red-500">
-                      *
-                    </span>
-
-                  </label>
-
-                  <input
-                    type="url"
-                    name="teamSelfieLink"
-                    value={formData.teamSelfieLink}
-                    onChange={handleChange}
-                    placeholder="Drive link with selfie uploaded"
-                    className={inputClass(
-                      'teamSelfieLink'
-                    )}
+              {loading ? (
+                <>
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
                   />
 
-                  <p className="mt-1.5 text-xs text-gray-400 flex items-center gap-1">
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send size={17} />
 
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                  Submit Kit Request
+                </>
+              )}
 
-                    Make sure the Drive link is accessible
-                    to 'Anyone with the link'.
+            </button>
 
-                  </p>
+          </div>
 
-                  {renderError(
-                    'teamSelfieLink'
-                  )}
+        </form>
 
-                </div>
-
-                {/* PAYMENT SCREENSHOT */}
-                <div>
-
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2 flex items-center gap-1.5">
-
-                    <Receipt className="w-4 h-4 text-blue-400" />
-
-                    Payment Screenshot Google Drive Link{' '}
-                    <span className="text-red-500">
-                      *
-                    </span>
-
-                  </label>
-
-                  <input
-                    type="url"
-                    name="paymentScreenshotLink"
-                    value={
-                      formData.paymentScreenshotLink
-                    }
-                    onChange={handleChange}
-                    placeholder="Drive link with payment confirmation screenshot uploaded"
-                    className={inputClass(
-                      'paymentScreenshotLink'
-                    )}
-                  />
-
-                  <p className="mt-1.5 text-xs text-gray-400 flex items-center gap-1">
-
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
-
-                    Make sure the Drive link is accessible
-                    to 'Anyone with the link'.
-
-                  </p>
-
-                  {renderError(
-                    'paymentScreenshotLink'
-                  )}
-
-                </div>
-
-              </div>
-            </div>
-
-            {/* SUBMIT */}
-            <div className="pt-4 text-center">
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-semibold text-base transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] active:scale-[0.98] border border-blue-500/30"
-              >
-
-                <span>
-                  {loading
-                    ? 'Submitting...'
-                    : 'Submit XLR8 Registration'}
-                </span>
-
-                <Send className="w-5 h-5" />
-
-              </button>
-
-            </div>
-
-          </form>
-        )}
       </div>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+interface SectionProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}
+
+function Section({
+  icon,
+  title,
+  subtitle,
+  children,
+}: SectionProps) {
+
+  return (
+    <section className="
+      rounded-2xl
+      border
+      border-white/[0.08]
+      bg-[#0B1424]/70
+      p-5
+      sm:p-6
+    ">
+
+      <div className="
+        mb-5
+        flex
+        items-center
+        gap-3
+      ">
+
+        <div className="
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          rounded-lg
+          border
+          border-white/10
+          bg-white/[0.04]
+          text-slate-300
+        ">
+          {icon}
+        </div>
+
+        <div>
+
+          <h2 className="
+            text-base
+            font-semibold
+            text-white
+          ">
+            {title}
+          </h2>
+
+          <p className="
+            mt-0.5
+            text-xs
+            text-slate-500
+          ">
+            {subtitle}
+          </p>
+
+        </div>
+
+      </div>
+
+      {children}
+
+    </section>
+  );
+}
+
+
+/* =========================================================
+   ADD-ON OPTION
+   SQUARE CHECK INDICATOR
+========================================================= */
+
+interface AddOnOptionProps {
+  selected: boolean;
+  title: string;
+  description: string;
+  onClick: () => void;
+}
+
+function AddOnOption({
+  selected,
+  title,
+  description,
+  onClick,
+}: AddOnOptionProps) {
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        group
+        relative
+        min-h-[112px]
+        rounded-xl
+        border
+        p-4
+        text-left
+        transition-all
+        duration-200
+        ${
+          selected
+            ? `
+              border-amber-400/50
+              bg-amber-400/[0.08]
+              shadow-[0_0_0_1px_rgba(251,191,36,0.08)]
+            `
+            : `
+              border-white/[0.09]
+              bg-[#0A1322]
+              hover:border-white/20
+              hover:bg-white/[0.035]
+            `
+        }
+      `}
+    >
+
+      <div className="
+        flex
+        h-full
+        items-start
+        justify-between
+        gap-4
+      ">
+
+        <div className="pr-2">
+
+          <p className={`
+            text-sm
+            font-semibold
+            leading-5
+            ${
+              selected
+                ? 'text-amber-400'
+                : 'text-slate-200'
+            }
+          `}>
+            {title}
+          </p>
+
+          <p className="
+            mt-2
+            text-xs
+            leading-5
+            text-slate-500
+          ">
+            {description}
+          </p>
+
+        </div>
+
+
+        <SelectionBox
+          selected={selected}
+        />
+
+      </div>
+
+    </button>
+  );
+}
+
+
+/* =========================================================
+   CHASSIS OPTION
+   SQUARE CHECK INDICATOR
+========================================================= */
+
+interface ChasisOptionProps {
+  title: string;
+  selected: boolean;
+  onClick: () => void;
+}
+
+function ChasisOption({
+  title,
+  selected,
+  onClick,
+}: ChasisOptionProps) {
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        flex
+        min-h-[64px]
+        w-full
+        items-center
+        justify-between
+        gap-4
+        rounded-xl
+        border
+        px-4
+        py-3
+        text-left
+        transition-all
+        duration-200
+        ${
+          selected
+            ? `
+              border-amber-400/50
+              bg-amber-400/[0.08]
+            `
+            : `
+              border-white/[0.09]
+              bg-[#0A1322]
+              hover:border-white/20
+              hover:bg-white/[0.035]
+            `
+        }
+      `}
+    >
+
+      <span className={`
+        text-sm
+        font-semibold
+        ${
+          selected
+            ? 'text-amber-400'
+            : 'text-slate-200'
+        }
+      `}>
+        {title}
+      </span>
+
+      <SelectionBox
+        selected={selected}
+      />
+
+    </button>
+  );
+}
+
+
+/* =========================================================
+   SHARED SQUARE SELECTION BOX
+========================================================= */
+
+function SelectionBox({
+  selected,
+}: {
+  selected: boolean;
+}) {
+
+  return (
+    <span className={`
+      flex
+      h-5
+      w-5
+      shrink-0
+      items-center
+      justify-center
+      rounded-[5px]
+      border
+      transition-all
+      duration-200
+      ${
+        selected
+          ? `
+            border-amber-400
+            bg-amber-400
+            text-slate-950
+          `
+          : `
+            border-slate-600
+            bg-transparent
+            text-transparent
+            group-hover:border-slate-400
+          `
+      }
+    `}>
+
+      {selected && (
+        <Check
+          size={13}
+          strokeWidth={3}
+        />
+      )}
+
+    </span>
+  );
+}
+
+
+/* =========================================================
+   FIXED COMPONENT
+========================================================= */
+
+interface FixedComponentProps {
+  label: string;
+  value: string;
+}
+
+function FixedComponent({
+  label,
+  value,
+}: FixedComponentProps) {
+
+  return (
+    <div className="
+      rounded-xl
+      border
+      border-white/[0.08]
+      bg-white/[0.025]
+      px-4
+      py-3.5
+    ">
+
+      <div className="
+        flex
+        items-center
+        justify-between
+        gap-4
+      ">
+
+        <div>
+
+          <p className="
+            text-sm
+            font-medium
+            text-slate-300
+          ">
+            {label}
+          </p>
+
+          <p className="
+            mt-1
+            text-xs
+            text-slate-500
+          ">
+            Included in the kit
+          </p>
+
+        </div>
+
+
+        <div className="
+          flex
+          h-7
+          min-w-7
+          items-center
+          justify-center
+          rounded-md
+          border
+          border-white/10
+          bg-white/[0.04]
+          px-2
+          text-xs
+          font-semibold
+          text-slate-300
+        ">
+          {value}
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   BATTERY CHARGER
+   MODERN SQUARE CHECKBOX
+========================================================= */
+
+interface BatteryChargerCheckboxProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+function BatteryChargerCheckbox({
+  checked,
+  onChange,
+}: BatteryChargerCheckboxProps) {
+
+  return (
+    <label
+      className={`
+        flex
+        min-h-[78px]
+        cursor-pointer
+        items-center
+        justify-between
+        gap-4
+        rounded-xl
+        border
+        px-4
+        py-3.5
+        transition-all
+        duration-200
+        ${
+          checked
+            ? `
+              border-amber-400/40
+              bg-amber-400/[0.07]
+            `
+            : `
+              border-white/[0.08]
+              bg-[#0A1322]
+              hover:border-white/20
+              hover:bg-white/[0.035]
+            `
+        }
+      `}
+    >
+
+      <div className="
+        flex
+        items-center
+        gap-3
+      ">
+
+        <div className={`
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          rounded-lg
+          ${
+            checked
+              ? `
+                bg-amber-400/10
+                text-amber-400
+              `
+              : `
+                bg-white/[0.04]
+                text-slate-500
+              `
+          }
+        `}>
+
+          <BatteryCharging
+            size={17}
+          />
+
+        </div>
+
+
+        <div>
+
+          <p className={`
+            text-sm
+            font-medium
+            ${
+              checked
+                ? 'text-amber-400'
+                : 'text-slate-200'
+            }
+          `}>
+            Battery Charger
+          </p>
+
+          <p className="
+            mt-1
+            text-xs
+            text-slate-500
+          ">
+            Required for Li-ion battery
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) =>
+          onChange(e.target.checked)
+        }
+        className="sr-only"
+      />
+
+
+      <span className={`
+        flex
+        h-5
+        w-5
+        shrink-0
+        items-center
+        justify-center
+        rounded-[5px]
+        border
+        transition-all
+        duration-200
+        ${
+          checked
+            ? `
+              border-amber-400
+              bg-amber-400
+              text-slate-950
+            `
+            : `
+              border-slate-600
+              bg-transparent
+            `
+        }
+      `}>
+
+        {checked && (
+          <Check
+            size={13}
+            strokeWidth={3}
+          />
+        )}
+
+      </span>
+
+    </label>
+  );
+}
+
+
+/* =========================================================
+   QUANTITY FIELD
+========================================================= */
+
+interface QuantityFieldProps {
+  label: string;
+  value: string;
+  onMinus: () => void;
+  onPlus: () => void;
+}
+
+function QuantityField({
+  label,
+  value,
+  onMinus,
+  onPlus,
+}: QuantityFieldProps) {
+
+  return (
+    <div className="
+      rounded-xl
+      border
+      border-white/[0.08]
+      bg-[#0A1322]
+      p-4
+    ">
+
+      <div className="
+        mb-3
+        text-sm
+        font-medium
+        text-slate-300
+      ">
+        {label}
+      </div>
+
+      <div className="
+        flex
+        items-center
+        justify-between
+        rounded-lg
+        border
+        border-white/[0.08]
+        bg-white/[0.025]
+        p-1
+      ">
+
+        <button
+          type="button"
+          onClick={onMinus}
+          className="
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-md
+            text-slate-500
+            transition
+            hover:bg-white/10
+            hover:text-white
+          "
+        >
+          <Minus size={16} />
+        </button>
+
+        <span className="
+          min-w-[40px]
+          text-center
+          text-base
+          font-semibold
+          text-white
+        ">
+          {value}
+        </span>
+
+        <button
+          type="button"
+          onClick={onPlus}
+          className="
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-md
+            bg-white/[0.05]
+            text-slate-300
+            transition
+            hover:bg-amber-400/10
+            hover:text-amber-400
+          "
+        >
+          <Plus size={16} />
+        </button>
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectFieldProps {
+  label: string;
+  name: keyof FormData;
+  value: string;
+  onChange: (
+    e: ChangeEvent<HTMLSelectElement>
+  ) => void;
+  options: SelectOption[];
+}
+
+function SelectField({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+}: SelectFieldProps) {
+
+  return (
+    <div>
+
+      <label className="
+        mb-2
+        block
+        text-sm
+        font-medium
+        text-slate-300
+      ">
+
+        {label}
+
+        <span className="
+          ml-1
+          text-amber-400
+        ">
+          *
+        </span>
+
+      </label>
+
+
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="
+          h-[50px]
+          w-full
+          rounded-xl
+          border
+          border-white/10
+          bg-[#0B1424]
+          px-4
+          text-sm
+          text-white
+          outline-none
+          transition
+          focus:border-amber-400/40
+          focus:ring-2
+          focus:ring-amber-400/10
+        "
+      >
+
+        <option
+          value=""
+          disabled
+          className="bg-[#0B1424]"
+        >
+          Select {label}
+        </option>
+
+        {options.map(
+          (option) => (
+            <option
+              key={option.value}
+              value={option.value}
+              className="bg-[#0B1424]"
+            >
+              {option.label}
+            </option>
+          )
+        )}
+
+      </select>
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+interface InputFieldProps {
+  label: string;
+  name: keyof FormData;
+  type: string;
+  value: string;
+  onChange: (
+    e: ChangeEvent<HTMLInputElement>
+  ) => void;
+  placeholder: string;
+}
+
+function InputField({
+  label,
+  name,
+  type,
+  value,
+  onChange,
+  placeholder,
+}: InputFieldProps) {
+
+  return (
+    <div>
+
+      <label className="
+        mb-2
+        block
+        text-sm
+        font-medium
+        text-slate-300
+      ">
+
+        {label}
+
+        <span className="
+          ml-1
+          text-amber-400
+        ">
+          *
+        </span>
+
+      </label>
+
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="
+          h-[50px]
+          w-full
+          rounded-xl
+          border
+          border-white/10
+          bg-[#0B1424]
+          px-4
+          text-sm
+          text-white
+          outline-none
+          transition
+          placeholder:text-slate-600
+          focus:border-amber-400/40
+          focus:ring-2
+          focus:ring-amber-400/10
+        "
+      />
+
+    </div>
+  );
+}
+
+
+/* =========================================================
+   READ ONLY FIELD
+========================================================= */
+
+interface ReadOnlyFieldProps {
+  label: string;
+  value: string;
+  icon?: React.ReactNode;
+}
+
+function ReadOnlyField({
+  label,
+  value,
+  icon,
+}: ReadOnlyFieldProps) {
+
+  return (
+    <div>
+
+      <label className="
+        mb-2
+        flex
+        items-center
+        gap-2
+        text-sm
+        font-medium
+        text-slate-400
+      ">
+
+        {icon}
+
+        {label}
+
+      </label>
+
+      <div className="
+        flex
+        min-h-[50px]
+        items-center
+        rounded-xl
+        border
+        border-white/[0.07]
+        bg-white/[0.025]
+        px-4
+        text-sm
+        font-semibold
+        text-slate-400
+      ">
+        {value}
+      </div>
+
     </div>
   );
 }

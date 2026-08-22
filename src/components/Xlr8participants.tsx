@@ -42,6 +42,12 @@ const KIT_API_URL =
 const SLOT_API_URL =
   'https://script.google.com/macros/s/AKfycbwHjNet27vQPH9fJ5_cKq2F6wkQNoEw71eOr2ITXn86tSTvQZFBIBQ-IyppulcurbPD/exec';
 
+const SOLDERING_API_URL =
+  'https://script.google.com/macros/s/AKfycbykNEARK6caFV7Plb9jYuoFDgpSqzL1nf1N1eiEChftLqrB09w_jZYU1CbOZ3RymYzy/exec';
+
+const MENTOR_API_URL =
+  'https://script.google.com/macros/s/AKfycbyIorhus3R2IweNMBIZskgS9QDQlo4cA71gwvY_mxsKVGkG7C9NHfBI0NEpAH7TfANU/exec';
+
 
 /* =========================================================
    FIXED DATES
@@ -50,8 +56,8 @@ const SLOT_API_URL =
 const ELECTRICAL_KIT_DATE =
   'August 22';
 
-const SOFTWARE_SESSION_DATE =
-  'August 22';
+const SOLDERING_SESSION_DATE =
+  'August 23';
 
 
 /* =========================================================
@@ -155,6 +161,26 @@ interface SlotResponse {
 }
 
 
+interface MentorResponse {
+  success?: boolean;
+  found?: boolean;
+
+  teamName?: string;
+  vehicleNumber?: string;
+
+  mentor?: string;
+  mentorName?: string;
+  contactNo?: string;
+  mentorContact?: string;
+
+  poc?: string;
+  pocName?: string;
+  pocContact?: string;
+
+  message?: string;
+}
+
+
 interface SlotInfo {
   status?: string;
 
@@ -177,6 +203,17 @@ interface SlotInfo {
 }
 
 
+interface MentorInfo {
+  mentorName?: string;
+
+  mentorContact?: string;
+
+  pocName?: string;
+
+  pocContact?: string;
+}
+
+
 interface TeamData {
   found?: boolean;
 
@@ -189,6 +226,8 @@ interface TeamData {
   registeredAt?: string;
 
   members?: Member[];
+
+  mentor?: MentorInfo;
 
   logistics?: {
     electricalKit?: SlotInfo;
@@ -523,6 +562,12 @@ const XLR8ParticipantDashboard:
   ] = useState('');
 
 
+  const [
+    showComponents,
+    setShowComponents,
+  ] = useState(false);
+
+
   /* =======================================================
      FETCH TEAM DATA
   ======================================================= */
@@ -680,22 +725,41 @@ const XLR8ParticipantDashboard:
 
 
         /* ===================================================
-           SOFTWARE DEFAULT
+           SOFTWARE SESSION
 
-           DATE = AUGUST 22
-
-           TIME + VENUE WILL COME FROM
-           THE SAME SLOT DATA AS ELECTRICAL KIT.
+           No longer fetched from any API — the session has
+           already happened, so it's always shown as
+           Completed with no date/time/venue.
         =================================================== */
 
-        let softwareSession:
+        const softwareSession:
+          SlotInfo = {
+
+            status:
+              'Completed',
+
+          };
+
+
+        /* ===================================================
+           SOLDERING SESSION DEFAULT
+
+           DATE = AUGUST 23
+
+           TIME + VENUE COME FROM THE DEDICATED
+           SOLDERING-SLOT SHEET (SEPARATE API), WHICH
+           HANDLES MERGED TIME-SLOT CELLS ACROSS
+           VEHICLE-NUMBER RANGES.
+        =================================================== */
+
+        let solderingSession:
           SlotInfo = {
 
             status:
               'To Be Announced',
 
             date:
-              SOFTWARE_SESSION_DATE,
+              SOLDERING_SESSION_DATE,
 
             time:
               '',
@@ -707,9 +771,38 @@ const XLR8ParticipantDashboard:
 
 
         /* ===================================================
+           MENTOR ALLOTMENT DEFAULT
+
+           TEAM NAME / VEHICLE NO. / MENTOR / CONTACT NO. /
+           POC NAME & CONTACT COME FROM A DEDICATED
+           MENTOR-ALLOTMENT SHEET (SEPARATE API), ALSO KEYED
+           BY VEHICLE NUMBER AND ALSO EXPECTED TO USE
+           MERGED-RANGE CELLS ACROSS VEHICLE-NUMBER RANGES.
+        =================================================== */
+
+        let mentor:
+          MentorInfo = {
+
+            mentorName:
+              '',
+
+            mentorContact:
+              '',
+
+            pocName:
+              '',
+
+            pocContact:
+              '',
+
+          };
+
+
+        /* ===================================================
            SLOT API
 
            Uses vehicle number from registration API.
+           Only feeds the electrical kit slot now.
         =================================================== */
 
         if (vehicleNumber) {
@@ -806,36 +899,6 @@ const XLR8ParticipantDashboard:
 
               };
 
-
-              /* =============================================
-                 SOFTWARE SESSION
-
-                 SAME SLOT DATA
-
-                 ONLY DATE IS DIFFERENT /
-                 FIXED TO AUGUST 22.
-              ============================================= */
-
-              softwareSession = {
-
-                status:
-                  'Slot Assigned',
-
-                date:
-                  SOFTWARE_SESSION_DATE,
-
-                time:
-                  slotTime,
-
-                venue:
-                  slotVenue,
-
-                details:
-                  slotData.details ||
-                  '',
-
-              };
-
             }
 
           } catch (
@@ -845,6 +908,266 @@ const XLR8ParticipantDashboard:
             console.warn(
               'Slot API error:',
               slotError
+            );
+
+          }
+
+
+          /* =================================================
+             SOLDERING SLOT API
+
+             Separate Apps Script / sheet from the
+             electrical slot data above.
+             Also keyed by vehicle number, and expected to
+             resolve merged-range cells (e.g. one slot
+             covering MH 03 ER 0001–0008) to the specific
+             vehicle being queried.
+          ================================================= */
+
+          try {
+
+            const solderingURL =
+              `${SOLDERING_API_URL}?vehicle=${encodeURIComponent(
+                vehicleNumber
+              )}`;
+
+
+            const solderingResponse =
+              await fetch(
+                solderingURL,
+                {
+                  method:
+                    'GET',
+
+                  headers: {
+                    Accept:
+                      'application/json',
+                  },
+
+                  cache:
+                    'no-store',
+                }
+              );
+
+
+            if (!solderingResponse.ok) {
+
+              throw new Error(
+                `Soldering slot API returned ${solderingResponse.status}`
+              );
+
+            }
+
+
+            const solderingData:
+              SlotResponse =
+              await solderingResponse.json();
+
+
+            console.log(
+              'XLR8 soldering slot response:',
+              solderingData
+            );
+
+
+            if (
+              solderingData.success &&
+              solderingData.found
+            ) {
+
+              const solderingTime =
+                solderingData.time ||
+                solderingData.slot ||
+                '';
+
+
+              const solderingVenue =
+                solderingData.venue ||
+                'To Be Announced';
+
+
+              solderingSession = {
+
+                status:
+                  'Slot Assigned',
+
+                date:
+                  SOLDERING_SESSION_DATE,
+
+                time:
+                  solderingTime,
+
+                venue:
+                  solderingVenue,
+
+                details:
+                  solderingData.details ||
+                  '',
+
+              };
+
+            }
+
+          } catch (
+            solderingError
+          ) {
+
+            console.warn(
+              'Soldering slot API error:',
+              solderingError
+            );
+
+          }
+
+
+          /* =================================================
+             MENTOR ALLOTMENT API
+
+             Separate Apps Script / sheet from all of the
+             above. Keyed by vehicle number, and expected to
+             resolve merged-range cells (mentor / POC assigned
+             to a block of vehicle numbers) down to the
+             specific vehicle being queried.
+          ================================================= */
+
+          try {
+
+            const mentorURL =
+              `${MENTOR_API_URL}?vehicle=${encodeURIComponent(
+                vehicleNumber
+              )}`;
+
+
+            const mentorResponse =
+              await fetch(
+                mentorURL,
+                {
+                  method:
+                    'GET',
+
+                  headers: {
+                    Accept:
+                      'application/json',
+                  },
+
+                  cache:
+                    'no-store',
+                }
+              );
+
+
+            if (!mentorResponse.ok) {
+
+              throw new Error(
+                `Mentor API returned ${mentorResponse.status}`
+              );
+
+            }
+
+
+            const mentorData:
+              MentorResponse =
+              await mentorResponse.json();
+
+
+            console.log(
+              'XLR8 mentor response:',
+              mentorData
+            );
+
+
+            if (
+              mentorData.success &&
+              mentorData.found
+            ) {
+
+              const mentorName =
+                mentorData.mentorName ||
+                mentorData.mentor ||
+                '';
+
+
+              const mentorContact =
+                mentorData.mentorContact ||
+                mentorData.contactNo ||
+                '';
+
+
+              let pocName =
+                mentorData.pocName ||
+                '';
+
+
+              let pocContact =
+                mentorData.pocContact ||
+                '';
+
+
+              /* =============================================
+                 If the sheet's "POC Name & Contact" column
+                 comes back as one combined string instead of
+                 separate fields, split it on the first run of
+                 digits so the phone number renders on its own
+                 line under the POC's name.
+              ============================================= */
+
+              if (
+                !pocName &&
+                !pocContact &&
+                mentorData.poc
+              ) {
+
+                const pocMatch =
+                  mentorData.poc.match(
+                    /^(.*?)[\s,–-]*([\d][\d\s+-]{6,}\d)\s*$/
+                  );
+
+
+                if (pocMatch) {
+
+                  pocName =
+                    pocMatch[1].trim();
+
+                  pocContact =
+                    pocMatch[2]
+                      .replace(/\s+/g, '')
+                      .trim();
+
+                } else {
+
+                  pocName =
+                    mentorData.poc.trim();
+
+                }
+
+              }
+
+
+              mentor = {
+
+                mentorName:
+                  mentorName,
+
+                mentorContact:
+                  mentorContact,
+
+                pocName:
+                  pocName,
+
+                pocContact:
+                  pocContact,
+
+              };
+
+            }
+
+          } catch (
+            mentorError
+          ) {
+
+            console.warn(
+              'Mentor API error:',
+              mentorError
             );
 
           }
@@ -1003,6 +1326,9 @@ const XLR8ParticipantDashboard:
             members:
               members,
 
+            mentor:
+              mentor,
+
             logistics: {
 
               electricalKit:
@@ -1018,12 +1344,8 @@ const XLR8ParticipantDashboard:
 
               },
 
-              solderingSession: {
-
-                status:
-                  'To Be Announced',
-
-              },
+              solderingSession:
+                solderingSession,
 
               debuggingSession: {
 
@@ -1146,6 +1468,17 @@ const XLR8ParticipantDashboard:
 
       },
       [team]
+    );
+
+
+  /* =======================================================
+     MENTOR
+  ======================================================= */
+
+  const hasMentorInfo =
+    Boolean(
+      team?.mentor?.mentorName ||
+      team?.mentor?.pocName
     );
 
 
@@ -1765,57 +2098,47 @@ const XLR8ParticipantDashboard:
                 "
               >
 
-                {/* REGISTRATION */}
+              {/* MECHANICAL KIT REGISTRATION */}
 
-                <div
+              {/* <button
+                type="button"
+                onClick={() => {
+                  window.location.href =
+                    `/Xlr8registration?vehicleNo=${encodeURIComponent(
+                      team?.vehicleNo || ''
+                    )}&teamName=${encodeURIComponent(
+                      team?.teamName || ''
+                    )}`;
+                }}    
                   className="
-                    px-4
-                    py-3
-                    rounded-lg
-                    bg-emerald-500/5
-                    border
-                    border-emerald-500/20
+                  px-4
+                  py-3
+                  rounded-lg
+                  bg-amber-500/5
+                  border
+                  border-amber-500/20
+                  text-left
+                  transition-all
+                  hover:border-amber-400/40
+                  hover:bg-amber-500/10
+                  cursor-pointer
+                "
+              >
+                <p
+                  className="
+                    text-sm
+                    font-bold
+                    text-amber-400
+                    mt-1
+                    flex
+                    items-center
+                    gap-1.5
                   "
                 >
-
-                  <p
-                    className="
-                      text-[10px]
-                      text-slate-500
-                      uppercase
-                      font-mono
-                    "
-                  >
-                    Registration
-                  </p>
-
-
-                  <p
-                    className="
-                      text-sm
-                      font-bold
-                      text-emerald-400
-                      mt-1
-                      flex
-                      items-center
-                      gap-1.5
-                    "
-                  >
-
-                    <CheckCircle2
-                      className="
-                        w-4
-                        h-4
-                      "
-                    />
-
-                    COMPLETED
-
-                  </p>
-
-                </div>
-
-
+                  REGISTER FOR MECHANICAL KIT
+                </p>
+              </button> */}
+              
                 {/* VEHICLE */}
 
                 <div
@@ -1905,6 +2228,187 @@ const XLR8ParticipantDashboard:
 
           </div>
 
+          {/* =================================================
+              MENTOR & POC
+          ================================================= */}
+
+          {hasMentorInfo && (
+
+          <div
+            className="
+              px-6
+              sm:px-8
+              pt-6
+            "
+          >
+
+            <div
+              className="
+                grid
+                grid-cols-1
+                sm:grid-cols-2
+                gap-4
+              "
+            >
+
+              {/* MENTOR CARD */}
+
+              <div
+                className="
+                  rounded-xl
+                  bg-slate-950/60
+                  border
+                  border-slate-800
+                  p-5
+                  hover:border-cyan-500/20
+                  transition
+                "
+              >
+
+                <p
+                  className="
+                    text-[10px]
+                    uppercase
+                    tracking-[0.15em]
+                    font-mono
+                    text-slate-500
+                  "
+                >
+                  Mentor
+                </p>
+
+
+                <p
+                  className="
+                    text-lg
+                    sm:text-xl
+                    font-bold
+                    text-white
+                    mt-1
+                  "
+                >
+                  {safe(
+                    team?.mentor?.mentorName
+                  )}
+                </p>
+
+
+                {team?.mentor?.mentorContact && (
+
+                  <a
+                    href={
+                      `tel:${team.mentor.mentorContact}`
+                    }
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                      text-sm
+                      text-slate-400
+                      hover:text-cyan-400
+                      transition
+                      mt-2
+                    "
+                  >
+
+                    <Phone
+                      className="
+                        w-4
+                        h-4
+                        text-slate-500
+                      "
+                    />
+
+                    {team.mentor.mentorContact}
+
+                  </a>
+
+                )}
+
+              </div>
+
+
+              {/* POC CARD */}
+
+              <div
+                className="
+                  rounded-xl
+                  bg-slate-950/60
+                  border
+                  border-slate-800
+                  p-5
+                  hover:border-cyan-500/20
+                  transition
+                "
+              >
+
+                <p
+                  className="
+                    text-[10px]
+                    uppercase
+                    tracking-[0.15em]
+                    font-mono
+                    text-slate-500
+                  "
+                >
+                  POC
+                </p>
+
+
+                <p
+                  className="
+                    text-lg
+                    sm:text-xl
+                    font-bold
+                    text-white
+                    mt-1
+                  "
+                >
+                  {safe(
+                    team?.mentor?.pocName
+                  )}
+                </p>
+
+
+                {team?.mentor?.pocContact && (
+
+                  <a
+                    href={
+                      `tel:${team.mentor.pocContact}`
+                    }
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                      text-sm
+                      text-slate-400
+                      hover:text-cyan-400
+                      transition
+                      mt-2
+                    "
+                  >
+
+                    <Phone
+                      className="
+                        w-4
+                        h-4
+                        text-slate-500
+                      "
+                    />
+
+                    {team.mentor.pocContact}
+
+                  </a>
+
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          )}
 
           {/* =================================================
               TEAM MEMBERS
@@ -2217,6 +2721,11 @@ const XLR8ParticipantDashboard:
                 'softwareSession';
 
 
+              const isSolderingSession =
+                item.key ===
+                'solderingSession';
+
+
               const isCollected =
                 isElectricalKit &&
                 info?.status ===
@@ -2224,14 +2733,13 @@ const XLR8ParticipantDashboard:
 
 
               const hasSlot =
-                (
-                  isElectricalKit ||
-                  isSoftwareSession
-                ) &&
-                Boolean(
-                  info?.time ||
-                  info?.slot
-                );
+                isElectricalKit ||
+                isSolderingSession
+                  ? Boolean(
+                      info?.time ||
+                      info?.slot
+                    )
+                  : false;
 
 
               const collectedItems =
@@ -2382,6 +2890,28 @@ const XLR8ParticipantDashboard:
                         NOT COLLECTED
                       </span>
 
+                    ) : isSoftwareSession ? (
+
+                      <span
+                        className="
+                          shrink-0
+                          text-[10px]
+                          sm:text-xs
+                          font-semibold
+                          uppercase
+                          tracking-wide
+                          px-3
+                          py-1.5
+                          rounded-md
+                          border
+                          bg-emerald-500/10
+                          text-emerald-400
+                          border-emerald-500/20
+                        "
+                      >
+                        COMPLETED
+                      </span>
+
                     ) : (
 
                       <span
@@ -2460,31 +2990,32 @@ const XLR8ParticipantDashboard:
                           "
                         >
 
-                          <CheckCircle2
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowComponents(
+                                prev => !prev
+                              );
+                            }}
                             className="
-                              w-6
-                              h-6
-                              text-emerald-400
                               shrink-0
+                              text-xs
+                              sm:text-sm
+                              font-semibold
+                              px-4
+                              py-2
+                              rounded-md
+                              border
+                              border-emerald-500/30
+                              text-emerald-300
+                              hover:bg-emerald-500/20
+                              transition
                             "
-                          />
-
-
-                          <div>
-
-                            <p
-                              className="
-                                text-base
-                                sm:text-lg
-                                font-bold
-                                text-emerald-400
-                                mt-1
-                              "
-                            >
-                              KIT COLLECTED
-                            </p>
-
-                          </div>
+                          >
+                            {showComponents
+                              ? 'Hide Components List'
+                              : 'Show Components List'}
+                          </button>
 
                         </div>
 
@@ -2528,6 +3059,8 @@ const XLR8ParticipantDashboard:
 
 
                       {/* COMPONENTS */}
+
+                      {showComponents && (
 
                       <div>
 
@@ -2626,6 +3159,8 @@ const XLR8ParticipantDashboard:
 
                       </div>
 
+                      )}
+
                     </div>
 
 
@@ -2696,11 +3231,25 @@ const XLR8ParticipantDashboard:
                     </div>
 
 
+                  ) : isSoftwareSession ? (
+
+
+                    /* =================================================
+                       SOFTWARE SESSION — COMPLETED
+
+                       No date/time/venue is fetched or shown;
+                       the COMPLETED badge above is the only
+                       indicator for this card.
+                    ================================================= */
+
+                    null
+
+
                   ) : (
 
 
                     /* =================================================
-                       SOFTWARE + OTHER SESSION CARDS
+                       SOLDERING + OTHER SESSION CARDS
                     ================================================= */
 
                     <div
