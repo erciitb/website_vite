@@ -2426,7 +2426,7 @@ export default function Xlr8Registration() {
               ) : (
                 <>
                   <Send size={17} />
-                  Submit Kit Request
+                  Submit Registration Form
                 </>
               )}
 
