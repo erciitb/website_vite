@@ -1,52 +1,52 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-import {
-  Zap,
-  Users,
-  UserRound,
-  Cpu,
-  Wrench,
-  Flag,
-  Trophy,
-  CheckCircle2,
-  Lock,
-  Gauge,
-  ChevronRight,
-  AlertCircle,
-  Loader2,
-  BookOpen,
-} from 'lucide-react';
-
-import { Link, useNavigate } from 'react-router-dom';
-
-import CenterLogo from '../assets/newcenterlogo.png';
-import bgImage from '../assets/bg.jpeg';
-
-import xlr81 from '../assets/xlr81.jpg';
-import xlr82 from '../assets/xlr82.jpg';
-import xlr83 from '../assets/xlr83.jpg';
-import xlr84 from '../assets/xlr84.jpg';
-
-import { useAuth } from '../hooks/useAuth';
-import { XLR8_SSO_URL } from '../config/sso';
-
-/* =========================================================
-   SSO USER
-========================================================= */
-
-interface SSOUser {
-  name: string;
-  roll: string;
-  department: string;
-  degree: string;
-  passing_year: number;
-}
-
-/* =========================================================
-   FINAL XLR8 REGISTRATION API
-========================================================= */
-
-const FINAL_REG_CHECK_URL =
+import React, { useEffect, useRef, useState } from 'react'; 
+ 
+import { 
+  Zap, 
+  Users, 
+  UserRound, 
+  Cpu, 
+  Wrench, 
+  Flag, 
+  Trophy, 
+  CheckCircle2, 
+  Lock, 
+  Gauge, 
+  ChevronRight, 
+  AlertCircle, 
+  Loader2, 
+  BookOpen, 
+} from 'lucide-react'; 
+ 
+import { Link, useNavigate } from 'react-router-dom'; 
+ 
+import CenterLogo from '../assets/newcenterlogo.png'; 
+import bgImage from '../assets/bg.jpeg'; 
+ 
+import xlr81 from '../assets/xlr81.jpg'; 
+import xlr82 from '../assets/xlr82.jpg'; 
+import xlr83 from '../assets/xlr83.jpg'; 
+import xlr84 from '../assets/xlr84.jpg'; 
+ 
+import { useAuth } from '../hooks/useAuth'; 
+import { XLR8_SSO_URL } from '../config/sso'; 
+ 
+/* ========================================================= 
+   SSO USER 
+========================================================= */ 
+ 
+interface SSOUser { 
+  name: string; 
+  roll: string; 
+  department: string; 
+  degree: string; 
+  passing_year: number; 
+} 
+ 
+/* ========================================================= 
+   FINAL XLR8 REGISTRATION API 
+========================================================= */ 
+ 
+const FINAL_REG_CHECK_URL = 
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
 
 /* =========================================================
