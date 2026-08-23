@@ -1,6 +1,8 @@
 import React, {
   ChangeEvent,
   FormEvent,
+  useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -21,17 +23,70 @@ import {
   Box,
   Cog,
   Gauge,
+  Wrench,
 } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
 
 
 /* =========================================================
+   COMPONENT IMAGES
+========================================================= */
+
+import ultrasonicImage from '../assets/ultrasonic.webp';
+import servoImage from '../assets/servo.jpg';
+import irSensorImage from '../assets/ir-sensor.jpg';
+
+import acrylicChassisImage from '../assets/acrylic_sheet.jpg';
+import blackMetalChassisImage from '../assets/black_chasis.jpg';
+import whiteMetalChassisImage from '../assets/white_metal_chasis.png';
+
+import wheel7x2Image from '../assets/7x2.webp';
+import wheel7x4Image from '../assets/7x4.webp';
+import wheel10x4Image from '../assets/10x4.webp';
+
+import motorImage from '../assets/dc-motor.avif';
+
+import controllerBatteryImage from '../assets/li-ion.webp';
+import batteryChargerImage from '../assets/battery-charger.jpg';
+
+import lClampImage from '../assets/Lclamps.webp';
+import nutBoltsImage from '../assets/nut-bolts.avif';
+import screwdriverImage from '../assets/screwdriver.webp';
+import Lipo from '../assets/li-po.avif';
+import liion from '../assets/li-ion-12v.webp';
+import aditya_qr from '../assets/aditya_qr.jpeg';
+/* =========================================================
    CONFIG
 ========================================================= */
 
 const MECHANICAL_KIT_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbzFyJAqhhlHhHXkS1eQB9uqExfn7VcRVrF7hqcBDnh7BtlxrruOUFjTo1_MMsMOHz4y/exec';
+  'https://script.google.com/macros/s/AKfycbw2PU0qjID-ZVp0vANYyEwckZYslFmB0-3V9ihQKjgRrjOINAVJm_5CRF5bmDPhqoDT/exec';
+
+
+/* =========================================================
+   PRICING (IN INR)
+========================================================= */
+
+const PRICES = {
+  irSensor: 25,
+  ultrasonic: 65,
+  servo: 95,
+  acrylic: 210,
+  blackMetalChasis: 125,
+  whiteMetalChasis: 145,
+  lClamp: 15,
+  nutBolts: 40,
+  screwDriver: 60,
+  liIon12V: 450,
+  controllerBattery: 90,
+  liIonCharger: 170,
+  liPolymer: 1150,
+  motor: 140,
+  wheel7x2: 25,
+  wheel7x4: 35,
+  wheel10x4: 70,
+} as const;
 
 
 /* =========================================================
@@ -66,6 +121,7 @@ interface FormData {
   noOfIRs: string;
 
   chasisType: ChasisType;
+  acrylicQty: string;
 
   wheels7x2: string;
   wheels7x4: string;
@@ -78,6 +134,8 @@ interface FormData {
   batteryType: BatteryType;
   batteryCharger: string;
 
+  lClamp: string;
+  nutBolts: string;
   screwDriver: string;
 
   paymentSS: string;
@@ -113,18 +171,21 @@ const initialFormData: FormData = {
   noOfIRs: '0',
 
   chasisType: '',
+  acrylicQty: '1',
 
   wheels7x2: '0',
   wheels7x4: '0',
   wheels10x4: '0',
 
-  noOfMotors: '0',
+  noOfMotors: '4',
   motorRPM: '',
 
   controllerBattery: '1',
   batteryType: '',
   batteryCharger: '0',
 
+  lClamp: '0',
+  nutBolts: '0',
   screwDriver: '1',
 
   paymentSS: '',
@@ -162,6 +223,168 @@ export default function Xlr8Registration() {
   const [submitError, setSubmitError] =
     useState('');
 
+  const [checkingRegistration, setCheckingRegistration] =
+    useState(true);
+
+  const [alreadyRegistered, setAlreadyRegistered] =
+    useState(false);
+
+
+  /* =======================================================
+     CHECK EXISTING REGISTRATION
+  ======================================================= */
+
+  useEffect(() => {
+
+    let cancelled = false;
+
+    const checkRegistration = async () => {
+
+      if (!formData.vehicleNo.trim()) {
+        setCheckingRegistration(false);
+        setAlreadyRegistered(false);
+        return;
+      }
+
+      setCheckingRegistration(true);
+
+      try {
+
+        const response = await fetch(
+          `${MECHANICAL_KIT_SCRIPT_URL}?action=checkRegistration&vehicleNo=${encodeURIComponent(
+            formData.vehicleNo.trim()
+          )}`
+        );
+
+        const result = await response.json();
+
+        if (cancelled) return;
+
+        setAlreadyRegistered(
+          result?.alreadyRegistered === true
+        );
+
+      } catch (error) {
+
+        console.error(
+          'Registration check failed:',
+          error
+        );
+
+        if (!cancelled) {
+          // Do not block the participant if the status check itself fails.
+          // The Apps Script POST endpoint still performs the duplicate check.
+          setAlreadyRegistered(false);
+        }
+
+      } finally {
+
+        if (!cancelled) {
+          setCheckingRegistration(false);
+        }
+
+      }
+    };
+
+    checkRegistration();
+
+    return () => {
+      cancelled = true;
+    };
+
+  }, [formData.vehicleNo]);
+
+
+  /* =======================================================
+     LIVE PRICE CALCULATION
+  ======================================================= */
+
+  const priceBreakdown = useMemo(() => {
+    const irSensorTotal =
+      formData.addOnType === 'IR based line follower'
+        ? Number(formData.noOfIRs) * PRICES.irSensor
+        : 0;
+
+    const ultrasonicTotal =
+      formData.addOnType === 'Servo mounted Ultrasonic'
+        ? Number(formData.ultrasonicSensorHC_SR04) * PRICES.ultrasonic
+        : 0;
+
+    const servoTotal =
+      formData.addOnType === 'Servo mounted Ultrasonic'
+        ? Number(formData.servoSG90) * PRICES.servo
+        : 0;
+
+    const chassisTotal =
+      formData.chasisType === 'Acrylic'
+        ? Number(formData.acrylicQty) * PRICES.acrylic
+        : formData.chasisType === 'Black metal chasis'
+          ? PRICES.blackMetalChasis
+          : formData.chasisType === 'White metal chasis'
+            ? PRICES.whiteMetalChasis
+            : 0;
+
+    const wheels7x2Total =
+      Number(formData.wheels7x2) * PRICES.wheel7x2;
+    const wheels7x4Total =
+      Number(formData.wheels7x4) * PRICES.wheel7x4;
+    const wheels10x4Total =
+      Number(formData.wheels10x4) * PRICES.wheel10x4;
+
+    const motorsTotal =
+      Number(formData.noOfMotors) * PRICES.motor;
+
+    const controllerBatteryTotal =
+      PRICES.controllerBattery;
+
+    const batteryTotal =
+      formData.batteryType === 'LiPo'
+        ? PRICES.liPolymer
+        : formData.batteryType === 'Li-ion'
+          ? PRICES.liIon12V
+          : 0;
+
+    const chargerTotal =
+      formData.batteryType === 'Li-ion' &&
+      formData.batteryCharger === '1'
+        ? PRICES.liIonCharger
+        : 0;
+
+    const lClampTotal =
+      Number(formData.lClamp) * PRICES.lClamp;
+
+    const nutBoltsTotal =
+      Number(formData.nutBolts) * PRICES.nutBolts;
+
+    const screwDriverTotal =
+      Number(formData.screwDriver) * PRICES.screwDriver;
+
+    return {
+      irSensor: irSensorTotal,
+      ultrasonic: ultrasonicTotal,
+      servo: servoTotal,
+      chassis: chassisTotal,
+      wheels7x2: wheels7x2Total,
+      wheels7x4: wheels7x4Total,
+      wheels10x4: wheels10x4Total,
+      motors: motorsTotal,
+      controllerBattery: controllerBatteryTotal,
+      battery: batteryTotal,
+      charger: chargerTotal,
+      lClamp: lClampTotal,
+      nutBolts: nutBoltsTotal,
+      screwDriver: screwDriverTotal,
+    };
+  }, [formData]);
+
+  const totalPrice = useMemo(
+    () => Object.values(priceBreakdown).reduce<number>(
+      (sum, value) => sum + Number(value),
+      0
+    ),
+    [priceBreakdown]
+  );
+
 
   /* =======================================================
      INPUT CHANGE
@@ -194,7 +417,8 @@ export default function Xlr8Registration() {
 
   const updateQuantity = (
     field: keyof FormData,
-    amount: number
+    amount: number,
+    min: number = 0
   ) => {
 
     setFormData((prev) => {
@@ -204,7 +428,7 @@ export default function Xlr8Registration() {
 
       const next =
         Math.max(
-          0,
+          min,
           current + amount
         );
 
@@ -279,20 +503,14 @@ export default function Xlr8Registration() {
      BATTERY TYPE
   ======================================================= */
 
-  const handleBatteryTypeChange = (
-    e: ChangeEvent<HTMLSelectElement>
+  const handleBatteryTypeChangeValue = (
+    value: BatteryType
   ) => {
-
-    const value =
-      e.target.value as BatteryType;
-
     setFormData((prev) => ({
       ...prev,
-
       batteryType: value,
       batteryCharger: '0',
     }));
-
     setSubmitError('');
   };
 
@@ -306,9 +524,7 @@ export default function Xlr8Registration() {
     setSubmitError('');
 
 
-    if (
-      !formData.vehicleNo.trim()
-    ) {
+    if (!formData.vehicleNo.trim()) {
 
       setSubmitError(
         'Vehicle number could not be loaded. Please open this page from your participant dashboard.'
@@ -318,9 +534,7 @@ export default function Xlr8Registration() {
     }
 
 
-    if (
-      !formData.addOnType
-    ) {
+    if (!formData.addOnType) {
 
       setSubmitError(
         'Please select an add-on type.'
@@ -336,12 +550,12 @@ export default function Xlr8Registration() {
     ) {
 
       if (
-        formData.ultrasonicSensorHC_SR04 !== '1' ||
-        formData.servoSG90 !== '1'
+        Number(formData.ultrasonicSensorHC_SR04) < 1 ||
+        Number(formData.servoSG90) < 1
       ) {
 
         setSubmitError(
-          'Servo mounted Ultrasonic requires 1 HC-SR04 and 1 SG90.'
+          'Servo mounted Ultrasonic requires at least 1 HC-SR04 and 1 SG90.'
         );
 
         return false;
@@ -355,13 +569,11 @@ export default function Xlr8Registration() {
     ) {
 
       if (
-        !['2', '3', '4'].includes(
-          formData.noOfIRs
-        )
+        Number(formData.noOfIRs) < 2
       ) {
 
         setSubmitError(
-          'Please select the number of IR sensors.'
+          'Please select at least 2 IR sensors.'
         );
 
         return false;
@@ -369,9 +581,7 @@ export default function Xlr8Registration() {
     }
 
 
-    if (
-      !formData.chasisType
-    ) {
+    if (!formData.chasisType) {
 
       setSubmitError(
         'Please select one chassis type.'
@@ -387,9 +597,7 @@ export default function Xlr8Registration() {
       Number(formData.wheels10x4);
 
 
-    if (
-      totalWheels < 1
-    ) {
+    if (totalWheels < 1) {
 
       setSubmitError(
         'Please select at least one wheel type.'
@@ -400,20 +608,18 @@ export default function Xlr8Registration() {
 
 
     if (
-      Number(formData.noOfMotors) < 1
+      Number(formData.noOfMotors) < 4
     ) {
 
       setSubmitError(
-        'Please enter the number of motors required.'
+        'A minimum of 4 motors is required.'
       );
 
       return false;
     }
 
 
-    if (
-      !formData.motorRPM
-    ) {
+    if (!formData.motorRPM) {
 
       setSubmitError(
         'Please select the motor RPM.'
@@ -423,9 +629,7 @@ export default function Xlr8Registration() {
     }
 
 
-    if (
-      !formData.batteryType
-    ) {
+    if (!formData.batteryType) {
 
       setSubmitError(
         'Please select the battery type.'
@@ -448,9 +652,7 @@ export default function Xlr8Registration() {
     }
 
 
-    if (
-      !formData.paymentSS.trim()
-    ) {
+    if (!formData.paymentSS.trim()) {
 
       setSubmitError(
         'Please provide the payment screenshot Drive link.'
@@ -474,9 +676,7 @@ export default function Xlr8Registration() {
     }
 
 
-    if (
-      !formData.transactionID.trim()
-    ) {
+    if (!formData.transactionID.trim()) {
 
       setSubmitError(
         'Please enter the kit payment transaction ID.'
@@ -547,6 +747,11 @@ export default function Xlr8Registration() {
             ? '1'
             : '0',
 
+        acrylicQty:
+          formData.chasisType === 'Acrylic'
+            ? formData.acrylicQty
+            : '0',
+
         blackMetalChasis:
           formData.chasisType ===
           'Black metal chasis'
@@ -596,8 +801,51 @@ export default function Xlr8Registration() {
             ? formData.batteryCharger
             : '0',
 
+        /* NEW COMPONENTS */
+
+        lClamp:
+          formData.lClamp,
+
+        nutBolts:
+          formData.nutBolts,
+
+        /* EXTRA ACCESSORY */
+
         screwDriver:
-          '1',
+          formData.screwDriver,
+
+        /* PRICING */
+        total: totalPrice,
+        totalPrice,
+        priceBreakdown: JSON.stringify(priceBreakdown),
+        irSensorTotal: priceBreakdown.irSensor,
+        ultrasonicTotal: priceBreakdown.ultrasonic,
+        servoTotal: priceBreakdown.servo,
+        chassisTotal: priceBreakdown.chassis,
+        wheels7x2Total: priceBreakdown.wheels7x2,
+        wheels7x4Total: priceBreakdown.wheels7x4,
+        wheels10x4Total: priceBreakdown.wheels10x4,
+        motorsTotal: priceBreakdown.motors,
+        controllerBatteryTotal: priceBreakdown.controllerBattery,
+        batteryTotal: priceBreakdown.battery,
+        chargerTotal: priceBreakdown.charger,
+        lClampTotal: priceBreakdown.lClamp,
+        nutBoltsTotal: priceBreakdown.nutBolts,
+        screwDriverTotal: priceBreakdown.screwDriver,
+        irSensorUnitPrice: PRICES.irSensor,
+        ultrasonicUnitPrice: PRICES.ultrasonic,
+        servoUnitPrice: PRICES.servo,
+        chassisPrice: priceBreakdown.chassis,
+        wheel7x2UnitPrice: PRICES.wheel7x2,
+        wheel7x4UnitPrice: PRICES.wheel7x4,
+        wheel10x4UnitPrice: PRICES.wheel10x4,
+        motorUnitPrice: PRICES.motor,
+        controllerBatteryPrice: PRICES.controllerBattery,
+        batteryPrice: priceBreakdown.battery,
+        batteryChargerPrice: priceBreakdown.charger,
+        lClampUnitPrice: PRICES.lClamp,
+        nutBoltsUnitPrice: PRICES.nutBolts,
+        screwDriverUnitPrice: PRICES.screwDriver,
 
         paymentSS:
           formData.paymentSS.trim(),
@@ -648,6 +896,22 @@ export default function Xlr8Registration() {
         'Mechanical Kit Response:',
         result
       );
+
+
+      if (
+        result?.alreadyRegistered === true ||
+        result?.status === 'already_registered'
+      ) {
+
+        setAlreadyRegistered(true);
+
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+
+        return;
+      }
 
 
       if (
@@ -706,7 +970,6 @@ export default function Xlr8Registration() {
     } finally {
 
       setLoading(false);
-
     }
   };
 
@@ -715,10 +978,7 @@ export default function Xlr8Registration() {
      LOGIN
   ======================================================= */
 
-  if (
-    !isLoggedIn ||
-    !user
-  ) {
+  if (!isLoggedIn || !user) {
 
     return (
       <div className="
@@ -869,6 +1129,222 @@ export default function Xlr8Registration() {
 
 
   /* =======================================================
+     CHECKING REGISTRATION
+  ======================================================= */
+
+  if (checkingRegistration) {
+
+    return (
+      <div className="
+        min-h-screen
+        bg-[#070D18]
+        text-white
+        flex
+        items-center
+        justify-center
+        px-4
+      ">
+
+        <div className="text-center">
+
+          <Loader2
+            size={32}
+            className="mx-auto animate-spin text-amber-400"
+          />
+
+          <p className="mt-4 text-sm text-slate-400">
+            Checking registration...
+          </p>
+
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  /* =======================================================
+     ALREADY REGISTERED
+  ======================================================= */
+
+  if (alreadyRegistered) {
+
+    return (
+      <div className="
+        min-h-screen
+        bg-[#070D18]
+        text-white
+        flex
+        items-center
+        justify-center
+        px-4
+        py-12
+      ">
+
+        <div className="
+          w-full
+          max-w-lg
+          rounded-3xl
+          border
+          border-amber-400/20
+          bg-[#0B1424]
+          p-8
+          text-center
+          shadow-2xl
+          sm:p-10
+        ">
+
+          <div className="
+            mx-auto
+            mb-6
+            flex
+            h-16
+            w-16
+            items-center
+            justify-center
+            rounded-2xl
+            border
+            border-amber-400/25
+            bg-amber-400/10
+          ">
+            <CheckCircle2
+              size={34}
+              className="text-amber-400"
+            />
+          </div>
+
+          <h2 className="
+            text-2xl
+            font-bold
+            tracking-tight
+            text-white
+          ">
+            Already Registered
+          </h2>
+
+          <p className="
+            mt-3
+            text-sm
+            leading-6
+            text-slate-400
+          ">
+            This team has already registered
+            for the Mechanical Kit.
+          </p>
+
+          <div className="
+            mt-6
+            rounded-2xl
+            border
+            border-white/[0.07]
+            bg-white/[0.025]
+            px-5
+            py-4
+            text-left
+          ">
+
+            <div className="
+              flex
+              items-center
+              justify-between
+              gap-4
+            ">
+
+              <span className="
+                text-xs
+                uppercase
+                tracking-wider
+                text-slate-500
+              ">
+                Vehicle Number
+              </span>
+
+              <span className="
+                text-sm
+                font-semibold
+                text-slate-100
+              ">
+                {formData.vehicleNo}
+              </span>
+
+            </div>
+
+            <div className="
+              mt-3
+              flex
+              items-center
+              justify-between
+              gap-4
+              border-t
+              border-white/[0.06]
+              pt-3
+            ">
+
+              <span className="
+                text-xs
+                uppercase
+                tracking-wider
+                text-slate-500
+              ">
+                Team
+              </span>
+
+              <span className="
+                text-right
+                text-sm
+                font-medium
+                text-slate-200
+              ">
+                {teamNameFromURL || 'Team'}
+              </span>
+
+            </div>
+
+          </div>
+
+          <p className="
+            mt-5
+            text-xs
+            leading-5
+            text-slate-500
+          ">
+            A Mechanical Kit registration has already
+            been submitted for this vehicle.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="
+              mt-7
+              inline-flex
+              items-center
+              gap-2
+              rounded-xl
+              bg-white/[0.06]
+              px-5
+              py-3
+              text-sm
+              font-semibold
+              text-slate-200
+              transition
+              hover:bg-white/[0.1]
+            "
+          >
+            <ArrowLeft size={17} />
+            Back to Dashboard
+          </button>
+
+        </div>
+
+      </div>
+    );
+
+  }
+
+
+  /* =======================================================
      SUCCESS
   ======================================================= */
 
@@ -968,7 +1444,6 @@ export default function Xlr8Registration() {
               border-white/10
               pb-3
             ">
-
               <span className="
                 text-xs
                 uppercase
@@ -984,7 +1459,6 @@ export default function Xlr8Registration() {
               ">
                 {formData.vehicleNo}
               </span>
-
             </div>
 
             <div className="
@@ -995,7 +1469,6 @@ export default function Xlr8Registration() {
               border-white/10
               py-3
             ">
-
               <span className="
                 text-xs
                 uppercase
@@ -1013,7 +1486,6 @@ export default function Xlr8Registration() {
               ">
                 {teamNameFromURL || 'Team'}
               </span>
-
             </div>
 
             <div className="
@@ -1022,7 +1494,6 @@ export default function Xlr8Registration() {
               gap-4
               pt-3
             ">
-
               <span className="
                 text-xs
                 uppercase
@@ -1040,7 +1511,6 @@ export default function Xlr8Registration() {
               ">
                 {formData.addOnType}
               </span>
-
             </div>
 
           </div>
@@ -1091,15 +1561,10 @@ export default function Xlr8Registration() {
       text-white
     ">
 
-      {/* 
-        Extra top spacing added here so the page
-        clears the fixed site header.
-      */}
-
       <div className="
         mx-auto
         w-full
-        max-w-5xl
+        max-w-7xl
         px-4
         pt-28
         pb-8
@@ -1153,9 +1618,9 @@ export default function Xlr8Registration() {
             sm:text-base
           ">
             Choose the components your team needs
-            for the vehicle. Make sure the quantities
-            and payment details are correct before
-            submitting.
+            for the vehicle. Adjust quantities and
+            make sure your payment details are correct
+            before submitting.
           </p>
 
         </div>
@@ -1224,6 +1689,7 @@ export default function Xlr8Registration() {
                 }
                 title="None"
                 description="No additional sensor setup"
+                price="₹0"
                 onClick={() =>
                   handleAddOnChange('None')
                 }
@@ -1236,6 +1702,7 @@ export default function Xlr8Registration() {
                 }
                 title="Servo mounted Ultrasonic"
                 description="HC-SR04 + SG90"
+                price={`₹${PRICES.ultrasonic + PRICES.servo}`}
                 onClick={() =>
                   handleAddOnChange(
                     'Servo mounted Ultrasonic'
@@ -1250,6 +1717,7 @@ export default function Xlr8Registration() {
                 }
                 title="IR based line follower"
                 description="Choose 2, 3 or 4 IR sensors"
+                price={`₹${PRICES.irSensor} each`}
                 onClick={() =>
                   handleAddOnChange(
                     'IR based line follower'
@@ -1271,14 +1739,46 @@ export default function Xlr8Registration() {
                 sm:grid-cols-2
               ">
 
-                <FixedComponent
+                <QuantityField
                   label="Ultrasonic Sensor HC-SR04"
-                  value="1"
+                  value={formData.ultrasonicSensorHC_SR04}
+                  unitPrice={PRICES.ultrasonic}
+                  image={ultrasonicImage}
+                  onMinus={() =>
+                    updateQuantity(
+                      'ultrasonicSensorHC_SR04',
+                      -1,
+                      1
+                    )
+                  }
+                  onPlus={() =>
+                    updateQuantity(
+                      'ultrasonicSensorHC_SR04',
+                      1,
+                      1
+                    )
+                  }
                 />
 
-                <FixedComponent
+                <QuantityField
                   label="Servo SG90"
-                  value="1"
+                  value={formData.servoSG90}
+                  unitPrice={PRICES.servo}
+                  image={servoImage}
+                  onMinus={() =>
+                    updateQuantity(
+                      'servoSG90',
+                      -1,
+                      1
+                    )
+                  }
+                  onPlus={() =>
+                    updateQuantity(
+                      'servoSG90',
+                      1,
+                      1
+                    )
+                  }
                 />
 
               </div>
@@ -1294,29 +1794,28 @@ export default function Xlr8Registration() {
                 max-w-sm
               ">
 
-                <SelectField
-                  label="No. of IRs"
-                  name="noOfIRs"
+                <QuantityField
+                  label="IR Sensor"
                   value={formData.noOfIRs}
-                  onChange={handleChange}
-                  options={[
-                    {
-                      value: '2',
-                      label: '2 IR Sensors',
-                    },
-                    {
-                      value: '3',
-                      label: '3 IR Sensors',
-                    },
-                    {
-                      value: '4',
-                      label: '4 IR Sensors',
-                    },
-                  ]}
+                  unitPrice={PRICES.irSensor}
+                  image={irSensorImage}
+                  onMinus={() =>
+                    updateQuantity(
+                      'noOfIRs',
+                      -1,
+                      2
+                    )
+                  }
+                  onPlus={() =>
+                    updateQuantity(
+                      'noOfIRs',
+                      1,
+                      2
+                    )
+                  }
                 />
 
               </div>
-
             )}
 
           </Section>
@@ -1341,6 +1840,8 @@ export default function Xlr8Registration() {
 
               <ChasisOption
                 title="Acrylic"
+                image={acrylicChassisImage}
+                price={PRICES.acrylic}
                 selected={
                   formData.chasisType === 'Acrylic'
                 }
@@ -1348,12 +1849,18 @@ export default function Xlr8Registration() {
                   setFormData((prev) => ({
                     ...prev,
                     chasisType: 'Acrylic',
+                    acrylicQty:
+                      prev.chasisType === 'Acrylic'
+                        ? prev.acrylicQty
+                        : '1',
                   }))
                 }
               />
 
               <ChasisOption
                 title="Black Metal Chassis"
+                image={blackMetalChassisImage}
+                price={PRICES.blackMetalChasis}
                 selected={
                   formData.chasisType ===
                   'Black metal chasis'
@@ -1369,6 +1876,8 @@ export default function Xlr8Registration() {
 
               <ChasisOption
                 title="White Metal Chassis"
+                image={whiteMetalChassisImage}
+                price={PRICES.whiteMetalChasis}
                 selected={
                   formData.chasisType ===
                   'White metal chasis'
@@ -1383,6 +1892,38 @@ export default function Xlr8Registration() {
               />
 
             </div>
+
+
+            {formData.chasisType === 'Acrylic' && (
+
+              <div className="
+                mt-4
+                max-w-sm
+              ">
+
+                <QuantityField
+                  label="No of acrylic Sheets"
+                  value={formData.acrylicQty}
+                  unitPrice={PRICES.acrylic}
+                  image={acrylicChassisImage}
+                  onMinus={() =>
+                    updateQuantity(
+                      'acrylicQty',
+                      -1,
+                      1
+                    )
+                  }
+                  onPlus={() =>
+                    updateQuantity(
+                      'acrylicQty',
+                      1,
+                      1
+                    )
+                  }
+                />
+
+              </div>
+            )}
 
           </Section>
 
@@ -1407,6 +1948,8 @@ export default function Xlr8Registration() {
               <QuantityField
                 label="7 × 2"
                 value={formData.wheels7x2}
+                unitPrice={PRICES.wheel7x2}
+                image={wheel7x2Image}
                 onMinus={() =>
                   updateQuantity(
                     'wheels7x2',
@@ -1424,6 +1967,8 @@ export default function Xlr8Registration() {
               <QuantityField
                 label="7 × 4"
                 value={formData.wheels7x4}
+                unitPrice={PRICES.wheel7x4}
+                image={wheel7x4Image}
                 onMinus={() =>
                   updateQuantity(
                     'wheels7x4',
@@ -1441,6 +1986,9 @@ export default function Xlr8Registration() {
               <QuantityField
                 label="10 × 4"
                 value={formData.wheels10x4}
+                unitPrice={PRICES.wheel10x4}
+                image={wheel10x4Image}
+                caution="Select only if Acrylic chassis is chosen"
                 onMinus={() =>
                   updateQuantity(
                     'wheels10x4',
@@ -1477,51 +2025,26 @@ export default function Xlr8Registration() {
               md:grid-cols-2
             ">
 
-              <div>
-
-                <label className="
-                  mb-2
-                  block
-                  text-sm
-                  font-medium
-                  text-slate-300
-                ">
-                  No. of Motors
-
-                  <span className="
-                    ml-1
-                    text-amber-400
-                  ">
-                    *
-                  </span>
-                </label>
-
-                <input
-                  type="number"
-                  min="1"
-                  name="noOfMotors"
-                  value={formData.noOfMotors}
-                  onChange={handleChange}
-                  className="
-                    h-[50px]
-                    w-full
-                    rounded-xl
-                    border
-                    border-white/10
-                    bg-[#0B1424]
-                    px-4
-                    text-sm
-                    text-white
-                    outline-none
-                    transition
-                    focus:border-amber-400/40
-                    focus:ring-2
-                    focus:ring-amber-400/10
-                  "
-                  placeholder="Enter quantity"
-                />
-
-              </div>
+              <QuantityField
+                label="No. of Motors (min 4)"
+                value={formData.noOfMotors}
+                unitPrice={PRICES.motor}
+                image={motorImage}
+                onMinus={() =>
+                  updateQuantity(
+                    'noOfMotors',
+                    -1,
+                    4
+                  )
+                }
+                onPlus={() =>
+                  updateQuantity(
+                    'noOfMotors',
+                    1,
+                    4
+                  )
+                }
+              />
 
 
               <SelectField
@@ -1556,8 +2079,76 @@ export default function Xlr8Registration() {
 
           <Section
             icon={<BatteryCharging size={18} />}
-            title="Battery & Accessories"
-            subtitle="Controller battery and screwdriver are included by default"
+            title="Battery"
+            subtitle="Select the battery required for your vehicle"
+          >
+
+            <div className="
+              grid
+              grid-cols-1
+              gap-3
+              md:grid-cols-3
+            ">
+
+              <FixedComponent
+                label="Controller Battery · 3.7V"
+                value="1"
+                image={controllerBatteryImage}
+                unitPrice={PRICES.controllerBattery}
+              />
+
+              <BatteryOption
+                title="LiPo Battery"
+                description="Li-polymer 12Vbattery · ₹1,150"
+                price={PRICES.liPolymer}
+                selected={formData.batteryType === 'LiPo'}
+                image={Lipo}
+                onClick={() =>
+                  handleBatteryTypeChangeValue('LiPo')
+                }
+              />
+
+              <BatteryOption
+                title="Li-ion 12V Battery"
+                description="12V Li-ion battery · ₹450"
+                price={PRICES.liIon12V}
+                selected={formData.batteryType === 'Li-ion'}
+                image={liion}
+                onClick={() =>
+                  handleBatteryTypeChangeValue('Li-ion')
+                }
+              />
+
+            </div>
+
+            {formData.batteryType === 'Li-ion' && (
+              <div className="mt-4">
+                <BatteryChargerCheckbox
+                  checked={formData.batteryCharger === '1'}
+                  image={batteryChargerImage}
+                  price={PRICES.liIonCharger}
+                  onChange={(checked) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      batteryCharger: checked ? '1' : '0',
+                    }));
+                    setSubmitError('');
+                  }}
+                />
+              </div>
+            )}
+
+          </Section>
+
+
+          {/* =================================================
+              HARDWARE COMPONENTS
+          ================================================= */}
+
+          <Section
+            icon={<Wrench size={18} />}
+            title="Hardware Components"
+            subtitle="Choose the quantities required for your build"
           >
 
             <div className="
@@ -1567,62 +2158,78 @@ export default function Xlr8Registration() {
               md:grid-cols-2
             ">
 
-              <FixedComponent
-                label="Controller Battery"
-                value="1"
+              <QuantityField
+                label="L Clamp"
+                value={formData.lClamp}
+                unitPrice={PRICES.lClamp}
+                image={lClampImage}
+                caution="Select only if Acrylic chassis is chosen"
+                onMinus={() =>
+                  updateQuantity(
+                    'lClamp',
+                    -1
+                  )
+                }
+                onPlus={() =>
+                  updateQuantity(
+                    'lClamp',
+                    1
+                  )
+                }
               />
 
-              <SelectField
-                label="Battery Type"
-                name="batteryType"
-                value={formData.batteryType}
-                onChange={handleBatteryTypeChange}
-                options={[
-                  {
-                    value: 'LiPo',
-                    label: 'LiPo',
-                  },
-                  {
-                    value: 'Li-ion',
-                    label: 'Li-ion',
-                  },
-                ]}
-              />
-
-
-              {formData.batteryType ===
-                'Li-ion' && (
-
-                <BatteryChargerCheckbox
-                  checked={
-                    formData.batteryCharger === '1'
-                  }
-                  onChange={(checked) => {
-
-                    setFormData((prev) => ({
-                      ...prev,
-                      batteryCharger:
-                        checked
-                          ? '1'
-                          : '0',
-                    }));
-
-                    setSubmitError('');
-
-                  }}
-                />
-
-              )}
-
-
-              <FixedComponent
-                label="Screw Driver"
-                value="1"
+              <QuantityField
+                label="Nut & Bolts (pack)"
+                value={formData.nutBolts}
+                unitPrice={PRICES.nutBolts}
+                image={nutBoltsImage}
+                onMinus={() =>
+                  updateQuantity(
+                    'nutBolts',
+                    -1
+                  )
+                }
+                onPlus={() =>
+                  updateQuantity(
+                    'nutBolts',
+                    1
+                  )
+                }
               />
 
             </div>
 
           </Section>
+
+
+          {/* =================================================
+              EXTRA ACCESSORIES
+          ================================================= */}
+
+          <Section
+            icon={<Wrench size={18} />}
+            title="Extra Accessories"
+            subtitle="Included accessories for the mechanical kit"
+          >
+
+            <IncludedComponent
+              label="Screw Driver"
+              image={screwdriverImage}
+              unitPrice={PRICES.screwDriver}
+            />
+
+          </Section>
+
+
+          {/* =================================================
+              TOTAL PRICE
+          ================================================= */}
+
+          <PriceSummary
+            formData={formData}
+            priceBreakdown={priceBreakdown}
+            totalPrice={totalPrice}
+          />
 
 
           {/* =================================================
@@ -1634,6 +2241,64 @@ export default function Xlr8Registration() {
             title="Payment"
             subtitle="Add the payment proof for your kit"
           >
+
+            {/* PAYMENT QR */}
+            <div className="
+              mb-6
+              flex
+              flex-col
+              items-center
+              rounded-2xl
+              border
+              border-white/[0.08]
+              bg-white/[0.025]
+              p-5
+            ">
+
+              <p className="
+                mb-4
+                text-sm
+                font-semibold
+                text-slate-200
+              ">
+                Scan to Pay
+              </p>
+
+              <div className="
+                rounded-2xl
+                bg-white
+                p-4
+                shadow-lg
+              ">
+                <img
+                  src={aditya_qr}
+                  alt="Aditya payment QR code"
+                  className="
+                    h-72
+                    w-72
+                    object-contain
+                    sm:h-80
+                    sm:w-80
+                    lg:h-96
+                    lg:w-96
+                  "
+                />
+              </div>
+
+              <p className="
+                mt-4
+                max-w-md
+                text-center
+                text-xs
+                leading-5
+                text-slate-500
+              ">
+                Complete the payment using the QR above, then enter
+                your transaction details below.
+              </p>
+
+            </div>
+
 
             <div className="
               grid
@@ -1698,7 +2363,6 @@ export default function Xlr8Registration() {
               </span>
 
             </div>
-
           )}
 
 
@@ -1757,13 +2421,11 @@ export default function Xlr8Registration() {
                     size={18}
                     className="animate-spin"
                   />
-
                   Submitting...
                 </>
               ) : (
                 <>
                   <Send size={17} />
-
                   Submit Kit Request
                 </>
               )}
@@ -1862,14 +2524,63 @@ function Section({
 
 
 /* =========================================================
+   COMPONENT IMAGE
+========================================================= */
+
+function ComponentImage({
+  src,
+  alt,
+  size = 'md',
+}: {
+  src: string;
+  alt: string;
+  size?: 'sm' | 'md' | 'lg';
+}) {
+
+  return (
+    <div className={`
+      flex
+      shrink-0
+      items-center
+      justify-center
+      overflow-hidden
+      rounded-xl
+      ${
+        size === 'sm'
+          ? 'h-20 w-20'
+          : size === 'lg'
+            ? 'h-32 w-32'
+            : 'h-24 w-24'
+      }
+    `}>
+
+      <img
+        src={src}
+        alt={alt}
+        className="
+          h-full
+          w-full
+          object-contain
+        "
+      />
+
+    </div>
+  );
+}
+
+
+/* =========================================================
    ADD-ON OPTION
-   SQUARE CHECK INDICATOR
+   (No component photos here — this is just the picker.
+   Once an option is ticked, the actual parts + their
+   photos are shown below in the fixed-component panel.)
 ========================================================= */
 
 interface AddOnOptionProps {
   selected: boolean;
   title: string;
   description: string;
+  price?: string;
   onClick: () => void;
 }
 
@@ -1877,6 +2588,7 @@ function AddOnOption({
   selected,
   title,
   description,
+  price,
   onClick,
 }: AddOnOptionProps) {
 
@@ -1887,7 +2599,10 @@ function AddOnOption({
       className={`
         group
         relative
-        min-h-[112px]
+        flex
+        min-h-[150px]
+        flex-col
+        justify-between
         rounded-xl
         border
         p-4
@@ -1913,42 +2628,65 @@ function AddOnOption({
 
       <div className="
         flex
-        h-full
         items-start
         justify-between
-        gap-4
+        gap-3
       ">
 
-        <div className="pr-2">
-
-          <p className={`
-            text-sm
-            font-semibold
-            leading-5
-            ${
-              selected
-                ? 'text-amber-400'
-                : 'text-slate-200'
-            }
-          `}>
-            {title}
-          </p>
-
-          <p className="
-            mt-2
-            text-xs
-            leading-5
-            text-slate-500
-          ">
-            {description}
-          </p>
-
+        <div className={`
+          flex
+          h-12
+          w-12
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          border
+          ${
+            selected
+              ? 'border-amber-400/30 bg-amber-400/10 text-amber-400'
+              : 'border-white/[0.07] bg-white/[0.025] text-slate-500'
+          }
+        `}>
+          <Package size={22} />
         </div>
-
 
         <SelectionBox
           selected={selected}
         />
+
+      </div>
+
+
+      <div className="mt-4">
+
+        <p className={`
+          text-sm
+          font-semibold
+          leading-5
+          ${
+            selected
+              ? 'text-amber-400'
+              : 'text-slate-200'
+          }
+        `}>
+          {title}
+        </p>
+
+        {price && (
+          <p className="mt-1 text-xs font-semibold text-amber-400/80">
+            {price}
+          </p>
+        )}
+
+        <p className="
+          mt-1.5
+          text-xs
+          leading-5
+          text-slate-500
+        ">
+          {description}
+        </p>
 
       </div>
 
@@ -1959,18 +2697,23 @@ function AddOnOption({
 
 /* =========================================================
    CHASSIS OPTION
-   SQUARE CHECK INDICATOR
+   (image on top, larger, centered — SelectionBox as a
+   corner badge instead of sitting inline with tiny text)
 ========================================================= */
 
 interface ChasisOptionProps {
   title: string;
   selected: boolean;
+  image: string;
+  price: number;
   onClick: () => void;
 }
 
 function ChasisOption({
   title,
   selected,
+  image,
+  price,
   onClick,
 }: ChasisOptionProps) {
 
@@ -1979,17 +2722,18 @@ function ChasisOption({
       type="button"
       onClick={onClick}
       className={`
+        group
+        relative
         flex
-        min-h-[64px]
+        min-h-[220px]
         w-full
+        flex-col
         items-center
-        justify-between
-        gap-4
+        gap-3
         rounded-xl
         border
-        px-4
-        py-3
-        text-left
+        p-4
+        text-center
         transition-all
         duration-200
         ${
@@ -2008,21 +2752,44 @@ function ChasisOption({
       `}
     >
 
-      <span className={`
-        text-sm
-        font-semibold
-        ${
-          selected
-            ? 'text-amber-400'
-            : 'text-slate-200'
-        }
-      `}>
-        {title}
-      </span>
+      <div className="
+        absolute
+        right-3
+        top-3
+      ">
+        <SelectionBox selected={selected} />
+      </div>
 
-      <SelectionBox
-        selected={selected}
+      <ComponentImage
+        src={image}
+        alt={title}
+        size="lg"
       />
+
+      <div>
+
+        <p className={`
+          text-sm
+          font-semibold
+          ${
+            selected
+              ? 'text-amber-400'
+              : 'text-slate-200'
+          }
+        `}>
+          {title}
+        </p>
+
+        <p className="
+          mt-1
+          text-xs
+          font-medium
+          text-slate-500
+        ">
+          ₹{price}
+        </p>
+
+      </div>
 
     </button>
   );
@@ -2081,73 +2848,165 @@ function SelectionBox({
 
 /* =========================================================
    FIXED COMPONENT
+   (used for controller battery, HC-SR04, SG90 — quantity
+   is always 1 and not user-editable, so it stays a badge)
 ========================================================= */
 
 interface FixedComponentProps {
   label: string;
   value: string;
+  image?: string;
+  unitPrice?: number;
 }
 
 function FixedComponent({
   label,
   value,
+  image,
+  unitPrice,
 }: FixedComponentProps) {
 
   return (
     <div className="
+      flex
+      min-h-[108px]
+      items-center
+      gap-4
       rounded-xl
       border
       border-white/[0.08]
       bg-white/[0.025]
       px-4
-      py-3.5
+      py-3
     ">
+
+      {image && (
+        <ComponentImage
+          src={image}
+          alt={label}
+          size="md"
+        />
+      )}
+
+      <div className="
+        min-w-0
+        flex-1
+      ">
+
+        <p className="
+          text-sm
+          font-medium
+          text-slate-300
+        ">
+          {label}
+        </p>
+
+        <p className="
+          mt-1
+          text-xs
+          text-slate-500
+        ">
+          {unitPrice !== undefined
+            ? `₹${unitPrice} each`
+            : 'Included in the kit'}
+        </p>
+
+      </div>
 
       <div className="
         flex
+        h-7
+        min-w-7
         items-center
-        justify-between
-        gap-4
+        justify-center
+        rounded-md
+        border
+        border-white/10
+        bg-white/[0.04]
+        px-2
+        text-xs
+        font-semibold
+        text-slate-300
       ">
+        {value}
+      </div>
 
-        <div>
-
-          <p className="
-            text-sm
-            font-medium
-            text-slate-300
-          ">
-            {label}
-          </p>
-
-          <p className="
-            mt-1
-            text-xs
-            text-slate-500
-          ">
-            Included in the kit
-          </p>
-
-        </div>
+    </div>
+  );
+}
 
 
-        <div className="
-          flex
-          h-7
-          min-w-7
-          items-center
-          justify-center
-          rounded-md
-          border
-          border-white/10
-          bg-white/[0.04]
-          px-2
-          text-xs
+/* =========================================================
+   INCLUDED COMPONENT
+   (always-included accessory shown as a tick-box card,
+   same visual language as ChasisOption / BatteryOption
+   instead of the plain number badge used by FixedComponent)
+========================================================= */
+
+interface IncludedComponentProps {
+  label: string;
+  image: string;
+  unitPrice?: number;
+}
+
+function IncludedComponent({
+  label,
+  image,
+  unitPrice,
+}: IncludedComponentProps) {
+
+  return (
+    <div className="
+      relative
+      flex
+      min-h-[220px]
+      w-full
+      max-w-[220px]
+      flex-col
+      items-center
+      gap-3
+      rounded-xl
+      border
+      border-amber-400/50
+      bg-amber-400/[0.08]
+      p-4
+      text-center
+    ">
+
+      <div className="
+        absolute
+        right-3
+        top-3
+      ">
+        <SelectionBox selected={true} />
+      </div>
+
+      <ComponentImage
+        src={image}
+        alt={label}
+        size="lg"
+      />
+
+      <div>
+
+        <p className="
+          text-sm
           font-semibold
-          text-slate-300
+          text-amber-400
         ">
-          {value}
-        </div>
+          {label}
+        </p>
+
+        <p className="
+          mt-1
+          text-xs
+          font-medium
+          text-slate-500
+        ">
+          {unitPrice !== undefined
+            ? `₹${unitPrice} each`
+            : 'Included in the kit'}
+        </p>
 
       </div>
 
@@ -2157,17 +3016,139 @@ function FixedComponent({
 
 
 /* =========================================================
+   BATTERY OPTION
+   (image on top, larger, centered — SelectionBox as a
+   corner badge, matching ChasisOption)
+========================================================= */
+
+interface BatteryOptionProps {
+  title: string;
+  description: string;
+  price: number;
+  selected: boolean;
+  image: string;
+  onClick: () => void;
+}
+
+function BatteryOption({
+  title,
+  description,
+  price,
+  selected,
+  image,
+  onClick,
+}: BatteryOptionProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        group relative flex min-h-[240px] w-full flex-col items-center gap-3 rounded-xl border p-4 text-center transition-all duration-200
+        ${selected
+          ? 'border-amber-400/50 bg-amber-400/[0.08]'
+          : 'border-white/[0.09] bg-[#0A1322] hover:border-white/20 hover:bg-white/[0.035]'
+        }
+      `}
+    >
+      <div className="absolute right-3 top-3">
+        <SelectionBox selected={selected} />
+      </div>
+
+      <ComponentImage src={image} alt={title} size="lg" />
+
+      <div>
+        <p className={`text-sm font-semibold ${selected ? 'text-amber-400' : 'text-slate-200'}`}>
+          {title}
+        </p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          {description}
+        </p>
+        <p className="mt-1 text-xs font-semibold text-amber-400/80">
+          ₹{price.toLocaleString('en-IN')}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+
+/* =========================================================
+   PRICE SUMMARY
+========================================================= */
+
+function PriceSummary({
+  formData,
+  priceBreakdown,
+  totalPrice,
+}: {
+  formData: FormData;
+  priceBreakdown: Record<string, number>;
+  totalPrice: number;
+}) {
+  const rows: Array<[string, number]> = [];
+
+  if (priceBreakdown.irSensor) rows.push([`IR Sensors × ${formData.noOfIRs}`, priceBreakdown.irSensor]);
+  if (priceBreakdown.ultrasonic) rows.push([`HC-SR04 × ${formData.ultrasonicSensorHC_SR04}`, priceBreakdown.ultrasonic]);
+  if (priceBreakdown.servo) rows.push([`SG90 Servo × ${formData.servoSG90}`, priceBreakdown.servo]);
+  if (priceBreakdown.chassis) rows.push([
+    formData.chasisType === 'Acrylic'
+      ? `Acrylic sheet × ${formData.acrylicQty}`
+      : `${formData.chasisType} chassis`,
+    priceBreakdown.chassis,
+  ]);
+  if (priceBreakdown.wheels7x2) rows.push([`7 × 2 wheels × ${formData.wheels7x2}`, priceBreakdown.wheels7x2]);
+  if (priceBreakdown.wheels7x4) rows.push([`7 × 4 wheels × ${formData.wheels7x4}`, priceBreakdown.wheels7x4]);
+  if (priceBreakdown.wheels10x4) rows.push([`10 × 4 wheels × ${formData.wheels10x4}`, priceBreakdown.wheels10x4]);
+  if (priceBreakdown.motors) rows.push([`Motors × ${formData.noOfMotors}`, priceBreakdown.motors]);
+  if (priceBreakdown.controllerBattery) rows.push(['Controller battery · 3.7V', priceBreakdown.controllerBattery]);
+  if (priceBreakdown.battery) rows.push([formData.batteryType === 'LiPo' ? 'LiPo battery' : 'Li-ion 12V battery', priceBreakdown.battery]);
+  if (priceBreakdown.charger) rows.push(['Li-ion charger', priceBreakdown.charger]);
+  if (priceBreakdown.lClamp) rows.push([`L clamps × ${formData.lClamp}`, priceBreakdown.lClamp]);
+  if (priceBreakdown.nutBolts) rows.push([`Nut & bolt packs × ${formData.nutBolts}`, priceBreakdown.nutBolts]);
+  if (priceBreakdown.screwDriver) rows.push(['Screw driver × 1', priceBreakdown.screwDriver]);
+
+  return (
+    <section className="rounded-2xl border border-amber-400/20 bg-[#0B1424]/80 p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-base font-semibold text-white">Estimated Kit Total</p>
+          <p className="mt-1 text-xs text-slate-500">Calculated from the quantities selected above</p>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-amber-400">₹{totalPrice.toLocaleString('en-IN')}</p>
+        </div>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="mt-5 space-y-2 border-t border-white/[0.08] pt-4">
+          {rows.map(([label, amount]) => (
+            <div key={label} className="flex items-center justify-between gap-4 text-sm">
+              <span className="text-slate-400">{label}</span>
+              <span className="font-medium text-slate-200">₹{amount.toLocaleString('en-IN')}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+/* =========================================================
    BATTERY CHARGER
-   MODERN SQUARE CHECKBOX
 ========================================================= */
 
 interface BatteryChargerCheckboxProps {
   checked: boolean;
+  image: string;
+  price: number;
   onChange: (checked: boolean) => void;
 }
 
 function BatteryChargerCheckbox({
   checked,
+  image,
+  price,
   onChange,
 }: BatteryChargerCheckboxProps) {
 
@@ -2175,7 +3156,7 @@ function BatteryChargerCheckbox({
     <label
       className={`
         flex
-        min-h-[78px]
+        min-h-[108px]
         cursor-pointer
         items-center
         justify-between
@@ -2183,7 +3164,7 @@ function BatteryChargerCheckbox({
         rounded-xl
         border
         px-4
-        py-3.5
+        py-3
         transition-all
         duration-200
         ${
@@ -2204,37 +3185,16 @@ function BatteryChargerCheckbox({
 
       <div className="
         flex
+        min-w-0
         items-center
         gap-3
       ">
 
-        <div className={`
-          flex
-          h-9
-          w-9
-          shrink-0
-          items-center
-          justify-center
-          rounded-lg
-          ${
-            checked
-              ? `
-                bg-amber-400/10
-                text-amber-400
-              `
-              : `
-                bg-white/[0.04]
-                text-slate-500
-              `
-          }
-        `}>
-
-          <BatteryCharging
-            size={17}
-          />
-
-        </div>
-
+        <ComponentImage
+          src={image}
+          alt="Battery Charger"
+          size="md"
+        />
 
         <div>
 
@@ -2255,7 +3215,7 @@ function BatteryChargerCheckbox({
             text-xs
             text-slate-500
           ">
-            Required for Li-ion battery
+            Required for Li-ion battery · ₹{price}
           </p>
 
         </div>
@@ -2314,11 +3274,16 @@ function BatteryChargerCheckbox({
 
 /* =========================================================
    QUANTITY FIELD
+   (image on top, larger, centered — instead of a small
+   thumbnail crammed next to the label text)
 ========================================================= */
 
 interface QuantityFieldProps {
   label: string;
   value: string;
+  image: string;
+  unitPrice: number;
+  caution?: string;
   onMinus: () => void;
   onPlus: () => void;
 }
@@ -2326,30 +3291,82 @@ interface QuantityFieldProps {
 function QuantityField({
   label,
   value,
+  image,
+  unitPrice,
+  caution,
   onMinus,
   onPlus,
 }: QuantityFieldProps) {
 
   return (
     <div className="
+      flex
+      flex-col
+      items-center
+      gap-3
       rounded-xl
       border
       border-white/[0.08]
       bg-[#0A1322]
       p-4
+      text-center
     ">
 
-      <div className="
-        mb-3
-        text-sm
-        font-medium
-        text-slate-300
-      ">
-        {label}
+      <ComponentImage
+        src={image}
+        alt={label}
+        size="lg"
+      />
+
+      <div>
+
+        <div className="
+          text-sm
+          font-semibold
+          text-slate-300
+        ">
+          {label}
+        </div>
+
+        <div className="
+          mt-1
+          text-xs
+          text-slate-500
+        ">
+          ₹{unitPrice} each · ₹{Number(value) * unitPrice} total
+        </div>
+
+        {caution && (
+          <div className="
+            mt-2
+            flex
+            items-start
+            justify-center
+            gap-1.5
+            rounded-lg
+            border
+            border-amber-400/20
+            bg-amber-400/[0.06]
+            px-2.5
+            py-1.5
+            text-left
+          ">
+            <AlertCircle
+              size={13}
+              className="mt-[1px] shrink-0 text-amber-400/80"
+            />
+            <span className="text-[11px] leading-4 text-amber-300/90">
+              {caution}
+            </span>
+          </div>
+        )}
+
       </div>
+
 
       <div className="
         flex
+        w-full
         items-center
         justify-between
         rounded-lg

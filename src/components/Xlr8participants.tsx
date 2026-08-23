@@ -2100,7 +2100,7 @@ const XLR8ParticipantDashboard:
 
               {/* MECHANICAL KIT REGISTRATION */}
 
-              {/* <button
+              <button
                 type="button"
                 onClick={() => {
                   window.location.href =
@@ -2137,7 +2137,7 @@ const XLR8ParticipantDashboard:
                 >
                   REGISTER FOR MECHANICAL KIT
                 </p>
-              </button> */}
+              </button>
               
                 {/* VEHICLE */}
 
