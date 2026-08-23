@@ -27,6 +27,8 @@ import xlr82 from '../assets/xlr82.jpg';
 import xlr83 from '../assets/xlr83.jpg';
 import xlr84 from '../assets/xlr84.jpg';
 
+import PS from '../assets/PS.pdf';
+
 import { useAuth } from '../hooks/useAuth';
 import { XLR8_SSO_URL } from '../config/sso';
 
@@ -945,9 +947,9 @@ const XLR8: React.FC = () => {
     }
   };
 
-  /* =========================================================
+  /* =======================================================
      RENDER
-  ========================================================= */
+  ======================================================= */
 
   return (
     <>
@@ -1452,7 +1454,85 @@ const XLR8: React.FC = () => {
       </section>
 
       {/* =====================================================
-          TIMELINE
+          PROBLEM STATEMENT
+      ===================================================== */}
+
+      <section className="relative py-20 bg-[#0B1120] text-white overflow-hidden">
+
+        {/* Background grid */}
+
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
+
+        <div className="relative z-10 max-w-6xl mx-auto px-4">
+
+          {/* Heading */}
+
+          <div className="text-center max-w-3xl mx-auto mb-10">
+
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-mono font-semibold tracking-wider uppercase mb-4">
+
+              <BookOpen className="w-4 h-4" />
+
+              XLR8 2026
+
+            </div>
+
+            <h2 className="text-4xl sm:text-5xl font-extrabold font-heading tracking-tight text-white mb-4">
+
+              Problem{' '}
+
+              <span className="text-cyan-400">
+                Statement
+              </span>
+
+            </h2>
+
+            <p className="text-slate-400 text-lg">
+
+              Go through the complete problem statement before you begin building your bot.
+
+            </p>
+
+          </div>
+
+          {/* PDF */}
+
+          <div className="relative rounded-3xl border border-slate-800 bg-slate-950 p-2 sm:p-3 shadow-[0_0_50px_rgba(6,182,212,0.08)]">
+
+            {/* Top accent */}
+
+            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent" />
+
+            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-white">
+
+              <iframe
+                src={`${PS}#toolbar=1&navpanes=0&scrollbar=1`}
+                title="XLR8 2026 Problem Statement"
+                className="w-full h-[75vh] min-h-[600px]"
+              />
+
+            </div>
+
+          </div>
+
+          {/* PDF hint */}
+
+          <div className="flex items-center justify-center gap-2 mt-5 text-sm text-slate-500">
+
+            <BookOpen className="w-4 h-4 text-cyan-500" />
+
+            <span>
+              Scroll inside the document to read the complete problem statement
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          TIMELINE / ROADMAP
       ===================================================== */}
 
       <TimelineSection />
