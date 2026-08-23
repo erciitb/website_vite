@@ -1702,7 +1702,7 @@ export default function Xlr8Registration() {
                 }
                 title="Servo mounted Ultrasonic"
                 description="HC-SR04 + SG90"
-                price={`₹${PRICES.ultrasonic + PRICES.servo}`}
+                // price={`₹${PRICES.ultrasonic + PRICES.servo}`}
                 onClick={() =>
                   handleAddOnChange(
                     'Servo mounted Ultrasonic'
@@ -1717,7 +1717,7 @@ export default function Xlr8Registration() {
                 }
                 title="IR based line follower"
                 description="Choose 2, 3 or 4 IR sensors"
-                price={`₹${PRICES.irSensor} each`}
+                // price={`₹${PRICES.irSensor} each`}
                 onClick={() =>
                   handleAddOnChange(
                     'IR based line follower'
