@@ -1939,7 +1939,7 @@ export default function Xlr8Registration() {
               "
             >
               <ChasisOption
-                title="Acrylic"
+                title="Acrylic(30cmx30cmx5mm)"
                 image={acrylicChassisImage}
                 price={PRICES.acrylic}
                 selected={
