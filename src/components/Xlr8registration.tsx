@@ -57,6 +57,7 @@ import Lipo from '../assets/li-po.avif';
 import liion from '../assets/li-ion-12v.webp';
 
 import aditya_qr from '../assets/aditya_qr.jpeg';
+import adity_qr2 from '../assets/WhatsApp Image 2026-08-24 at 11.50.47 PM.jpeg';
 
 /* =========================================================
    CONFIG
@@ -2446,7 +2447,7 @@ export default function Xlr8Registration() {
                 "
               >
                 <img
-                  src={aditya_qr}
+                  src={aditya_qr2}
                   alt="Aditya payment QR code"
                   className="
                     h-72
