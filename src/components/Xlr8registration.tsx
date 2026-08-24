@@ -2225,7 +2225,7 @@ export default function Xlr8Registration() {
               "
             >
               <FixedComponent
-                label="Controller Battery · 3.7V"
+                label="Controller Battery · 3.7V(Mandatory)"
                 value="1"
                 image={
                   controllerBatteryImage
@@ -2236,7 +2236,7 @@ export default function Xlr8Registration() {
               />
 
               <BatteryOption
-                title="LiPo Battery"
+                title="LiPo 12V Battery"
                 description="Li-polymer 12V battery"
                 price={
                   PRICES.liPolymer
@@ -2322,7 +2322,7 @@ export default function Xlr8Registration() {
               "
             >
               <QuantityField
-                label="L Clamp"
+                label="L-Clamps"
                 value={
                   formData.lClamp
                 }
@@ -2382,7 +2382,7 @@ export default function Xlr8Registration() {
             subtitle="Included accessories for the mechanical kit"
           >
             <IncludedComponent
-              label="Screw Driver"
+              label="Screw Driver(Mandatory)"
               image={
                 screwdriverImage
               }
