@@ -2059,7 +2059,7 @@ export default function Xlr8Registration() {
               "
             >
               <QuantityField
-                label="7 × 2"
+                label="7 × 2 cm"
                 value={
                   formData.wheels7x2
                 }
@@ -2084,7 +2084,7 @@ export default function Xlr8Registration() {
               />
 
               <QuantityField
-                label="7 × 4"
+                label="7 × 4 cm"
                 value={
                   formData.wheels7x4
                 }
@@ -2109,7 +2109,7 @@ export default function Xlr8Registration() {
               />
 
               <QuantityField
-                label="10 × 4"
+                label="10 × 4 cm"
                 value={
                   formData.wheels10x4
                 }
