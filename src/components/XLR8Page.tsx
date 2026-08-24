@@ -1,53 +1,63 @@
-import React, { useEffect, useRef, useState } from 'react'; 
- 
-import { 
-  Zap, 
-  Users, 
-  UserRound, 
-  Cpu, 
-  Wrench, 
-  Flag, 
-  Trophy, 
-  CheckCircle2, 
-  Lock, 
-  Gauge, 
-  ChevronRight, 
-  AlertCircle, 
-  Loader2, 
-  BookOpen, 
-} from 'lucide-react'; 
- 
-import { Link, useNavigate } from 'react-router-dom'; 
- 
-import CenterLogo from '../assets/newcenterlogo.png'; 
-import bgImage from '../assets/bg.jpeg'; 
- 
-import xlr81 from '../assets/xlr81.jpg'; 
-import xlr82 from '../assets/xlr82.jpg'; 
-import xlr83 from '../assets/xlr83.jpg'; 
-import xlr84 from '../assets/xlr84.jpg'; 
- 
-import { useAuth } from '../hooks/useAuth'; 
-import { XLR8_SSO_URL } from '../config/sso'; 
- 
-/* ========================================================= 
-   SSO USER 
-========================================================= */ 
- 
-interface SSOUser { 
-  name: string; 
-  roll: string; 
-  department: string; 
-  degree: string; 
-  passing_year: number; 
-} 
- 
-/* ========================================================= 
-   FINAL XLR8 REGISTRATION API 
-========================================================= */ 
- 
-const FINAL_REG_CHECK_URL = 
+import React, { useEffect, useRef, useState } from 'react';
+
+import {
+  Zap,
+  Users,
+  UserRound,
+  Cpu,
+  Wrench,
+  Flag,
+  Trophy,
+  CheckCircle2,
+  Lock,
+  Gauge,
+  ChevronRight,
+  Loader2,
+  BookOpen,
+  Binary,
+} from 'lucide-react';
+
+import { Link, useNavigate } from 'react-router-dom';
+
+import CenterLogo from '../assets/newcenterlogo.png';
+import bgImage from '../assets/bg.jpeg';
+
+import xlr81 from '../assets/xlr81.jpg';
+import xlr82 from '../assets/xlr82.jpg';
+import xlr83 from '../assets/xlr83.jpg';
+import xlr84 from '../assets/xlr84.jpg';
+
+import { useAuth } from '../hooks/useAuth';
+import { XLR8_SSO_URL } from '../config/sso';
+
+/* =========================================================
+   SSO USER
+========================================================= */
+
+interface SSOUser {
+  name: string;
+  roll: string;
+  department: string;
+  degree: string;
+  passing_year: number;
+}
+
+/* =========================================================
+   FINAL XLR8 REGISTRATION API
+========================================================= */
+
+const FINAL_REG_CHECK_URL =
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
+
+/* =========================================================
+   XLR8 RESOURCE LINKS
+========================================================= */
+
+const XLR8_NOTION_URL =
+  'https://xlr8-erc-26.notion.site/XLR8-26-27-13d1e04678d5821e94be813eefaf1de4';
+
+const PROBLEM_STATEMENTS_URL =
+  'https://drive.google.com/drive/folders/1l0kkF2FEN1Tmt3vPUVR1PBMu4v1vt2P7?usp=sharing';
 
 /* =========================================================
    SCROLL GALLERY
@@ -145,7 +155,12 @@ const SemicircularScrollGallery: React.FC = () => {
     const updateRadius = () => {
       const w = window.innerWidth;
 
-      setRadius(Math.min(Math.max(w * 0.28, 160), 380));
+      setRadius(
+        Math.min(
+          Math.max(w * 0.28, 160),
+          380
+        )
+      );
     };
 
     updateRadius();
@@ -161,7 +176,8 @@ const SemicircularScrollGallery: React.FC = () => {
     const handleScroll = () => {
       if (!containerRef.current) return;
 
-      const rect = containerRef.current.getBoundingClientRect();
+      const rect =
+        containerRef.current.getBoundingClientRect();
 
       const totalScrollableHeight =
         rect.height - window.innerHeight;
@@ -220,7 +236,8 @@ const SemicircularScrollGallery: React.FC = () => {
       return {
         opacity: 0,
         pointerEvents: 'none',
-        transform: 'translate3d(-9999px, 0, 0)',
+        transform:
+          'translate3d(-9999px, 0, 0)',
       };
     }
 
@@ -228,7 +245,8 @@ const SemicircularScrollGallery: React.FC = () => {
       (scrollProgress - item.start) /
       (item.end - item.start);
 
-    const effectiveT = getEffectiveProgress(t);
+    const effectiveT =
+      getEffectiveProgress(t);
 
     const angle =
       -Math.PI / 2 +
@@ -273,7 +291,8 @@ const SemicircularScrollGallery: React.FC = () => {
         `${baseTransform} translate3d(${x}px, ${y}px, 0) scale(${scale})`,
       transition:
         'transform 75ms linear, opacity 75ms linear',
-      willChange: 'transform, opacity',
+      willChange:
+        'transform, opacity',
       position: 'absolute',
       left:
         item.side === 'left'
@@ -308,7 +327,10 @@ const SemicircularScrollGallery: React.FC = () => {
     let opacity = 0;
     let translateY = 15;
 
-    if (t >= 0.18 && t <= 0.82) {
+    if (
+      t >= 0.18 &&
+      t <= 0.82
+    ) {
       if (t < 0.3) {
         const fadeInT =
           (t - 0.18) / 0.12;
@@ -335,7 +357,8 @@ const SemicircularScrollGallery: React.FC = () => {
         `translateY(calc(-50% + ${translateY}px))`,
       transition:
         'transform 75ms linear, opacity 75ms linear',
-      willChange: 'transform, opacity',
+      willChange:
+        'transform, opacity',
       position: 'absolute',
       left:
         item.side === 'right'
@@ -353,7 +376,8 @@ const SemicircularScrollGallery: React.FC = () => {
   const renderRoadTrack = (
     side: 'left' | 'right'
   ) => {
-    const isLeft = side === 'left';
+    const isLeft =
+      side === 'left';
 
     const basePosStyle: React.CSSProperties = {
       position: 'absolute',
@@ -443,7 +467,9 @@ const SemicircularScrollGallery: React.FC = () => {
     <section
       ref={containerRef}
       className="relative w-full bg-[#0B1120] text-white"
-      style={{ height: '500vh' }}
+      style={{
+        height: '500vh',
+      }}
     >
       <div className="sticky top-0 w-full h-screen overflow-hidden flex items-center justify-center">
 
@@ -452,45 +478,50 @@ const SemicircularScrollGallery: React.FC = () => {
 
         <div className="absolute inset-0 pointer-events-none">
 
-          {SCROLL_SEQUENCE.map((item) => (
-            <React.Fragment key={item.id}>
-
-              {/* IMAGE */}
-
-              <div
-                style={getImageStyle(item)}
-                className={`w-[320px] sm:w-[460px] md:w-[580px] h-[220px] sm:h-[320px] md:h-[380px] bg-slate-900 border-2 ${item.cardBorder} rounded-2xl shadow-2xl p-2 sm:p-3 pointer-events-auto overflow-hidden backdrop-blur-md`}
+          {SCROLL_SEQUENCE.map(
+            (item) => (
+              <React.Fragment
+                key={item.id}
               >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover rounded-xl border border-white/5 shadow-inner"
-                />
-              </div>
 
-              {/* TEXT */}
+                {/* IMAGE */}
 
-              <div
-                style={getTextStyle(item)}
-                className="w-[280px] sm:w-[360px] md:w-[440px] p-6 sm:p-7 rounded-2xl bg-slate-900 border border-slate-700/60 backdrop-blur-md shadow-2xl pointer-events-auto"
-              >
                 <div
-                  className={`inline-block px-3 py-1 rounded-full ${item.badgeBg} ${item.badgeText} text-sm font-semibold tracking-wider uppercase mb-3 border ${item.badgeBorder}`}
+                  style={getImageStyle(item)}
+                  className={`w-[320px] sm:w-[460px] md:w-[580px] h-[220px] sm:h-[320px] md:h-[380px] bg-slate-900 border-2 ${item.cardBorder} rounded-2xl shadow-2xl p-2 sm:p-3 pointer-events-auto overflow-hidden backdrop-blur-md`}
                 >
-                  TRACK PROTOCOL • 0{item.id}
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover rounded-xl border border-white/5 shadow-inner"
+                  />
                 </div>
 
-                <h3 className="text-2xl md:text-3xl font-bold font-heading text-white mb-3 tracking-wide">
-                  {item.title}
-                </h3>
+                {/* TEXT */}
 
-                <p className="text-slate-300 text-base md:text-lg leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
+                <div
+                  style={getTextStyle(item)}
+                  className="w-[280px] sm:w-[360px] md:w-[440px] p-6 sm:p-7 rounded-2xl bg-slate-900 border border-slate-700/60 backdrop-blur-md shadow-2xl pointer-events-auto"
+                >
+                  <div
+                    className={`inline-block px-3 py-1 rounded-full ${item.badgeBg} ${item.badgeText} text-sm font-semibold tracking-wider uppercase mb-3 border ${item.badgeBorder}`}
+                  >
+                    TRACK PROTOCOL • 0
+                    {item.id}
+                  </div>
 
-            </React.Fragment>
-          ))}
+                  <h3 className="text-2xl md:text-3xl font-bold font-heading text-white mb-3 tracking-wide">
+                    {item.title}
+                  </h3>
+
+                  <p className="text-slate-300 text-base md:text-lg leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+
+              </React.Fragment>
+            )
+          )}
 
         </div>
       </div>
@@ -529,7 +560,9 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     date: '15 AUG',
     description:
       'Form your team, understand the challenge, and get ready for your XLR8 journey.',
-    icon: <Users className="w-6 h-6 text-cyan-400" />,
+    icon: (
+      <Users className="w-6 h-6 text-cyan-400" />
+    ),
     status: 'completed',
     tagBg: 'bg-cyan-950/60',
     tagText: 'text-cyan-400',
@@ -545,7 +578,9 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     date: '22 AUG',
     description:
       'Learn the fundamentals of programming your bot and get it moving with the right code.',
-    icon: <Cpu className="w-6 h-6 text-amber-400" />,
+    icon: (
+      <Cpu className="w-6 h-6 text-amber-400" />
+    ),
     status: 'completed',
     tagBg: 'bg-amber-950/60',
     tagText: 'text-amber-400',
@@ -561,7 +596,9 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     date: '23 AUG',
     description:
       'Get hands-on with your electronics and learn the essential soldering skills needed to build your bot.',
-    icon: <Wrench className="w-6 h-6 text-rose-400" />,
+    icon: (
+      <Wrench className="w-6 h-6 text-rose-400" />
+    ),
     status: 'upcoming',
     tagBg: 'bg-rose-950/60',
     tagText: 'text-rose-400',
@@ -577,7 +614,9 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     date: '29 AUG',
     description:
       'Troubleshoot your bot, fix hardware and software issues, and get expert help to make sure everything is race-ready.',
-    icon: <Flag className="w-6 h-6 text-emerald-400" />,
+    icon: (
+      <Flag className="w-6 h-6 text-emerald-400" />
+    ),
     status: 'upcoming',
     tagBg: 'bg-emerald-950/60',
     tagText: 'text-emerald-400',
@@ -593,7 +632,9 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     date: '30 AUG',
     description:
       'Time for a progress check. Show us what you have built, assess your team’s progress, and make sure your bot is on track for the final showdown.',
-    icon: <CheckCircle2 className="w-6 h-6 text-blue-400" />,
+    icon: (
+      <CheckCircle2 className="w-6 h-6 text-blue-400" />
+    ),
     status: 'upcoming',
     tagBg: 'bg-blue-950/60',
     tagText: 'text-blue-400',
@@ -609,7 +650,9 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     date: '05–06 SEP',
     description:
       'The final showdown. Put your bot to the test, take on the obstacle course, and race against the best teams on campus.',
-    icon: <Trophy className="w-6 h-6 text-purple-400" />,
+    icon: (
+      <Trophy className="w-6 h-6 text-purple-400" />
+    ),
     status: 'upcoming',
     tagBg: 'bg-purple-950/60',
     tagText: 'text-purple-400',
@@ -635,7 +678,11 @@ const TimelineSection: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-20">
 
           <h2 className="text-4xl md:text-5xl font-extrabold font-heading tracking-tight mb-4 text-white">
-            The <span className="text-cyan-400">XLR8</span> Roadmap
+            The{' '}
+            <span className="text-cyan-400">
+              XLR8
+            </span>{' '}
+            Roadmap
           </h2>
 
           <p className="text-slate-400 text-lg sm:text-xl">
@@ -648,121 +695,125 @@ const TimelineSection: React.FC = () => {
 
           <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-500/30 via-slate-700 to-purple-500/30 -translate-x-1/2" />
 
-          {TIMELINE_EVENTS.map((event, index) => {
-            const isEven = index % 2 === 1;
-            const isCompleted =
-              event.status === 'completed';
+          {TIMELINE_EVENTS.map(
+            (event, index) => {
+              const isEven =
+                index % 2 === 1;
 
-            return (
-              <div
-                key={event.id}
-                className="relative mb-12 md:mb-16 last:mb-0"
-              >
+              const isCompleted =
+                event.status === 'completed';
 
+              return (
                 <div
-                  className={`flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 relative z-10 ${
-                    isEven
-                      ? 'md:flex-row-reverse'
-                      : ''
-                  }`}
+                  key={event.id}
+                  className="relative mb-12 md:mb-16 last:mb-0"
                 >
 
-                  {/* ICON */}
-
                   <div
-                    className={`flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-slate-900 border ${
-                      isCompleted
-                        ? 'border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
-                        : 'border-slate-700 shadow-xl'
-                    } relative group`}
-                  >
-
-                    <div className="relative z-10 flex flex-col items-center justify-center">
-                      {event.icon}
-                    </div>
-
-                    <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-slate-950 border border-slate-800 rounded text-[11px] font-mono text-slate-400 shadow">
-                      0{event.id}
-                    </span>
-
-                    {isCompleted && (
-                      <span className="absolute -bottom-2 -right-2 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0B1120] flex items-center justify-center">
-                        <CheckCircle2 className="w-3 h-3 text-white" />
-                      </span>
-                    )}
-
-                  </div>
-
-                  {/* EVENT CARD */}
-
-                  <div
-                    className={`w-full md:w-[calc(50%-4rem)] p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl relative group ${event.hoverBorder} transition-all duration-300 hover:-translate-y-1 overflow-hidden ${
+                    className={`flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 relative z-10 ${
                       isEven
-                        ? 'md:text-right'
-                        : 'md:text-left'
+                        ? 'md:flex-row-reverse'
+                        : ''
                     }`}
                   >
 
-                    <div
-                      className={`absolute top-0 left-0 right-0 h-1 ${event.topBar} rounded-t-2xl`}
-                    />
+                    {/* ICON */}
 
                     <div
-                      className={`flex flex-wrap items-center gap-3 mb-3 mt-1 ${
-                        isEven
-                          ? 'md:justify-end'
-                          : 'md:justify-start'
-                      }`}
+                      className={`flex items-center justify-center shrink-0 w-16 h-16 rounded-2xl bg-slate-900 border ${
+                        isCompleted
+                          ? 'border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
+                          : 'border-slate-700 shadow-xl'
+                      } relative group`}
                     >
 
-                      <span
-                        className={`text-sm font-mono font-bold tracking-wider uppercase px-3 py-1 rounded-full border ${event.tagBg} ${event.tagText} ${event.tagBorder}`}
-                      >
-                        {event.phase}
+                      <div className="relative z-10 flex flex-col items-center justify-center">
+                        {event.icon}
+                      </div>
+
+                      <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-slate-950 border border-slate-800 rounded text-[11px] font-mono text-slate-400 shadow">
+                        0{event.id}
                       </span>
 
-                      <span className="text-sm font-mono font-bold tracking-wider text-white bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-                        {event.date}
-                      </span>
-
-                      {isCompleted ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-emerald-400 bg-emerald-950/40 px-2.5 py-1 rounded border border-emerald-500/20">
-
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-
-                          COMPLETED
-
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-1 rounded border border-slate-700/40">
-
-                          <span className="text-slate-500">
-                            ○
-                          </span>
-
-                          UPCOMING
-
+                      {isCompleted && (
+                        <span className="absolute -bottom-2 -right-2 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#0B1120] flex items-center justify-center">
+                          <CheckCircle2 className="w-3 h-3 text-white" />
                         </span>
                       )}
 
                     </div>
 
-                    <h3
-                      className={`text-2xl sm:text-3xl font-bold font-heading text-white mb-3 tracking-wide transition-colors ${event.titleHover}`}
-                    >
-                      {event.title}
-                    </h3>
+                    {/* EVENT CARD */}
 
-                    <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
-                      {event.description}
-                    </p>
+                    <div
+                      className={`w-full md:w-[calc(50%-4rem)] p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl relative group ${event.hoverBorder} transition-all duration-300 hover:-translate-y-1 overflow-hidden ${
+                        isEven
+                          ? 'md:text-right'
+                          : 'md:text-left'
+                      }`}
+                    >
+
+                      <div
+                        className={`absolute top-0 left-0 right-0 h-1 ${event.topBar} rounded-t-2xl`}
+                      />
+
+                      <div
+                        className={`flex flex-wrap items-center gap-3 mb-3 mt-1 ${
+                          isEven
+                            ? 'md:justify-end'
+                            : 'md:justify-start'
+                        }`}
+                      >
+
+                        <span
+                          className={`text-sm font-mono font-bold tracking-wider uppercase px-3 py-1 rounded-full border ${event.tagBg} ${event.tagText} ${event.tagBorder}`}
+                        >
+                          {event.phase}
+                        </span>
+
+                        <span className="text-sm font-mono font-bold tracking-wider text-white bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                          {event.date}
+                        </span>
+
+                        {isCompleted ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-emerald-400 bg-emerald-950/40 px-2.5 py-1 rounded border border-emerald-500/20">
+
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+
+                            COMPLETED
+
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-slate-400 bg-slate-800/50 px-2.5 py-1 rounded border border-slate-700/40">
+
+                            <span className="text-slate-500">
+                              ○
+                            </span>
+
+                            UPCOMING
+
+                          </span>
+                        )}
+
+                      </div>
+
+                      <h3
+                        className={`text-2xl sm:text-3xl font-bold font-heading text-white mb-3 tracking-wide transition-colors ${event.titleHover}`}
+                      >
+                        {event.title}
+                      </h3>
+
+                      <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
+                        {event.description}
+                      </p>
+
+                    </div>
 
                   </div>
-
                 </div>
-              </div>
-            );
-          })}
+              );
+            }
+          )}
 
         </div>
       </div>
@@ -775,9 +826,11 @@ const TimelineSection: React.FC = () => {
 ========================================================= */
 
 const XLR8: React.FC = () => {
-  const heroRef = useRef<HTMLDivElement>(null);
+  const heroRef =
+    useRef<HTMLDivElement>(null);
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
   const {
     user,
@@ -801,7 +854,8 @@ const XLR8: React.FC = () => {
   const [
     registrationStatus,
     setRegistrationStatus,
-  ] = useState<RegistrationStatus>('idle');
+  ] =
+    useState<RegistrationStatus>('idle');
 
   const [
     registeredTeamName,
@@ -817,86 +871,98 @@ const XLR8: React.FC = () => {
      CHECK FINAL REGISTRATION
   ======================================================= */
 
-  const checkFinalRegistration = async () => {
-    if (!user?.roll) {
-      setRegistrationStatus('idle');
-      return;
-    }
+  const checkFinalRegistration =
+    async () => {
+      if (!user?.roll) {
+        setRegistrationStatus('idle');
+        return;
+      }
 
-    setRegistrationStatus('checking');
+      setRegistrationStatus('checking');
 
-    try {
-      const roll = user.roll
-        .trim()
-        .toLowerCase();
+      try {
+        const roll =
+          user.roll
+            .trim()
+            .toLowerCase();
 
-      const response = await fetch(
-        `${FINAL_REG_CHECK_URL}?roll=${encodeURIComponent(roll)}`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-          },
-          cache: 'no-store',
+        const response =
+          await fetch(
+            `${FINAL_REG_CHECK_URL}?roll=${encodeURIComponent(
+              roll
+            )}`,
+            {
+              method: 'GET',
+              headers: {
+                Accept: 'application/json',
+              },
+              cache: 'no-store',
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `Registration API returned ${response.status}`
+          );
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(
-          `Registration API returned ${response.status}`
+        const data =
+          await response.json();
+
+        console.log(
+          'XLR8 Registration API Response:',
+          data
         );
+
+        if (data.found === true) {
+          setRegisteredTeamName(
+            data.teamName || ''
+          );
+
+          setRegisteredVehicleNo(
+            data.vehicleNumber || ''
+          );
+
+          setRegistrationStatus(
+            'registered'
+          );
+        } else {
+          setRegisteredTeamName('');
+          setRegisteredVehicleNo('');
+
+          setRegistrationStatus(
+            'not_registered'
+          );
+        }
+      } catch (error) {
+        console.error(
+          'XLR8 registration verification failed:',
+          error
+        );
+
+        setRegistrationStatus('error');
       }
-
-      const data = await response.json();
-
-      console.log(
-        'XLR8 Registration API Response:',
-        data
-      );
-
-      if (data.found === true) {
-        setRegisteredTeamName(
-          data.teamName || ''
-        );
-
-        setRegisteredVehicleNo(
-          data.vehicleNumber || ''
-        );
-
-        setRegistrationStatus(
-          'registered'
-        );
-      } else {
-        setRegisteredTeamName('');
-        setRegisteredVehicleNo('');
-
-        setRegistrationStatus(
-          'not_registered'
-        );
-      }
-    } catch (error) {
-      console.error(
-        'XLR8 registration verification failed:',
-        error
-      );
-
-      setRegistrationStatus('error');
-    }
-  };
+    };
 
   /* =======================================================
      AUTO CHECK AFTER LOGIN
   ======================================================= */
 
   useEffect(() => {
-    if (isLoggedIn && user?.roll) {
+    if (
+      isLoggedIn &&
+      user?.roll
+    ) {
       checkFinalRegistration();
     } else {
       setRegistrationStatus('idle');
       setRegisteredTeamName('');
       setRegisteredVehicleNo('');
     }
-  }, [isLoggedIn, user?.roll]);
+  }, [
+    isLoggedIn,
+    user?.roll,
+  ]);
 
   /* =======================================================
      AUTHORIZED CONVENERS
@@ -925,25 +991,29 @@ const XLR8: React.FC = () => {
      PARTICIPANT DASHBOARD
   ======================================================= */
 
-  const handleParticipantDashboard = () => {
-    if (!isLoggedIn) {
-      sessionStorage.setItem(
-        'redirectAfterLogin',
-        '/xlr8participants'
-      );
+  const handleParticipantDashboard =
+    () => {
+      if (!isLoggedIn) {
+        sessionStorage.setItem(
+          'redirectAfterLogin',
+          '/xlr8participants'
+        );
 
-      window.location.href = XLR8_SSO_URL;
+        window.location.href =
+          XLR8_SSO_URL;
 
-      return;
-    }
+        return;
+      }
 
-    if (
-      registrationStatus ===
-      'registered'
-    ) {
-      navigate('/xlr8participants');
-    }
-  };
+      if (
+        registrationStatus ===
+        'registered'
+      ) {
+        navigate(
+          '/xlr8participants'
+        );
+      }
+    };
 
   /* =========================================================
      RENDER
@@ -995,10 +1065,14 @@ const XLR8: React.FC = () => {
             {/* DESCRIPTION */}
 
             <p className="text-xl sm:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Gear up for our club’s flagship event,
-              recognized as the institute’s biggest
-              technical event, bringing together
-              students to compete, learn, and excel.
+              Gear up for our
+              club’s flagship event,
+              recognized as the
+              institute’s biggest
+              technical event,
+              bringing together
+              students to compete,
+              learn, and excel.
             </p>
 
             {/* =================================================
@@ -1008,32 +1082,132 @@ const XLR8: React.FC = () => {
             <div className="mt-8 w-full max-w-5xl mx-auto">
 
               {/* =================================================
+                  RESOURCE BUTTONS
+              ================================================= */}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+
+                {/* XLR8 NOTION */}
+
+                <a
+                  href={XLR8_NOTION_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative overflow-hidden rounded-xl border border-cyan-400/30 bg-slate-950/80 hover:bg-cyan-500/[0.06] hover:border-cyan-400/60 transition-all duration-300 shadow-[0_0_25px_rgba(6,182,212,0.05)] hover:-translate-y-0.5"
+                >
+
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                  <div className="relative z-10 p-4 flex items-center justify-between gap-4">
+
+                    <div className="flex items-center gap-3">
+
+                      <div className="w-11 h-11 rounded-xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-5 h-5 text-cyan-400" />
+                      </div>
+
+                      <div className="text-left">
+
+                        <h4 className="text-base sm:text-lg font-bold text-white">
+                          XLR8 Notion Page
+                        </h4>
+
+                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                          All resources & updates
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="w-9 h-9 rounded-lg border border-cyan-400/20 bg-cyan-400/5 flex items-center justify-center shrink-0">
+
+                      <ChevronRight className="w-5 h-5 text-cyan-400 group-hover:translate-x-1 transition-transform" />
+
+                    </div>
+
+                  </div>
+
+                </a>
+
+                {/* =================================================
+                    PROBLEM STATEMENTS
+                ================================================= */}
+
+                <a
+                  href={PROBLEM_STATEMENTS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative overflow-hidden rounded-xl border border-amber-400/30 bg-slate-950/80 hover:bg-amber-500/[0.06] hover:border-amber-400/60 transition-all duration-300 shadow-[0_0_25px_rgba(245,158,11,0.05)] hover:-translate-y-0.5"
+                >
+
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                  <div className="relative z-10 p-4 flex items-center justify-between gap-4">
+
+                    <div className="flex items-center gap-3">
+
+                      {/* ⭐ NEW PROBLEM STATEMENT ICON */}
+
+                      <div className="w-11 h-11 rounded-xl bg-amber-400/10 border border-amber-400/25 flex items-center justify-center shrink-0">
+                        <Wrench className="w-5 h-5 text-amber-400" />
+                      </div>
+
+                      <div className="text-left">
+
+                        <h4 className="text-base sm:text-lg font-bold text-white">
+                          Problem Statements
+                        </h4>
+
+                        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                          View the XLR8 challenges
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="w-9 h-9 rounded-lg border border-amber-400/20 bg-amber-400/5 flex items-center justify-center shrink-0">
+
+                      <ChevronRight className="w-5 h-5 text-amber-400 group-hover:translate-x-1 transition-transform" />
+
+                    </div>
+
+                  </div>
+
+                </a>
+
+              </div>
+
+              {/* =================================================
                   LOGGED IN
               ================================================= */}
 
-              {isLoggedIn && user ? (
+              {isLoggedIn &&
+              user ? (
 
                 <>
 
                   {/* CHECKING */}
 
-                  {registrationStatus === 'checking' && (
+                  {registrationStatus ===
+                    'checking' && (
                     <div className="rounded-2xl border border-cyan-500/30 bg-slate-950/80 p-5 flex items-center justify-center gap-3">
 
                       <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
 
                       <span className="text-base text-slate-300">
-                        Checking XLR8 registration...
+                        Checking XLR8
+                        registration...
                       </span>
 
                     </div>
                   )}
 
-                  {/* =================================================
-                      REGISTERED
-                  ================================================= */}
+                  {/* REGISTERED */}
 
-                  {registrationStatus === 'registered' && (
+                  {registrationStatus ===
+                    'registered' && (
 
                     <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-cyan-950/10 shadow-[0_0_40px_rgba(16,185,129,0.08)] p-4 sm:p-5">
 
@@ -1043,8 +1217,6 @@ const XLR8: React.FC = () => {
 
                         <div className="flex items-center gap-4">
 
-                          {/* USER ICON */}
-
                           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center bg-cyan-500/10 border border-cyan-500/30 shrink-0">
 
                             <UserRound className="w-7 h-7 sm:w-8 sm:h-8 text-cyan-400" />
@@ -1052,8 +1224,6 @@ const XLR8: React.FC = () => {
                           </div>
 
                           <div className="text-left">
-
-                            {/* HELLO */}
 
                             <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-white tracking-wide">
 
@@ -1064,8 +1234,6 @@ const XLR8: React.FC = () => {
                               </span>
 
                             </h3>
-
-                            {/* ROLL NUMBER */}
 
                             <p className="text-sm sm:text-base text-slate-500 mt-1">
 
@@ -1081,8 +1249,6 @@ const XLR8: React.FC = () => {
 
                         </div>
 
-                        {/* REGISTERED STATUS */}
-
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 text-sm font-semibold shrink-0">
 
                           <CheckCircle2 className="w-4 h-4" />
@@ -1095,63 +1261,49 @@ const XLR8: React.FC = () => {
 
                       <div className="my-4 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
 
-                      {/* =================================================
-                          TEAM + VEHICLE
-                      ================================================= */}
+                      {/* TEAM + VEHICLE */}
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                        {/* TEAM */}
 
                         <div className="min-h-[105px] p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col items-center justify-center text-center">
 
                           <Users className="w-6 h-6 text-cyan-400 mb-2" />
 
                           <p className="text-xs font-mono text-slate-500 uppercase tracking-wider font-semibold">
-
                             Team Name
-
                           </p>
 
                           <p className="text-lg sm:text-xl font-bold text-white mt-1">
-
                             {registeredTeamName ||
                               'Team Registered'}
-
                           </p>
 
                         </div>
-
-                        {/* VEHICLE */}
 
                         <div className="min-h-[105px] p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col items-center justify-center text-center">
 
                           <Zap className="w-6 h-6 text-amber-400 mb-2" />
 
                           <p className="text-xs font-mono text-slate-500 uppercase tracking-wider font-semibold">
-
                             Vehicle No.
-
                           </p>
 
                           <p className="text-lg sm:text-xl font-bold text-white mt-1 font-mono">
-
                             {registeredVehicleNo ||
                               'Not Assigned'}
-
                           </p>
 
                         </div>
 
                       </div>
 
-                      {/* =================================================
-                          PARTICIPANT DASHBOARD
-                      ================================================= */}
+                      {/* PARTICIPANT DASHBOARD */}
 
                       <button
                         type="button"
-                        onClick={handleParticipantDashboard}
+                        onClick={
+                          handleParticipantDashboard
+                        }
                         className="group relative mt-3 block w-full overflow-hidden rounded-xl border border-cyan-400/30 bg-cyan-500/[0.04] hover:bg-cyan-500/[0.08] hover:border-cyan-400/60 transition-all duration-300 text-left"
                       >
 
@@ -1168,15 +1320,11 @@ const XLR8: React.FC = () => {
                             <div>
 
                               <h4 className="text-lg sm:text-xl font-bold text-white">
-
                                 Open Participant Dashboard
-
                               </h4>
 
                               <p className="text-sm sm:text-base text-slate-500 mt-1">
-
                                 Kits • Slots • Sessions • Team • Mentor • POC • Final Race
-
                               </p>
 
                             </div>
@@ -1196,11 +1344,10 @@ const XLR8: React.FC = () => {
                     </div>
                   )}
 
-                  {/* =================================================
-                      NOT REGISTERED
-                  ================================================= */}
+                  {/* NOT REGISTERED */}
 
-                  {registrationStatus === 'not_registered' && (
+                  {registrationStatus ===
+                    'not_registered' && (
 
                     <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-950 to-amber-950/20 shadow-[0_0_35px_rgba(245,158,11,0.12)] px-6 py-7 sm:px-10 sm:py-8">
 
@@ -1210,8 +1357,6 @@ const XLR8: React.FC = () => {
 
                       <div className="relative z-10 flex flex-col items-center text-center">
 
-                        {/* LOCK ICON */}
-
                         <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-5 shadow-[0_0_25px_rgba(245,158,11,0.15)]">
 
                           <div className="absolute inset-0 rounded-2xl bg-amber-500/5 blur-xl" />
@@ -1220,30 +1365,22 @@ const XLR8: React.FC = () => {
 
                         </div>
 
-                        {/* STATUS */}
-
                         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-sm font-mono font-bold tracking-widest uppercase mb-4">
-
                           NOT REGISTERED
-
                         </div>
 
-                        {/* HEADING */}
-
                         <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-heading text-white tracking-wide mb-4">
-
                           Oops… you missed the XLR8 rush!
-
                         </h3>
 
-                        {/* MESSAGE */}
-
                         <p className="max-w-2xl text-sm sm:text-base text-slate-500 mt-3 leading-relaxed">
-
-                          The bots are being built, teams are gearing up, and the race is getting closer.
-                          Looks like your name didn’t make it to the starting grid this time.
+                          The bots are being built,
+                          teams are gearing up,
+                          and the race is getting
+                          closer. Looks like your
+                          name didn’t make it to the
+                          starting grid this time.
                           Better luck for MS101!
-
                         </p>
 
                       </div>
@@ -1251,37 +1388,32 @@ const XLR8: React.FC = () => {
                     </div>
                   )}
 
-                  {/* =================================================
-                      ERROR
-                  ================================================= */}
+                  {/* ERROR */}
 
-                  {registrationStatus === 'error' && (
+                  {registrationStatus ===
+                    'error' && (
 
                     <div className="rounded-2xl border border-rose-500/30 bg-rose-950/10 p-6">
 
                       <div className="flex items-center gap-4">
 
-                        <AlertCircle className="w-6 h-6 text-rose-400 shrink-0" />
-
                         <div className="text-left flex-1">
 
                           <h3 className="text-lg font-bold text-rose-300">
-
                             Couldn't verify your registration
-
                           </h3>
 
                           <p className="text-sm text-slate-500 mt-1">
-
                             Please try again.
-
                           </p>
 
                         </div>
 
                         <button
                           type="button"
-                          onClick={checkFinalRegistration}
+                          onClick={
+                            checkFinalRegistration
+                          }
                           className="px-4 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white text-sm font-semibold transition"
                         >
                           Try Again
@@ -1296,13 +1428,13 @@ const XLR8: React.FC = () => {
 
               ) : (
 
-                /* =================================================
-                   LOGGED OUT
-                ================================================= */
+                /* LOGGED OUT */
 
                 <button
                   type="button"
-                  onClick={handleParticipantDashboard}
+                  onClick={
+                    handleParticipantDashboard
+                  }
                   className="group relative block w-full overflow-hidden rounded-2xl border border-cyan-400/30 bg-slate-950/80 shadow-[0_0_40px_rgba(6,182,212,0.10)] hover:border-cyan-400/60 transition-all duration-500 text-left"
                 >
 
@@ -1321,15 +1453,11 @@ const XLR8: React.FC = () => {
                       <div className="text-left">
 
                         <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-white tracking-wide">
-
                           Participant Dashboard
-
                         </h3>
 
                         <p className="text-sm sm:text-base text-slate-500 mt-1">
-
                           Login with ITC SSO to check your XLR8 registration.
-
                         </p>
 
                       </div>
@@ -1356,9 +1484,7 @@ const XLR8: React.FC = () => {
 
               )}
 
-              {/* =================================================
-                  CONVENER PORTAL
-              ================================================= */}
+              {/* CONVENER PORTAL */}
 
               {isConvener && (
 
@@ -1422,9 +1548,7 @@ const XLR8: React.FC = () => {
         <div className="max-w-5xl mx-auto text-center px-4">
 
           <h2 className="text-3xl sm:text-4xl font-heading mb-8 border-b-4 border-rose-500 inline-block">
-
             XLR8 2025 After Movie
-
           </h2>
 
           <div className="p-1 rounded-3xl bg-slate-800 shadow-lg">

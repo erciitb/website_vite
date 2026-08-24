@@ -42,9 +42,6 @@ const KIT_API_URL =
 const SLOT_API_URL =
   'https://script.google.com/macros/s/AKfycbwHjNet27vQPH9fJ5_cKq2F6wkQNoEw71eOr2ITXn86tSTvQZFBIBQ-IyppulcurbPD/exec';
 
-const SOLDERING_API_URL =
-  'https://script.google.com/macros/s/AKfycbykNEARK6caFV7Plb9jYuoFDgpSqzL1nf1N1eiEChftLqrB09w_jZYU1CbOZ3RymYzy/exec';
-
 const MENTOR_API_URL =
   'https://script.google.com/macros/s/AKfycbyIorhus3R2IweNMBIZskgS9QDQlo4cA71gwvY_mxsKVGkG7C9NHfBI0NEpAH7TfANU/exec';
 
@@ -55,9 +52,6 @@ const MENTOR_API_URL =
 
 const ELECTRICAL_KIT_DATE =
   'August 22';
-
-const SOLDERING_SESSION_DATE =
-  'August 23';
 
 
 /* =========================================================
@@ -123,10 +117,7 @@ interface KitResponse {
     vehicleNumber?: string;
     rollNumber?: string;
     total?: number;
-    items?: Record<
-      string,
-      boolean
-    >;
+    items?: Record<string, boolean>;
   };
 
   message?: string;
@@ -196,10 +187,7 @@ interface SlotInfo {
 
   total?: number;
 
-  items?: Record<
-    string,
-    boolean
-  >;
+  items?: Record<string, boolean>;
 }
 
 
@@ -691,8 +679,6 @@ const XLR8ParticipantDashboard:
 
         /* ===================================================
            VEHICLE NUMBER
-
-           Comes from registration API.
         =================================================== */
 
         const vehicleNumber =
@@ -727,9 +713,8 @@ const XLR8ParticipantDashboard:
         /* ===================================================
            SOFTWARE SESSION
 
-           No longer fetched from any API — the session has
-           already happened, so it's always shown as
-           Completed with no date/time/venue.
+           ALREADY COMPLETED.
+           NO API FETCH.
         =================================================== */
 
         const softwareSession:
@@ -742,42 +727,23 @@ const XLR8ParticipantDashboard:
 
 
         /* ===================================================
-           SOLDERING SESSION DEFAULT
+           SOLDERING SESSION
 
-           DATE = AUGUST 23
-
-           TIME + VENUE COME FROM THE DEDICATED
-           SOLDERING-SLOT SHEET (SEPARATE API), WHICH
-           HANDLES MERGED TIME-SLOT CELLS ACROSS
-           VEHICLE-NUMBER RANGES.
+           ALREADY COMPLETED.
+           NO API FETCH.
         =================================================== */
 
-        let solderingSession:
+        const solderingSession:
           SlotInfo = {
 
             status:
-              'To Be Announced',
-
-            date:
-              SOLDERING_SESSION_DATE,
-
-            time:
-              '',
-
-            venue:
-              '',
+              'Completed',
 
           };
 
 
         /* ===================================================
            MENTOR ALLOTMENT DEFAULT
-
-           TEAM NAME / VEHICLE NO. / MENTOR / CONTACT NO. /
-           POC NAME & CONTACT COME FROM A DEDICATED
-           MENTOR-ALLOTMENT SHEET (SEPARATE API), ALSO KEYED
-           BY VEHICLE NUMBER AND ALSO EXPECTED TO USE
-           MERGED-RANGE CELLS ACROSS VEHICLE-NUMBER RANGES.
         =================================================== */
 
         let mentor:
@@ -801,8 +767,7 @@ const XLR8ParticipantDashboard:
         /* ===================================================
            SLOT API
 
-           Uses vehicle number from registration API.
-           Only feeds the electrical kit slot now.
+           ONLY ELECTRICAL KIT USES THIS API.
         =================================================== */
 
         if (vehicleNumber) {
@@ -853,10 +818,6 @@ const XLR8ParticipantDashboard:
             );
 
 
-            /* =================================================
-               SLOT FOUND
-            ================================================= */
-
             if (
               slotData.success &&
               slotData.found
@@ -872,12 +833,6 @@ const XLR8ParticipantDashboard:
                 slotData.venue ||
                 'To Be Announced';
 
-
-              /* =============================================
-                 ELECTRICAL KIT
-
-                 SAME SLOT SHEET DATA
-              ============================================= */
 
               electricalKit = {
 
@@ -914,120 +869,7 @@ const XLR8ParticipantDashboard:
 
 
           /* =================================================
-             SOLDERING SLOT API
-
-             Separate Apps Script / sheet from the
-             electrical slot data above.
-             Also keyed by vehicle number, and expected to
-             resolve merged-range cells (e.g. one slot
-             covering MH 03 ER 0001–0008) to the specific
-             vehicle being queried.
-          ================================================= */
-
-          try {
-
-            const solderingURL =
-              `${SOLDERING_API_URL}?vehicle=${encodeURIComponent(
-                vehicleNumber
-              )}`;
-
-
-            const solderingResponse =
-              await fetch(
-                solderingURL,
-                {
-                  method:
-                    'GET',
-
-                  headers: {
-                    Accept:
-                      'application/json',
-                  },
-
-                  cache:
-                    'no-store',
-                }
-              );
-
-
-            if (!solderingResponse.ok) {
-
-              throw new Error(
-                `Soldering slot API returned ${solderingResponse.status}`
-              );
-
-            }
-
-
-            const solderingData:
-              SlotResponse =
-              await solderingResponse.json();
-
-
-            console.log(
-              'XLR8 soldering slot response:',
-              solderingData
-            );
-
-
-            if (
-              solderingData.success &&
-              solderingData.found
-            ) {
-
-              const solderingTime =
-                solderingData.time ||
-                solderingData.slot ||
-                '';
-
-
-              const solderingVenue =
-                solderingData.venue ||
-                'To Be Announced';
-
-
-              solderingSession = {
-
-                status:
-                  'Slot Assigned',
-
-                date:
-                  SOLDERING_SESSION_DATE,
-
-                time:
-                  solderingTime,
-
-                venue:
-                  solderingVenue,
-
-                details:
-                  solderingData.details ||
-                  '',
-
-              };
-
-            }
-
-          } catch (
-            solderingError
-          ) {
-
-            console.warn(
-              'Soldering slot API error:',
-              solderingError
-            );
-
-          }
-
-
-          /* =================================================
              MENTOR ALLOTMENT API
-
-             Separate Apps Script / sheet from all of the
-             above. Keyed by vehicle number, and expected to
-             resolve merged-range cells (mentor / POC assigned
-             to a block of vehicle numbers) down to the
-             specific vehicle being queried.
           ================================================= */
 
           try {
@@ -1104,11 +946,7 @@ const XLR8ParticipantDashboard:
 
 
               /* =============================================
-                 If the sheet's "POC Name & Contact" column
-                 comes back as one combined string instead of
-                 separate fields, split it on the first run of
-                 digits so the phone number renders on its own
-                 line under the POC's name.
+                 COMBINED POC FIELD
               ============================================= */
 
               if (
@@ -1392,7 +1230,6 @@ const XLR8ParticipantDashboard:
         setError(
           'Unable to load your XLR8 registration details. Please try again.'
         );
-
 
       } finally {
 
@@ -1704,7 +1541,6 @@ const XLR8ParticipantDashboard:
 
       {/* ===================================================
           BACKGROUND
-          NO GRID
       =================================================== */}
 
       <div
@@ -2098,47 +1934,50 @@ const XLR8ParticipantDashboard:
                 "
               >
 
-              {/* MECHANICAL KIT REGISTRATION */}
+                {/* MECHANICAL KIT REGISTRATION */}
 
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href =
-                    `/Xlr8registration?vehicleNo=${encodeURIComponent(
-                      team?.vehicleNo || ''
-                    )}&teamName=${encodeURIComponent(
-                      team?.teamName || ''
-                    )}`;
-                }}    
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href =
+                      `/Xlr8registration?vehicleNo=${encodeURIComponent(
+                        team?.vehicleNo || ''
+                      )}&teamName=${encodeURIComponent(
+                        team?.teamName || ''
+                      )}`;
+                  }}
                   className="
-                  px-4
-                  py-3
-                  rounded-lg
-                  bg-amber-500/5
-                  border
-                  border-amber-500/20
-                  text-left
-                  transition-all
-                  hover:border-amber-400/40
-                  hover:bg-amber-500/10
-                  cursor-pointer
-                "
-              >
-                <p
-                  className="
-                    text-sm
-                    font-bold
-                    text-amber-400
-                    mt-1
-                    flex
-                    items-center
-                    gap-1.5
+                    px-4
+                    py-3
+                    rounded-lg
+                    bg-amber-500/5
+                    border
+                    border-amber-500/20
+                    text-left
+                    transition-all
+                    hover:border-amber-400/40
+                    hover:bg-amber-500/10
+                    cursor-pointer
                   "
                 >
-                  REGISTER FOR MECHANICAL KIT
-                </p>
-              </button>
-              
+
+                  <p
+                    className="
+                      text-sm
+                      font-bold
+                      text-amber-400
+                      mt-1
+                      flex
+                      items-center
+                      gap-1.5
+                    "
+                  >
+                    REGISTER FOR MECHANICAL KIT
+                  </p>
+
+                </button>
+
+
                 {/* VEHICLE */}
 
                 <div
@@ -2227,6 +2066,7 @@ const XLR8ParticipantDashboard:
             </div>
 
           </div>
+
 
           {/* =================================================
               MENTOR & POC
@@ -2409,6 +2249,7 @@ const XLR8ParticipantDashboard:
           </div>
 
           )}
+
 
           {/* =================================================
               TEAM MEMBERS
@@ -2732,9 +2573,13 @@ const XLR8ParticipantDashboard:
                   'Kit Collected';
 
 
+              /*
+               * Only Electrical Kit can have a slot.
+               * Software and Soldering are already completed.
+               */
+
               const hasSlot =
-                isElectricalKit ||
-                isSolderingSession
+                isElectricalKit
                   ? Boolean(
                       info?.time ||
                       info?.slot
@@ -2890,7 +2735,8 @@ const XLR8ParticipantDashboard:
                         NOT COLLECTED
                       </span>
 
-                    ) : isSoftwareSession ? (
+                    ) : isSoftwareSession ||
+                      isSolderingSession ? (
 
                       <span
                         className="
@@ -3012,9 +2858,11 @@ const XLR8ParticipantDashboard:
                               transition
                             "
                           >
+
                             {showComponents
                               ? 'Hide Components List'
                               : 'Show Components List'}
+
                           </button>
 
                         </div>
@@ -3231,15 +3079,15 @@ const XLR8ParticipantDashboard:
                     </div>
 
 
-                  ) : isSoftwareSession ? (
+                  ) : isSoftwareSession ||
+                    isSolderingSession ? (
 
 
                     /* =================================================
-                       SOFTWARE SESSION — COMPLETED
+                       SOFTWARE + SOLDERING SESSION — COMPLETED
 
-                       No date/time/venue is fetched or shown;
-                       the COMPLETED badge above is the only
-                       indicator for this card.
+                       No date / time / venue shown.
+                       No API data fetched.
                     ================================================= */
 
                     null
@@ -3249,7 +3097,7 @@ const XLR8ParticipantDashboard:
 
 
                     /* =================================================
-                       SOLDERING + OTHER SESSION CARDS
+                       OTHER SESSION CARDS
                     ================================================= */
 
                     <div
@@ -3269,9 +3117,7 @@ const XLR8ParticipantDashboard:
                           "
                         >
 
-                          {/* =================================================
-                              DATE
-                          ================================================= */}
+                          {/* DATE */}
 
                           <div
                             className="
@@ -3328,9 +3174,7 @@ const XLR8ParticipantDashboard:
                           </div>
 
 
-                          {/* =================================================
-                              TIME
-                          ================================================= */}
+                          {/* TIME */}
 
                           <div
                             className="
@@ -3388,9 +3232,7 @@ const XLR8ParticipantDashboard:
                           </div>
 
 
-                          {/* =================================================
-                              VENUE
-                          ================================================= */}
+                          {/* VENUE */}
 
                           <div
                             className="

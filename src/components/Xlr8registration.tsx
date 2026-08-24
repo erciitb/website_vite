@@ -1471,7 +1471,7 @@ export default function Xlr8Registration() {
               sm:text-3xl
             "
           >
-            Mechanical Kit Request Submitted
+            Mechanical Kit Registration Form Submitted
           </h1>
 
           <p
@@ -1698,7 +1698,7 @@ export default function Xlr8Registration() {
               sm:text-4xl
             "
           >
-            Mechanical Kit
+            Mechanical Kit Registration
           </h1>
 
           <p
