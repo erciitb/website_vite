@@ -57,7 +57,7 @@ import Lipo from '../assets/li-po.avif';
 import liion from '../assets/li-ion-12v.webp';
 
 import aditya_qr from '../assets/aditya_qr.jpeg';
-import adity_qr2 from '../assets/aditya_qr3.jpeg';
+import aditya_qr2 from '../assets/aditya_qr3.jpeg';
 
 /* =========================================================
    CONFIG
