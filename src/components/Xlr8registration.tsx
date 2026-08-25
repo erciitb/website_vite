@@ -58,6 +58,7 @@ import liion from '../assets/li-ion-12v.webp';
 
 import aditya_qr from '../assets/aditya_qr.jpeg';
 import aditya_qr2 from '../assets/aditya_qr3.jpeg';
+import daksh_qr from '../assets/IMG-20260816-WA0031.jpg';
 
 /* =========================================================
    CONFIG
@@ -2447,7 +2448,7 @@ export default function Xlr8Registration() {
                 "
               >
                 <img
-                  src={aditya_qr2}
+                  src={daksh_qr}
                   alt="Aditya payment QR code"
                   className="
                     h-72
