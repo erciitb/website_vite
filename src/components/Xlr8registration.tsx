@@ -59,6 +59,7 @@ import liion from '../assets/li-ion-12v.webp';
 import aditya_qr from '../assets/aditya_qr.jpeg';
 import aditya_qr2 from '../assets/aditya_qr3.jpeg';
 import daksh_qr from '../assets/IMG-20260816-WA0031.jpg';
+import rr_qr from '../assets/GooglePay_QR(1)';
 
 /* =========================================================
    CONFIG
@@ -2448,7 +2449,7 @@ export default function Xlr8Registration() {
                 "
               >
                 <img
-                  src={daksh_qr}
+                  src={rr_qr}
                   alt="Aditya payment QR code"
                   className="
                     h-72
