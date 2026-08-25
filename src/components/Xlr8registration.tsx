@@ -58,11 +58,9 @@ import liion from '../assets/li-ion-12v.webp';
 
 import aditya_qr from '../assets/aditya_qr.jpeg';
 import aditya_qr2 from '../assets/aditya_qr3.jpeg';
-<<<<<<< HEAD
-=======
 import daksh_qr from '../assets/IMG-20260816-WA0031.jpg';
 import rr_qr from '../assets/GooglePay_QR (2).png';
->>>>>>> a06e833dc2b07656e1e553db6de825953ab7fb96
+import sachin_qr from '../assets/sachin_qr.jpeg';
 
 /* =========================================================
    CONFIG
@@ -2445,29 +2443,67 @@ export default function Xlr8Registration() {
 
               <div
                 className="
-                  rounded-2xl
-                  bg-white
-                  p-4
-                  shadow-lg
+                  grid
+                  w-full
+                  max-w-3xl
+                  grid-cols-1
+                  gap-5
+                  sm:grid-cols-2
                 "
               >
-                <img
-<<<<<<< HEAD
-                  src={aditya_qr2}
-=======
-                  src={rr_qr}
->>>>>>> a06e833dc2b07656e1e553db6de825953ab7fb96
-                  alt="Aditya payment QR code"
-                  className="
-                    h-72
-                    w-72
-                    object-contain
-                    sm:h-80
-                    sm:w-80
-                    lg:h-96
-                    lg:w-96
-                  "
-                />
+                {/* RR QR */}
+                <div className="flex flex-col items-center">
+                  
+                  <div
+                    className="
+                      rounded-2xl
+                      bg-white
+                      p-4
+                      shadow-lg
+                    "
+                  >
+                    <img
+                      src={rr_qr}
+                      alt="RR payment QR code"
+                      className="
+                        h-64
+                        w-64
+                        object-contain
+                        sm:h-72
+                        sm:w-72
+                        lg:h-80
+                        lg:w-80
+                      "
+                    />
+                  </div>
+                </div>
+
+                {/* Sachin QR */}
+                <div className="flex flex-col items-center">
+                  
+                  <div
+                    className="
+                      rounded-2xl
+                      bg-white
+                      p-4
+                      shadow-lg
+                    "
+                  >
+                    <img
+                      src={sachin_qr}
+                      alt="Sachin payment QR code"
+                      className="
+                        h-64
+                        w-64
+                        object-contain
+                        sm:h-72
+                        sm:w-72
+                        lg:h-80
+                        lg:w-80
+                      "
+                    />
+                  </div>
+                </div>
               </div>
 
               <p
