@@ -59,7 +59,7 @@ import liion from '../assets/li-ion-12v.webp';
 import aditya_qr from '../assets/aditya_qr.jpeg';
 import aditya_qr2 from '../assets/aditya_qr3.jpeg';
 import daksh_qr from '../assets/IMG-20260816-WA0031.jpg';
-import rr_qr from '../assets/GooglePay_QR(1).png';
+import rr_qr from '../assets/GooglePay_QR (2).png';
 
 /* =========================================================
    CONFIG
