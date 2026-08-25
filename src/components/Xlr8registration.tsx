@@ -57,6 +57,7 @@ import Lipo from '../assets/li-po.avif';
 import liion from '../assets/li-ion-12v.webp';
 
 import aditya_qr from '../assets/aditya_qr.jpeg';
+import aditya_qr2 from '../assets/aditya_qr3.jpeg';
 
 /* =========================================================
    CONFIG
@@ -2059,7 +2060,7 @@ export default function Xlr8Registration() {
               "
             >
               <QuantityField
-                label="7 × 2"
+                label="7 × 2 cm"
                 value={
                   formData.wheels7x2
                 }
@@ -2084,7 +2085,7 @@ export default function Xlr8Registration() {
               />
 
               <QuantityField
-                label="7 × 4"
+                label="7 × 4 cm"
                 value={
                   formData.wheels7x4
                 }
@@ -2109,7 +2110,7 @@ export default function Xlr8Registration() {
               />
 
               <QuantityField
-                label="10 × 4"
+                label="10 × 4 cm"
                 value={
                   formData.wheels10x4
                 }
@@ -2225,7 +2226,7 @@ export default function Xlr8Registration() {
               "
             >
               <FixedComponent
-                label="Controller Battery · 3.7V"
+                label="Controller Battery · 3.7V(Mandatory)"
                 value="1"
                 image={
                   controllerBatteryImage
@@ -2236,7 +2237,7 @@ export default function Xlr8Registration() {
               />
 
               <BatteryOption
-                title="LiPo Battery"
+                title="LiPo 12V Battery"
                 description="Li-polymer 12V battery"
                 price={
                   PRICES.liPolymer
@@ -2322,7 +2323,7 @@ export default function Xlr8Registration() {
               "
             >
               <QuantityField
-                label="L Clamp"
+                label="L-Clamps"
                 value={
                   formData.lClamp
                 }
@@ -2382,7 +2383,7 @@ export default function Xlr8Registration() {
             subtitle="Included accessories for the mechanical kit"
           >
             <IncludedComponent
-              label="Screw Driver"
+              label="Screw Driver(Mandatory)"
               image={
                 screwdriverImage
               }
@@ -2446,7 +2447,7 @@ export default function Xlr8Registration() {
                 "
               >
                 <img
-                  src={aditya_qr}
+                  src={aditya_qr2}
                   alt="Aditya payment QR code"
                   className="
                     h-72
