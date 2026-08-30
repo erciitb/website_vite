@@ -2463,7 +2463,7 @@ export default function Xlr8Registration() {
                     "
                   >
                     <img
-                      src={rr_qr}
+                      src={aditya_qr}
                       alt="RR payment QR code"
                       className="
                         h-64
