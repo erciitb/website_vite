@@ -37,7 +37,7 @@ const REGISTRATION_API_URL =
   'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
 
 const KIT_API_URL =
-  'https://script.google.com/macros/s/AKfycbyOlqOWSh4HX5F4yNeh3m0xvAfxrKMbbnfWX0dpElqCMcE5MlTzqODTfY29lLewQZra/exec';
+  'https://script.google.com/macros/s/AKfycbzqKQqk1MkHkfMAU4nZf3tGsR_b_VbsWK2W-kzH6dyCn5buRXXsAYxhDISMYrjkZX-D/exec';
 
 const SLOT_API_URL =
   'https://script.google.com/macros/s/AKfycbwHjNet27vQPH9fJ5_cKq2F6wkQNoEw71eOr2ITXn86tSTvQZFBIBQ-IyppulcurbPD/exec';
@@ -228,7 +228,9 @@ interface TeamData {
 
     debuggingSession?: SlotInfo;
 
-    checkpoint?: SlotInfo;
+    checkpoint1?: SlotInfo;
+
+    checkpoint2?: SlotInfo;
 
     finalRace?: SlotInfo;
   };
@@ -389,18 +391,30 @@ const LOGISTICS = [
     accent:
       'rose',
   },
-
   {
-    key: 'mechanicalKit',
+    key: 'checkpoint1',
 
     label:
-      'Mechanical Kit Collection',
+      'Checkpoint 1',
 
     icon:
-      Package,
+      MapPin,
 
     accent:
       'cyan',
+  },
+
+    {
+    key: 'checkpoint2',
+
+    label:
+      'Checkpoint 2',
+
+    icon:
+      MapPin,
+
+    accent:
+      'amber',
   },
 
   {
@@ -1192,10 +1206,35 @@ const XLR8ParticipantDashboard:
 
               },
 
-              checkpoint: {
+              checkpoint1: {
 
                 status:
-                  'To Be Announced',
+                  'Slot Assigned',
+
+                date:
+                  'August 30',
+
+                time:
+                  '1PM - 1AM',
+
+                venue:
+                  "Tinkerer's Laboratory, DSSE",
+
+              },
+
+              checkpoint2: {
+
+                status:
+                  'Slot Assigned',
+
+                date:
+                  'September 3',
+
+                time:
+                  'To be announced',
+
+                venue:
+                  "Tinkerer's Laboratory, DSSE",
 
               },
 
@@ -1933,53 +1972,6 @@ const XLR8ParticipantDashboard:
                   gap-3
                 "
               >
-
-                {/* MECHANICAL KIT REGISTRATION */}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.href =
-                      `/Xlr8registration?vehicleNo=${encodeURIComponent(
-                        team?.vehicleNo || ''
-                      )}&teamName=${encodeURIComponent(
-                        team?.teamName || ''
-                      )}`;
-                  }}
-                  className="
-                    px-4
-                    py-3
-                    rounded-lg
-                    bg-amber-500/5
-                    border
-                    border-amber-500/20
-                    text-left
-                    transition-all
-                    hover:border-amber-400/40
-                    hover:bg-amber-500/10
-                    cursor-pointer
-                  "
-                >
-
-                  <p
-                    className="
-                      text-sm
-                      font-bold
-                      text-amber-400
-                      mt-1
-                      flex
-                      items-center
-                      gap-1.5
-                    "
-                  >
-                    REGISTER FOR MECHANICAL KIT
-                  </p>
-
-                </button>
-
-
-                {/* VEHICLE */}
-
                 <div
                   className="
                     px-4
@@ -2567,6 +2559,11 @@ const XLR8ParticipantDashboard:
                 'solderingSession';
 
 
+              const isCheckpoint =
+                item.key === 'checkpoint1' ||
+                item.key === 'checkpoint2';
+
+
               const isCollected =
                 isElectricalKit &&
                 info?.status ===
@@ -2574,15 +2571,18 @@ const XLR8ParticipantDashboard:
 
 
               /*
-               * Only Electrical Kit can have a slot.
+               * Electrical Kit and Checkpoints can have scheduled details.
                * Software and Soldering are already completed.
                */
 
               const hasSlot =
-                isElectricalKit
+                isElectricalKit ||
+                isCheckpoint
                   ? Boolean(
+                      info?.date ||
                       info?.time ||
-                      info?.slot
+                      info?.slot ||
+                      info?.venue
                     )
                   : false;
 

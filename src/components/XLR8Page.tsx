@@ -599,7 +599,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     icon: (
       <Wrench className="w-6 h-6 text-rose-400" />
     ),
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-rose-950/60',
     tagText: 'text-rose-400',
     tagBorder: 'border-rose-800/50',
@@ -610,14 +610,14 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
   {
     id: 4,
     phase: 'PHASE 04',
-    title: 'Debugging Session',
+    title: 'Blueprint101',
     date: '29 AUG',
     description:
       'Troubleshoot your bot, fix hardware and software issues, and get expert help to make sure everything is race-ready.',
     icon: (
       <Flag className="w-6 h-6 text-emerald-400" />
     ),
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-emerald-950/60',
     tagText: 'text-emerald-400',
     tagBorder: 'border-emerald-800/50',
@@ -628,10 +628,10 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
   {
     id: 5,
     phase: 'PHASE 05',
-    title: 'Checkpoint',
+    title: 'Checkpoint 1',
     date: '30 AUG',
     description:
-      'Time for a progress check. Show us what you have built, assess your team’s progress, and make sure your bot is on track for the final showdown.',
+      'Show us your controller soldering to get your bonus points!',
     icon: (
       <CheckCircle2 className="w-6 h-6 text-blue-400" />
     ),
@@ -644,8 +644,26 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     titleHover: 'group-hover:text-blue-400',
   },
   {
-    id: 6,
+    id: 5,
     phase: 'PHASE 06',
+    title: 'Checkpoint 2',
+    date: '3 SEPT',
+    description:
+      'Time for a progress check. Show us what you have built, assess your team’s progress, and make sure your bot is on track for the final showdown.',
+    icon: (
+      <CheckCircle2 className="w-6 h-6 text-amber-400" />
+    ),
+    status: 'upcoming',
+    tagBg: 'bg-amber-950/60',
+    tagText: 'text-amber-400',
+    tagBorder: 'border-amber-800/50',
+    topBar: 'bg-amber-500',
+    hoverBorder: 'hover:border-amber-500/40',
+    titleHover: 'group-hover:text-amber-400',
+  },
+  {
+    id: 6,
+    phase: 'PHASE 07',
     title: 'XLR8 Main Event',
     date: '05–06 SEP',
     description:

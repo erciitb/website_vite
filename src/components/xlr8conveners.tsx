@@ -13,6 +13,7 @@ import {
   Square,
   Send,
   AlertTriangle,
+  ShieldCheck,
 } from 'lucide-react';
 
 // =======================================================================
@@ -25,7 +26,7 @@ const SEARCH_SCRIPT_URL =
 
 // Kit Distribution Apps Script
 const KIT_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbyOlqOWSh4HX5F4yNeh3m0xvAfxrKMbbnfWX0dpElqCMcE5MlTzqODTfY29lLewQZra/exec';
+  'https://script.google.com/macros/s/AKfycbzqKQqk1MkHkfMAU4nZf3tGsR_b_VbsWK2W-kzH6dyCn5buRXXsAYxhDISMYrjkZX-D/exec';
 
 // =======================================================================
 // TEAM DATA
@@ -63,6 +64,8 @@ interface TeamData {
   p4MentorPhone: string;
 
   isConfirmed: boolean;
+  checkpoint1Status: boolean;
+  batteryStatus: boolean;
 }
 
 // =======================================================================
@@ -88,8 +91,6 @@ const kitItems = [
   { id: 'bergPins', label: 'Berg Pins(M/F)' },
   { id: 'microUsb', label: 'Micro USB Cable' },
   { id: 'screwDriver', label: 'Black Electric Tape' },
-
-  // NEW
   { id: 'buckConverter', label: 'Buck Converter' },
 ];
 
@@ -117,20 +118,22 @@ const Xlr8Conveners = () => {
   const [isKitConfirmed, setIsKitConfirmed] = useState(false);
   const [isSubmittingKit, setIsSubmittingKit] = useState(false);
 
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<
+    'checkpoint1' | 'battery' | null
+  >(null);
+
+  const [checkpoint1Status, setCheckpoint1Status] = useState(false);
+  const [batteryStatus, setBatteryStatus] = useState(false);
+
+  const [checkedItems, setCheckedItems] = useState<
+    Record<string, boolean>
+  >(
     () =>
       kitItems.reduce<Record<string, boolean>>((acc, item) => {
         acc[item.id] = false;
         return acc;
       }, {})
   );
-
-  // =====================================================================
-  // SELECTED COMPONENT COUNT
-  // =====================================================================
-
-  const selectedItemCount =
-    Object.values(checkedItems).filter(Boolean).length;
 
   // =====================================================================
   // LOGIN CHECK
@@ -171,7 +174,7 @@ const Xlr8Conveners = () => {
   };
 
   // =====================================================================
-  // EMPTY KIT STATE
+  // RESET KIT ITEMS
   // =====================================================================
 
   const resetKitItems = () => {
@@ -214,21 +217,41 @@ const Xlr8Conveners = () => {
       if (result.success && result.isConfirmed) {
         setIsKitConfirmed(true);
 
+        const confirmedData = result.confirmedData || {};
+
+        setCheckpoint1Status(
+          confirmedData.checkpoint1Status === true ||
+            String(confirmedData?.checkpoint1Status).toLowerCase() ===
+              'true'
+        );
+
+        setBatteryStatus(
+          confirmedData.batteryStatus === true ||
+            String(confirmedData.batteryStatus).toLowerCase() === 'true'
+        );
+
+        /*
+         * We still load the distributed components internally,
+         * but they are NOT displayed once the kit is confirmed.
+         */
         if (
-          result.confirmedData &&
-          result.confirmedData.items &&
-          typeof result.confirmedData.items === 'object'
+          confirmedData.items &&
+          typeof confirmedData.items === 'object'
         ) {
-          setCheckedItems(result.confirmedData.items);
+          setCheckedItems(confirmedData.items);
         }
       } else {
         setIsKitConfirmed(false);
+        setCheckpoint1Status(false);
+        setBatteryStatus(false);
         resetKitItems();
       }
     } catch (err) {
       console.error('Failed to fetch kit status:', err);
 
       setIsKitConfirmed(false);
+      setCheckpoint1Status(false);
+      setBatteryStatus(false);
       resetKitItems();
     } finally {
       setIsFetchingKit(false);
@@ -257,31 +280,26 @@ const Xlr8Conveners = () => {
 
     return {
       teamName: data.teamName || '',
-
       vehicleNumber: data.vehicleNumber || '',
 
-      // Leader
       leaderName: leader.name || '',
       leaderRoll: leader.roll || '',
       leaderPhone: leader.phone || '',
       leaderMentor: leader.mentor || '',
       leaderMentorPhone: leader.mentorPhone || '',
 
-      // Participant 2
       p2Name: p2.name || '',
       p2Roll: p2.roll || '',
       p2Phone: p2.phone || '',
       p2Mentor: p2.mentor || '',
       p2MentorPhone: p2.mentorPhone || '',
 
-      // Participant 3
       p3Name: p3.name || '',
       p3Roll: p3.roll || '',
       p3Phone: p3.phone || '',
       p3Mentor: p3.mentor || '',
       p3MentorPhone: p3.mentorPhone || '',
 
-      // Participant 4
       p4Name: p4.name || '',
       p4Roll: p4.roll || '',
       p4Phone: p4.phone || '',
@@ -291,6 +309,9 @@ const Xlr8Conveners = () => {
       isConfirmed:
         data.isConfirmed === true ||
         String(data.isConfirmed).toLowerCase() === 'true',
+
+      checkpoint1Status: false,
+      batteryStatus: false,
     };
   };
 
@@ -338,6 +359,9 @@ const Xlr8Conveners = () => {
       isConfirmed:
         team.isConfirmed === true ||
         String(team.isConfirmed).toLowerCase() === 'true',
+
+      checkpoint1Status: false,
+      batteryStatus: false,
     };
   };
 
@@ -356,6 +380,8 @@ const Xlr8Conveners = () => {
     setError('');
     setSearchResult(null);
     setIsKitConfirmed(false);
+    setCheckpoint1Status(false);
+    setBatteryStatus(false);
     resetKitItems();
 
     try {
@@ -455,7 +481,6 @@ const Xlr8Conveners = () => {
 
       // ===============================================================
       // FETCH KIT STATUS
-      // Both roll + vehicle are sent.
       // ===============================================================
 
       await fetchKitStatus(
@@ -489,17 +514,17 @@ const Xlr8Conveners = () => {
   // =====================================================================
 
   const handleSelectAll = () => {
-    const allSelected =
-      kitItems.every((item) => checkedItems[item.id]);
+    const allSelected = kitItems.every(
+      (item) => checkedItems[item.id]
+    );
 
-    const newState =
-      kitItems.reduce<Record<string, boolean>>(
-        (acc, item) => {
-          acc[item.id] = !allSelected;
-          return acc;
-        },
-        {}
-      );
+    const newState = kitItems.reduce<Record<string, boolean>>(
+      (acc, item) => {
+        acc[item.id] = !allSelected;
+        return acc;
+      },
+      {}
+    );
 
     setCheckedItems(newState);
   };
@@ -518,8 +543,7 @@ const Xlr8Conveners = () => {
     const payload = {
       action: 'kitDistribution',
 
-      rollNumber:
-        searchResult.leaderRoll,
+      rollNumber: searchResult.leaderRoll,
 
       vehicleNumber:
         searchResult.vehicleNumber || '',
@@ -549,8 +573,10 @@ const Xlr8Conveners = () => {
       if (result.success) {
         setIsKitConfirmed(true);
 
-        // Keep the currently selected state so the
-        // recorded components immediately reflect submission.
+        /*
+         * Keep selected state internally.
+         * It will not be displayed in the confirmed view.
+         */
         setCheckedItems({
           ...checkedItems,
         });
@@ -571,6 +597,77 @@ const Xlr8Conveners = () => {
       );
     } finally {
       setIsSubmittingKit(false);
+    }
+  };
+
+  // =====================================================================
+  // CHECKPOINT / BATTERY STATUS UPDATE
+  // =====================================================================
+
+  const handleStatusUpdate = async (
+    statusType: 'checkpoint1' | 'battery'
+  ) => {
+    if (!searchResult) return;
+
+    setIsUpdatingStatus(statusType);
+
+    try {
+      const response = await fetch(KIT_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        redirect: 'follow',
+        body: JSON.stringify({
+          action: 'updateStatus',
+          statusType,
+          rollNumber: searchResult.leaderRoll,
+          vehicleNumber:
+            searchResult.vehicleNumber || '',
+        }),
+      });
+
+      const result = await response.json();
+
+      console.log(
+        'Status update response:',
+        result
+      );
+
+      if (!result.success) {
+        alert(
+          `Status update failed: ${
+            result.message ||
+            result.error ||
+            'Unknown error'
+          }`
+        );
+
+        return;
+      }
+
+      setCheckpoint1Status(
+        result.checkpoint1Status === true ||
+          String(result.checkpoint1Status).toLowerCase() ===
+            'true'
+      );
+
+      setBatteryStatus(
+        result.batteryStatus === true ||
+          String(result.batteryStatus).toLowerCase() ===
+            'true'
+      );
+    } catch (error) {
+      console.error(
+        'Status update error:',
+        error
+      );
+
+      alert(
+        'An error occurred while updating the status.'
+      );
+    } finally {
+      setIsUpdatingStatus(null);
     }
   };
 
@@ -639,8 +736,6 @@ const Xlr8Conveners = () => {
 
         <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
 
-          {/* NAME */}
-
           <div>
             <span className="text-slate-500 text-xs block">
               Name
@@ -650,8 +745,6 @@ const Xlr8Conveners = () => {
               {name || 'N/A'}
             </span>
           </div>
-
-          {/* ROLL */}
 
           <div>
             <span className="text-slate-500 text-xs block">
@@ -663,8 +756,6 @@ const Xlr8Conveners = () => {
             </span>
           </div>
 
-          {/* PHONE */}
-
           <div>
             <span className="text-slate-500 text-xs block">
               Phone
@@ -675,11 +766,7 @@ const Xlr8Conveners = () => {
             </span>
           </div>
 
-          {/* SEPARATOR */}
-
           <div className="col-span-2 border-t border-slate-800/60 mt-1 pt-2" />
-
-          {/* MENTOR */}
 
           <div>
             <span className="text-slate-500 text-xs block">
@@ -690,8 +777,6 @@ const Xlr8Conveners = () => {
               {mentor || 'N/A'}
             </span>
           </div>
-
-          {/* MENTOR PHONE */}
 
           <div>
             <span className="text-slate-500 text-xs block">
@@ -833,7 +918,9 @@ const Xlr8Conveners = () => {
         {searchResult && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
 
-            {/* TEAM DETAILS */}
+            {/* =========================================================
+                TEAM DETAILS
+            ========================================================= */}
 
             <div>
 
@@ -954,7 +1041,9 @@ const Xlr8Conveners = () => {
 
               </div>
 
-              {/* LOADING */}
+              {/* =======================================================
+                  LOADING
+              ======================================================= */}
 
               {isFetchingKit ? (
 
@@ -972,21 +1061,25 @@ const Xlr8Conveners = () => {
 
                 /* =====================================================
                    KIT ALREADY DISTRIBUTED
+
+                   IMPORTANT:
+                   No component list is shown here.
                 ===================================================== */
 
                 <div className="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-6">
 
-                  <div className="flex flex-col items-center text-center border-b border-slate-700/80 pb-6 mb-6">
+                  {/* KIT DISTRIBUTED MESSAGE */}
+
+                  <div className="flex flex-col items-center text-center">
 
                     <CheckCircle2 className="w-14 h-14 text-green-500 mb-3" />
 
                     <h4 className="text-xl font-bold text-slate-100">
-                      Kit Already Distributed
+                      Kit Distributed
                     </h4>
 
                     <p className="text-slate-400 text-sm mt-1">
-                      Components have been handed over to{' '}
-
+                      Electrical kit has been handed over to{' '}
                       <span className="text-slate-200 font-semibold">
                         {searchResult.teamName}
                       </span>
@@ -995,62 +1088,71 @@ const Xlr8Conveners = () => {
 
                   </div>
 
-                  <h5 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+                  {/* =================================================
+                      CHECKPOINT + BATTERY STATUS
+                  ================================================= */}
 
-                    <Package className="w-4 h-4 text-slate-400" />
+                  <div className="mt-6 pt-6 border-t border-slate-700/80 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    Recorded Components
+                    {/* CHECKPOINT 1 */}
 
-                  </h5>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleStatusUpdate('checkpoint1')
+                      }
+                      disabled={
+                        checkpoint1Status ||
+                        isUpdatingStatus !== null
+                      }
+                      className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl border font-semibold transition-all ${
+                        checkpoint1Status
+                          ? 'bg-green-900/20 border-green-500/40 text-green-400 cursor-default'
+                          : 'bg-blue-600 hover:bg-blue-500 border-blue-500 text-white disabled:opacity-50'
+                      }`}
+                    >
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {isUpdatingStatus === 'checkpoint1' ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <ShieldCheck className="w-4 h-4" />
+                      )}
 
-                    {kitItems.map((item) => (
+                      {checkpoint1Status
+                        ? 'Controller Verified'
+                        : 'Check Point 1 Status'}
 
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-[#0b1120] border border-slate-700/50"
-                      >
+                    </button>
 
-                        {checkedItems[item.id] ? (
-                          <CheckSquare className="w-4 h-4 text-blue-500" />
-                        ) : (
-                          <Square className="w-4 h-4 text-slate-600" />
-                        )}
+                    {/* BATTERY */}
 
-                        <span
-                          className={
-                            checkedItems[item.id]
-                              ? 'text-slate-300 text-sm'
-                              : 'text-slate-600 text-sm line-through'
-                          }
-                        >
-                          {item.label}
-                        </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleStatusUpdate('battery')
+                      }
+                      disabled={
+                        batteryStatus ||
+                        isUpdatingStatus !== null
+                      }
+                      className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl border font-semibold transition-all ${
+                        batteryStatus
+                          ? 'bg-green-900/20 border-green-500/40 text-green-400 cursor-default'
+                          : 'bg-blue-600 hover:bg-blue-500 border-blue-500 text-white disabled:opacity-50'
+                      }`}
+                    >
 
-                      </div>
+                      {isUpdatingStatus === 'battery' ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Package className="w-4 h-4" />
+                      )}
 
-                    ))}
+                      {batteryStatus
+                        ? 'Battery Distributed'
+                        : 'Battery Status'}
 
-                  </div>
-
-                  {/* TOTAL RECORDED */}
-
-                  <div className="mt-5 pt-5 border-t border-slate-700/80 flex items-center justify-between">
-
-                    <div className="flex items-center gap-2 text-slate-400">
-
-                      <Package className="w-5 h-5 text-blue-400" />
-
-                      <span className="text-sm font-medium">
-                        Total Components Distributed
-                      </span>
-
-                    </div>
-
-                    <span className="text-xl font-bold text-white">
-                      {selectedItemCount}
-                    </span>
+                    </button>
 
                   </div>
 
@@ -1066,6 +1168,8 @@ const Xlr8Conveners = () => {
                   onSubmit={handleKitSubmit}
                   className="space-y-6"
                 >
+
+                  {/* CONVENER NOTICE */}
 
                   <div className="bg-yellow-900/10 border border-yellow-900/40 rounded-xl p-4 flex gap-3 text-yellow-500/90">
 
@@ -1083,11 +1187,14 @@ const Xlr8Conveners = () => {
 
                   </div>
 
+                  {/* KIT SELECTION */}
+
                   <div className="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-6">
 
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/80">
 
                       <div>
+
                         <h4 className="text-md font-bold text-slate-200">
                           Select Items to Distribute
                         </h4>
@@ -1095,6 +1202,7 @@ const Xlr8Conveners = () => {
                         <p className="text-xs text-slate-500 mt-1">
                           Select every component handed over to the team.
                         </p>
+
                       </div>
 
                       <button
@@ -1157,9 +1265,7 @@ const Xlr8Conveners = () => {
 
                   </div>
 
-                  {/* =================================================
-                      SUBMIT
-                  ================================================= */}
+                  {/* SUBMIT */}
 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
 
@@ -1174,7 +1280,11 @@ const Xlr8Conveners = () => {
                       </span>
 
                       <span className="text-lg font-bold text-white">
-                        {selectedItemCount}
+                        {
+                          Object.values(
+                            checkedItems
+                          ).filter(Boolean).length
+                        }
                       </span>
 
                       <span className="text-xs text-slate-500">
