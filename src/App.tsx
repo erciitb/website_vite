@@ -13,12 +13,6 @@ import Session4 from './components/Session4';
 import Session5 from './components/Session5.tsx';
 import Projects from './components/Projects.tsx';
 import Preloader from './components/Preloader.tsx'
-import Xlr8registration from './components/Xlr8registration.tsx';
-import Xlr8Conveners from './components/xlr8conveners.tsx';
-import KitDistribution from './components/kit-distribution.tsx';
-import FindYourTeam from './components/polo_team.tsx';
-import Xlr8participants from './components/Xlr8participants.tsx';
-
 
 const XLR8Page = lazy(() => import('./components/XLR8Page.tsx'));
 const Events = lazy(() => import('./components/Events'));
@@ -66,11 +60,6 @@ function App() {
               <Route path="/session4" element={<Session4 />} />
               <Route path="/session5" element={<Session5 />} />
               <Route path="/projects" element={<Projects />} />
-              <Route path="/xlr8registration" element={<Xlr8registration />} />
-              <Route path="/xlr8conveners" element={<Xlr8Conveners />} />
-              <Route path="/kit-distribution" element={<KitDistribution />} />
-              <Route path="/findyourteam" element={<FindYourTeam />} />
-              <Route path="/xlr8participants" element={<Xlr8participants />} />
             </Routes>
           </Suspense>
         </main>

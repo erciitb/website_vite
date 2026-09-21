@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import {
-  Zap,
   Users,
   UserRound,
   Cpu,
@@ -15,9 +14,10 @@ import {
   Loader2,
   BookOpen,
   Binary,
+  Sparkles,
 } from 'lucide-react';
 
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import CenterLogo from '../assets/newcenterlogo.png';
 import bgImage from '../assets/bg.jpeg';
@@ -635,7 +635,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     icon: (
       <CheckCircle2 className="w-6 h-6 text-blue-400" />
     ),
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-blue-950/60',
     tagText: 'text-blue-400',
     tagBorder: 'border-blue-800/50',
@@ -653,7 +653,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     icon: (
       <CheckCircle2 className="w-6 h-6 text-amber-400" />
     ),
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-amber-950/60',
     tagText: 'text-amber-400',
     tagBorder: 'border-amber-800/50',
@@ -671,7 +671,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     icon: (
       <Trophy className="w-6 h-6 text-purple-400" />
     ),
-    status: 'upcoming',
+    status: 'completed',
     tagBg: 'bg-purple-950/60',
     tagText: 'text-purple-400',
     tagBorder: 'border-purple-800/50',
@@ -688,8 +688,6 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
 const TimelineSection: React.FC = () => {
   return (
     <section className="relative w-full py-24 bg-[#0B1120] text-white overflow-hidden font-body">
-
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10 max-w-6xl">
 
@@ -875,16 +873,6 @@ const XLR8: React.FC = () => {
   ] =
     useState<RegistrationStatus>('idle');
 
-  const [
-    registeredTeamName,
-    setRegisteredTeamName,
-  ] = useState('');
-
-  const [
-    registeredVehicleNo,
-    setRegisteredVehicleNo,
-  ] = useState('');
-
   /* =======================================================
      CHECK FINAL REGISTRATION
   ======================================================= */
@@ -933,21 +921,10 @@ const XLR8: React.FC = () => {
         );
 
         if (data.found === true) {
-          setRegisteredTeamName(
-            data.teamName || ''
-          );
-
-          setRegisteredVehicleNo(
-            data.vehicleNumber || ''
-          );
-
           setRegistrationStatus(
             'registered'
           );
         } else {
-          setRegisteredTeamName('');
-          setRegisteredVehicleNo('');
-
           setRegistrationStatus(
             'not_registered'
           );
@@ -974,36 +951,11 @@ const XLR8: React.FC = () => {
       checkFinalRegistration();
     } else {
       setRegistrationStatus('idle');
-      setRegisteredTeamName('');
-      setRegisteredVehicleNo('');
     }
   }, [
     isLoggedIn,
     user?.roll,
   ]);
-
-  /* =======================================================
-     AUTHORIZED CONVENERS
-  ======================================================= */
-
-  const isConvener =
-    !!user &&
-    [
-      '25b2254',
-      '25b2134',
-      '25b2465',
-      '25b2149',
-      '25b2203',
-      '25b0325',
-      '25b3973',
-      '25b0661',
-      '25b3907',
-      '25b1308',
-      '24b3949',
-      '24b2471',
-    ].includes(
-      user.roll.toLowerCase()
-    );
 
   /* =======================================================
      PARTICIPANT DASHBOARD
@@ -1279,85 +1231,37 @@ const XLR8: React.FC = () => {
 
                       <div className="my-4 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
 
-                      {/* TEAM + VEHICLE */}
+                      {/* THANK YOU / RESULTS COMING SOON */}
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-cyan-950/20 border border-cyan-500/20 shadow-[0_0_35px_rgba(6,182,212,0.08)] px-6 py-8 sm:px-10 sm:py-10 text-center">
 
-                        <div className="min-h-[105px] p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col items-center justify-center text-center">
+                        <div className="absolute -top-16 -right-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-                          <Users className="w-6 h-6 text-cyan-400 mb-2" />
+                        <div className="relative z-10 flex flex-col items-center">
 
-                          <p className="text-xs font-mono text-slate-500 uppercase tracking-wider font-semibold">
-                            Team Name
+
+                          <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-heading text-white tracking-wide mb-3">
+                            Thank you for being part of the XLR8 journey!
+                          </h3>
+
+                          <p className="max-w-xl text-sm sm:text-base text-slate-400 leading-relaxed">
+                            The bots have conquered the arena, the race is over, and the numbers are in the making! 
                           </p>
 
-                          <p className="text-lg sm:text-xl font-bold text-white mt-1">
-                            {registeredTeamName ||
-                              'Team Registered'}
+                          <p className="max-w-xl text-sm sm:text-base text-slate-400 leading-relaxed mt-3">
+                            Our team is crunching the results, and the{' '}
+                            <span className="text-cyan-400 font-semibold">XLR8</span>{' '}
+                            winners will be revealed soon.
                           </p>
 
-                        </div>
-
-                        <div className="min-h-[105px] p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col items-center justify-center text-center">
-
-                          <Zap className="w-6 h-6 text-amber-400 mb-2" />
-
-                          <p className="text-xs font-mono text-slate-500 uppercase tracking-wider font-semibold">
-                            Vehicle No.
-                          </p>
-
-                          <p className="text-lg sm:text-xl font-bold text-white mt-1 font-mono">
-                            {registeredVehicleNo ||
-                              'Not Assigned'}
+                          <p className="max-w-xl text-sm sm:text-base text-slate-300 font-semibold leading-relaxed mt-3">
+                            Stay tuned. The wait is almost over! ⚡
                           </p>
 
                         </div>
 
                       </div>
-
-                      {/* PARTICIPANT DASHBOARD */}
-
-                      <button
-                        type="button"
-                        onClick={
-                          handleParticipantDashboard
-                        }
-                        className="group relative mt-3 block w-full overflow-hidden rounded-xl border border-cyan-400/30 bg-cyan-500/[0.04] hover:bg-cyan-500/[0.08] hover:border-cyan-400/60 transition-all duration-300 text-left"
-                      >
-
-                        <div className="relative z-10 p-4 sm:p-4.5 flex items-center justify-between gap-4">
-
-                          <div className="flex items-center gap-4">
-
-                            <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center shrink-0">
-
-                              <Gauge className="w-6 h-6 text-cyan-300" />
-
-                            </div>
-
-                            <div>
-
-                              <h4 className="text-lg sm:text-xl font-bold text-white">
-                                Open Participant Dashboard
-                              </h4>
-
-                              <p className="text-sm sm:text-base text-slate-500 mt-1">
-                                Kits • Slots • Sessions • Team • Mentor • POC • Final Race
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                          <div className="w-10 h-10 rounded-lg border border-cyan-400/30 bg-cyan-400/5 flex items-center justify-center shrink-0">
-
-                            <ChevronRight className="w-6 h-6 text-cyan-400 group-hover:translate-x-1 transition-transform" />
-
-                          </div>
-
-                        </div>
-
-                      </button>
 
                     </div>
                   )}
@@ -1499,47 +1403,6 @@ const XLR8: React.FC = () => {
                   </div>
 
                 </button>
-
-              )}
-
-              {/* CONVENER PORTAL */}
-
-              {isConvener && (
-
-                <Link
-                  to="/xlr8conveners"
-                  className="
-                    mt-5
-                    w-full
-                    px-8 py-4
-                    bg-slate-900
-                    hover:bg-slate-800
-                    text-cyan-400
-                    font-bold
-                    font-heading
-                    text-lg
-                    rounded-xl
-                    shadow-md
-                    hover:shadow-[0_8px_25px_rgba(6,182,212,0.15)]
-                    transition-all
-                    duration-300
-                    flex
-                    items-center
-                    justify-center
-                    gap-3
-                    border border-cyan-800/60
-                    hover:border-cyan-500/70
-                    hover:-translate-y-1
-                  "
-                >
-
-                  <Lock className="w-5 h-5 text-cyan-400" />
-
-                  <span>
-                    Convener Portal
-                  </span>
-
-                </Link>
 
               )}
 
