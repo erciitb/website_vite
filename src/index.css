@@ -3,6 +3,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted certificate signature font. Style One is the swashy, connected
+   variant used for the student's name on the certificate. */
+@font-face {
+  font-family: 'Fineday Style One';
+  src: url('/Fineday/Fineday/Fineday-StyleOne.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+/* Self-hosted certificate project-title font. */
+@font-face {
+  font-family: 'Quattrocento';
+  src: url('/Quattrocento/Quattrocento-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Quattrocento';
+  src: url('/Quattrocento/Quattrocento-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 15, 23, 42;

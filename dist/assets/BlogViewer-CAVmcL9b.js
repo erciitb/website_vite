@@ -1,6 +1,0 @@
-import{e as l,f as c,u as i,r as a,j as e}from"./index-B2LI3XqN.js";/**
- * @license lucide-react v0.344.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */const d=l("ArrowLeft",[["path",{d:"m12 19-7-7 7-7",key:"1l729n"}],["path",{d:"M19 12H5",key:"x3x0zl"}]]),m=()=>{const{slug:r}=c(),n=i(),[o,s]=a.useState("Loading...");return a.useEffect(()=>{r&&fetch(`/blogs/${r}.html`).then(t=>{if(!t.ok)throw new Error("Not found");return t.text()}).then(t=>s(t)).catch(()=>s('<p class="text-red-500">Blog not found or failed to load.</p>'))},[r]),e.jsx("section",{className:"py-20 bg-gray-900 min-h-screen",children:e.jsxs("div",{className:"container mx-auto px-4",children:[e.jsx("div",{className:"mb-10",children:e.jsxs("button",{onClick:()=>n(-1),className:"inline-flex items-center px-4 py-2 bg-gray-800 text-gray-200 hover:text-white hover:bg-gray-700 rounded transition",children:[e.jsx(d,{className:"mr-2",size:16}),"Back"]})}),e.jsx("div",{className:"bg-gradient-to-br from-blue-900/30 to-orange-900/30 p-8 rounded-xl border border-blue-500/20 shadow-xl",children:e.jsx("div",{className:"prose prose-invert max-w-none",dangerouslySetInnerHTML:{__html:o}})})]})})};export{m as default};
