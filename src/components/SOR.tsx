@@ -281,7 +281,7 @@ const SOR: React.FC = () => {
       // 3. Configure text styling: signature-style script font, gold gradient
       // Force the webfont to load before drawing — canvas silently falls back to a
       // default font if it isn't ready yet, instead of waiting for it.
-      const nameFontSize = certType === 'advanced' ? 80 : 130;
+      const nameFontSize = certType === 'advanced' ? 75 : 125;
       await document.fonts.load(`${nameFontSize}px "${CERTIFICATE_NAME_FONT}"`);
       ctx.font = `${nameFontSize}px "${CERTIFICATE_NAME_FONT}", cursive`;
       ctx.textAlign = 'center';
