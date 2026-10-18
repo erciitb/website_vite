@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, ArrowRight } from 'lucide-react';
 
 import itsp from '../assets/itsp_banner.png';
+import aiChipImg from '../assets/AI_ON_CHIP.png';
 // import sor from '../assets/sor_banner.png';
 
 const eventsData = [
@@ -16,7 +17,21 @@ const eventsData = [
       'The ITSP Bootcamp introduced participants to embedded systems, sensors, microcontrollers, and IoT development while exploring tools like Gazebo, Proteus, MATLAB, and Simulink — making it the perfect launchpad for hardware and robotics projects.',
     image: itsp,
     seats: 'Completed',
+    linkLabel: 'Slides & Recordings',
     slidesLink: 'https://bit.ly/ITSPBootcamp2026-resources',
+  },
+  {
+    id: 2,
+    title: 'AI on Chip',
+    date: '15 Oct 2026',
+    time: '6:00 PM Onwards',
+    location: 'LH102',
+    description: 'AI ON CHIP is a beginner-friendly workshop where artificial intelligence meets everyday hardware. Dive into the fundamentals of on-device machine learning and edge computing. Compress and optimize heavy AI models to run completely offline on tiny microcontrollers like the ESP32. Build your very own offline voice-controlled assistant from scratch while working directly with real-world TinyML applications.',
+    image: aiChipImg, 
+    seats: 'Completed', 
+    linkLabel: 'Slides',
+    slidesLink: 'https://canva.link/m9lx5lctu5gaeez', 
+    githubLink: 'https://github.com/Santhosh007joker/AI-on-Chips/tree/main', 
   },
 ];
 
@@ -57,7 +72,7 @@ const Events = () => {
             Join us for workshops, competitions, and social gatherings...
           </p>
         </div>
-         
+          
         {/* ── XLR8 Event ── */}
         <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
           <div className="flex flex-col md:flex-row items-stretch">
@@ -168,52 +183,69 @@ const Events = () => {
           {eventsData.map((event) => (
             <div
               key={event.id}
-              className={`h-full rounded-xl overflow-hidden transition-all group text-left ${
+              className={`h-full rounded-xl overflow-hidden transition-all group text-left flex flex-col ${
                 event.seats === 'Completed'
                   ? 'bg-white/10 backdrop-blur-md border border-white/20'
                   : 'bg-gray-900 hover:shadow-lg hover:shadow-blue-500/10'
               }`}
             >
-              <div className="h-48 relative bg-gray-950/50 flex items-center justify-center overflow-hidden">
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+              <div className="h-48 relative bg-gray-950/50 flex items-center justify-center overflow-hidden shrink-0">
+                {event.image ? (
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="text-gray-500 text-sm">Poster TBA</div>
+                )}
               </div>
-              <div className="p-6 flex flex-col justify-between h-[calc(100%-12rem)]">
-                <div>
+              <div className="p-6 flex flex-col flex-grow">
+                <div className="mb-4">
                   <h3 className="text-xl font-semibold mb-3 font-heading text-white">{event.title}</h3>
                   <div className="flex items-center text-gray-300 mb-2">
-                    <Calendar size={16} className="mr-2 text-gray-400" />
+                    <Calendar size={16} className="mr-2 text-gray-400 shrink-0" />
                     <span>{event.date}</span>
                   </div>
                   <div className="flex items-center text-gray-300 mb-2">
-                    <Clock size={16} className="mr-2 text-gray-400" />
+                    <Clock size={16} className="mr-2 text-gray-400 shrink-0" />
                     <span>{event.time}</span>
                   </div>
                   <div className="flex items-center text-gray-300 mb-3">
-                    <MapPin size={16} className="mr-2 text-gray-400" />
+                    <MapPin size={16} className="mr-2 text-gray-400 shrink-0" />
                     <span>{event.location}</span>
                   </div>
-                  <p className="text-gray-400 mb-4">{event.description}</p>
+                  {event.description && (
+                    <p className="text-gray-400 mb-4 line-clamp-4">{event.description}</p>
+                  )}
                 </div>
                 
                 <div className="flex items-center justify-between pt-4 mt-auto border-t border-white/5">
                   <div className="flex items-center text-gray-300">
-                    <Users size={16} className="mr-2 text-gray-400" />
+                    <Users size={16} className="mr-2 text-gray-400 shrink-0" />
                     <span>{event.seats}</span>
                   </div>
                   {event.seats === 'Completed' ? (
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-end gap-4 flex-wrap">
                       {event.slidesLink && (
                         <a
                           href={event.slidesLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 transition-colors font-medium inline-flex items-center gap-1 relative z-10"
+                          className="text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium inline-flex items-center gap-1 relative z-10 whitespace-nowrap"
                         >
-                          Slides & Recordings
+                          {event.linkLabel || 'Slides'}
+                          <ArrowRight size={14} />
+                        </a>
+                      )}
+                      {event.githubLink && (
+                        <a
+                          href={event.githubLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium inline-flex items-center gap-1 relative z-10 whitespace-nowrap"
+                        >
+                          GitHub Repo
                           <ArrowRight size={14} />
                         </a>
                       )}
