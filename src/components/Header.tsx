@@ -56,7 +56,6 @@ const Header = () => {
     { label: 'legacy', path: '/legacy' },
     { label: 'resources', path: '/resources' },
     { label: 'contact', path: '/contact' },
-    { label: 'Certificates', path: '/certificates' },
   ];
 
   return (
