@@ -30,6 +30,14 @@
   font-display: block;
 }
 
+@font-face {
+  font-family: 'Quintessential';
+  src: url('/Quintessential/Quintessential-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 15, 23, 42;

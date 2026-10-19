@@ -8,16 +8,14 @@ import {
   Flag,
   Trophy,
   CheckCircle2,
-  Lock,
   Gauge,
   ChevronRight,
-  Loader2,
   BookOpen,
   Binary,
   Sparkles,
+  GraduationCap,
+  Download,
 } from 'lucide-react';
-
-import { useNavigate } from 'react-router-dom';
 
 import CenterLogo from '../assets/newcenterlogo.png';
 import bgImage from '../assets/bg.jpeg';
@@ -42,12 +40,10 @@ interface SSOUser {
   passing_year: number;
 }
 
-/* =========================================================
-   FINAL XLR8 REGISTRATION API
-========================================================= */
-
-const FINAL_REG_CHECK_URL =
-  'https://script.google.com/macros/s/AKfycbzzUy14kFvbJLR3I64RbgrrpJfx4XJYHmEr0Gfe8ph0pgA4u1vb-lamM34_qFrO0GBQnQ/exec';
+// Set this to the deployed URL of google-apps-script/xlr8-certificate-eligibility.gs.
+const XLR8_CERTIFICATE_CHECK_URL = 'https://script.google.com/macros/s/AKfycbxQ-BeuNT-FCHD5i9hlQT_WXzu9ryM0P9XTFN2WEwRTu4JYbn5HSn_qWIW5EAa9XmkFjA/exec';
+const XLR8_CERTIFICATE_TEMPLATE_URL = '/xlr8_cert.png';
+const XLR8_CERTIFICATE_NAME_FONT = 'Quintessential';
 
 /* =========================================================
    XLR8 RESOURCE LINKS
@@ -644,7 +640,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     titleHover: 'group-hover:text-blue-400',
   },
   {
-    id: 5,
+    id: 6,
     phase: 'PHASE 06',
     title: 'Checkpoint 2',
     date: '3 SEPT',
@@ -662,7 +658,7 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
     titleHover: 'group-hover:text-amber-400',
   },
   {
-    id: 6,
+    id: 7,
     phase: 'PHASE 07',
     title: 'XLR8 Main Event',
     date: '05–06 SEP',
@@ -845,9 +841,6 @@ const XLR8: React.FC = () => {
   const heroRef =
     useRef<HTMLDivElement>(null);
 
-  const navigate =
-    useNavigate();
-
   const {
     user,
     isLoggedIn,
@@ -856,109 +849,97 @@ const XLR8: React.FC = () => {
     isLoggedIn: boolean;
   };
 
-  /* =======================================================
-     REGISTRATION STATUS
-  ======================================================= */
-
-  type RegistrationStatus =
-    | 'idle'
-    | 'checking'
-    | 'registered'
-    | 'not_registered'
-    | 'error';
-
-  const [
-    registrationStatus,
-    setRegistrationStatus,
-  ] =
-    useState<RegistrationStatus>('idle');
-
-  /* =======================================================
-     CHECK FINAL REGISTRATION
-  ======================================================= */
-
-  const checkFinalRegistration =
-    async () => {
-      if (!user?.roll) {
-        setRegistrationStatus('idle');
-        return;
-      }
-
-      setRegistrationStatus('checking');
-
-      try {
-        const roll =
-          user.roll
-            .trim()
-            .toLowerCase();
-
-        const response =
-          await fetch(
-            `${FINAL_REG_CHECK_URL}?roll=${encodeURIComponent(
-              roll
-            )}`,
-            {
-              method: 'GET',
-              headers: {
-                Accept: 'application/json',
-              },
-              cache: 'no-store',
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            `Registration API returned ${response.status}`
-          );
-        }
-
-        const data =
-          await response.json();
-
-        console.log(
-          'XLR8 Registration API Response:',
-          data
-        );
-
-        if (data.found === true) {
-          setRegistrationStatus(
-            'registered'
-          );
-        } else {
-          setRegistrationStatus(
-            'not_registered'
-          );
-        }
-      } catch (error) {
-        console.error(
-          'XLR8 registration verification failed:',
-          error
-        );
-
-        setRegistrationStatus('error');
-      }
-    };
-
-  /* =======================================================
-     AUTO CHECK AFTER LOGIN
-  ======================================================= */
+  const [certificateEligibility, setCertificateEligibility] = useState<{
+    status: 'unavailable' | 'checking' | 'eligible' | 'ineligible' | 'error';
+    name: string;
+  }>({ status: 'unavailable', name: '' });
+  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
+  const [certificateDownloadError, setCertificateDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (
-      isLoggedIn &&
-      user?.roll
-    ) {
-      checkFinalRegistration();
-    } else {
-      setRegistrationStatus('idle');
+    if (!isLoggedIn || !user?.roll || !XLR8_CERTIFICATE_CHECK_URL) {
+      setCertificateEligibility({ status: 'unavailable', name: '' });
+      return;
     }
-  }, [
-    isLoggedIn,
-    user?.roll,
-  ]);
+
+    let cancelled = false;
+    setCertificateEligibility({ status: 'checking', name: '' });
+    const roll = user.roll.trim().toLowerCase();
+
+    fetch(`${XLR8_CERTIFICATE_CHECK_URL}?roll=${encodeURIComponent(roll)}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    })
+      .then(response => {
+        if (!response.ok) throw new Error(`Certificate API returned ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        if (cancelled) return;
+        setCertificateEligibility({
+          status: data.eligible === true ? 'eligible' : 'ineligible',
+          name: typeof data.name === 'string' ? data.name : '',
+        });
+      })
+      .catch(error => {
+        console.error('XLR8 certificate eligibility check failed:', error);
+        if (!cancelled) setCertificateEligibility({ status: 'error', name: '' });
+      });
+
+    return () => { cancelled = true; };
+  }, [isLoggedIn, user?.roll]);
+
+  const handleDownloadCertificate = async () => {
+    if (certificateEligibility.status !== 'eligible' || downloadingCertificate) return;
+
+    setDownloadingCertificate(true);
+    setCertificateDownloadError(null);
+
+    try {
+      const name = certificateEligibility.name.trim() || user?.name?.trim();
+      if (!name) throw new Error('No certificate name is available.');
+
+      const image = new Image();
+      image.src = XLR8_CERTIFICATE_TEMPLATE_URL;
+      await image.decode();
+
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Could not create a certificate canvas.');
+
+      context.drawImage(image, 0, 0);
+      // Measured from the 2000 × 1414 template: between the introduction and blue rule.
+      const scale = canvas.width / 2000;
+      const fontSize = 112 * scale;
+      await document.fonts.load(`${fontSize}px "${XLR8_CERTIFICATE_NAME_FONT}"`);
+      context.font = `${fontSize}px "${XLR8_CERTIFICATE_NAME_FONT}", serif`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillStyle = '#ffffff';
+      context.shadowColor = '#71c3ff';
+      context.shadowBlur = 4 * scale;
+      context.shadowOffsetX = 2 * scale;
+      context.shadowOffsetY = 2 * scale;
+      const maxWidth = 1500 * scale;
+      context.fillText(name, canvas.width / 2, 695 * (canvas.height / 1414), maxWidth);
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `${name.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}_XLR8_Certificate.png`;
+      link.click();
+    } catch (error) {
+      console.error('Failed to download XLR8 certificate:', error);
+      setCertificateDownloadError('Could not create your certificate. Please try again.');
+    } finally {
+      setDownloadingCertificate(false);
+    }
+  };
 
   /* =======================================================
-     PARTICIPANT DASHBOARD
+     CERTIFICATE LOGIN
   ======================================================= */
 
   const handleParticipantDashboard =
@@ -966,7 +947,7 @@ const XLR8: React.FC = () => {
       if (!isLoggedIn) {
         sessionStorage.setItem(
           'redirectAfterLogin',
-          '/xlr8participants'
+          '/xlr8'
         );
 
         window.location.href =
@@ -975,14 +956,6 @@ const XLR8: React.FC = () => {
         return;
       }
 
-      if (
-        registrationStatus ===
-        'registered'
-      ) {
-        navigate(
-          '/xlr8participants'
-        );
-      }
     };
 
   /* =========================================================
@@ -1158,27 +1131,6 @@ const XLR8: React.FC = () => {
 
                 <>
 
-                  {/* CHECKING */}
-
-                  {registrationStatus ===
-                    'checking' && (
-                    <div className="rounded-2xl border border-cyan-500/30 bg-slate-950/80 p-5 flex items-center justify-center gap-3">
-
-                      <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
-
-                      <span className="text-base text-slate-300">
-                        Checking XLR8
-                        registration...
-                      </span>
-
-                    </div>
-                  )}
-
-                  {/* REGISTERED */}
-
-                  {registrationStatus ===
-                    'registered' && (
-
                     <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-cyan-950/10 shadow-[0_0_40px_rgba(16,185,129,0.08)] p-4 sm:p-5">
 
                       {/* HEADER */}
@@ -1219,133 +1171,59 @@ const XLR8: React.FC = () => {
 
                         </div>
 
+                        {certificateEligibility.status === 'eligible' && (
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-emerald-400 text-sm font-semibold shrink-0">
 
                           <CheckCircle2 className="w-4 h-4" />
 
-                          REGISTERED
+                          CERTIFICATE ELIGIBLE
 
                         </div>
+                        )}
 
                       </div>
 
                       <div className="my-4 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
 
-                      {/* THANK YOU / RESULTS COMING SOON */}
-
-                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-cyan-950/20 border border-cyan-500/20 shadow-[0_0_35px_rgba(6,182,212,0.08)] px-6 py-8 sm:px-10 sm:py-10 text-center">
-
-                        <div className="absolute -top-16 -right-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-                        <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                        <div className="relative z-10 flex flex-col items-center">
-
-
-                          <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-heading text-white tracking-wide mb-3">
-                            Thank you for being part of the XLR8 journey!
-                          </h3>
-
-                          <p className="max-w-xl text-sm sm:text-base text-slate-400 leading-relaxed">
-                            The bots have conquered the arena, the race is over, and the numbers are in the making! 
-                          </p>
-
-                          <p className="max-w-xl text-sm sm:text-base text-slate-400 leading-relaxed mt-3">
-                            Our team is crunching the results, and the{' '}
-                            <span className="text-cyan-400 font-semibold">XLR8</span>{' '}
-                            winners will be revealed soon.
-                          </p>
-
-                          <p className="max-w-xl text-sm sm:text-base text-slate-300 font-semibold leading-relaxed mt-3">
-                            Stay tuned. The wait is almost over! ⚡
-                          </p>
-
-                        </div>
-
+                      {/* Certificate eligibility comes from the certificate sheet. */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-cyan-500/20 bg-slate-900/80 p-5">
+                    <div className="flex items-start gap-3 text-left">
+                      <div className="w-11 h-11 shrink-0 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                        <GraduationCap className="w-6 h-6 text-cyan-300" />
                       </div>
-
-                    </div>
-                  )}
-
-                  {/* NOT REGISTERED */}
-
-                  {registrationStatus ===
-                    'not_registered' && (
-
-                    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-900 via-slate-950 to-amber-950/20 shadow-[0_0_35px_rgba(245,158,11,0.12)] px-6 py-7 sm:px-10 sm:py-8">
-
-                      <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-                      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none" />
-
-                      <div className="relative z-10 flex flex-col items-center text-center">
-
-                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-5 shadow-[0_0_25px_rgba(245,158,11,0.15)]">
-
-                          <div className="absolute inset-0 rounded-2xl bg-amber-500/5 blur-xl" />
-
-                          <Lock className="relative w-8 h-8 sm:w-9 sm:h-9 text-amber-400" />
-
-                        </div>
-
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-sm font-mono font-bold tracking-widest uppercase mb-4">
-                          NOT REGISTERED
-                        </div>
-
-                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-heading text-white tracking-wide mb-4">
-                          Oops… you missed the XLR8 rush!
-                        </h3>
-
-                        <p className="max-w-2xl text-sm sm:text-base text-slate-500 mt-3 leading-relaxed">
-                          The bots are being built,
-                          teams are gearing up,
-                          and the race is getting
-                          closer. Looks like your
-                          name didn’t make it to the
-                          starting grid this time.
-                          Better luck for MS101!
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">Certificate Of Completion</h3>
+                        <p className="text-sm text-slate-400 mt-1">
+                          {certificateEligibility.status === 'checking'
+                            ? 'Checking your certificate eligibility...'
+                            : certificateEligibility.status === 'eligible'
+                              ? `Congrats${certificateEligibility.name ? `, ${certificateEligibility.name}` : ''}! Your certificate is ready to download.`
+                              : certificateEligibility.status === 'ineligible'
+                                ? "Sorry, you're not eligible for a Certificate Of Completion."
+                                : certificateEligibility.status === 'error'
+                                  ? 'Could not check certificate eligibility. Please try again later.'
+                                  : 'Certificate eligibility will be available here soon.'}
                         </p>
-
                       </div>
-
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadCertificate}
+                      disabled={certificateEligibility.status !== 'eligible' || downloadingCertificate}
+                      className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold shrink-0 transition-colors ${certificateEligibility.status === 'eligible' && !downloadingCertificate
+                        ? 'bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer'
+                        : 'bg-cyan-600/30 text-cyan-100/60 cursor-not-allowed'}`}
+                    >
+                      <Download className="w-4 h-4" />
+                      {downloadingCertificate ? 'Downloading...' : 'Download Certificate'}
+                    </button>
+                  </div>
+                  {certificateDownloadError && (
+                    <p className="text-sm text-rose-400">{certificateDownloadError}</p>
                   )}
 
-                  {/* ERROR */}
-
-                  {registrationStatus ===
-                    'error' && (
-
-                    <div className="rounded-2xl border border-rose-500/30 bg-rose-950/10 p-6">
-
-                      <div className="flex items-center gap-4">
-
-                        <div className="text-left flex-1">
-
-                          <h3 className="text-lg font-bold text-rose-300">
-                            Couldn't verify your registration
-                          </h3>
-
-                          <p className="text-sm text-slate-500 mt-1">
-                            Please try again.
-                          </p>
-
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={
-                            checkFinalRegistration
-                          }
-                          className="px-4 py-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white text-sm font-semibold transition"
-                        >
-                          Try Again
-                        </button>
-
-                      </div>
-
                     </div>
-                  )}
-
                 </>
 
               ) : (
@@ -1375,11 +1253,11 @@ const XLR8: React.FC = () => {
                       <div className="text-left">
 
                         <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-white tracking-wide">
-                          Participant Dashboard
+                          Certificate Of Completion
                         </h3>
 
                         <p className="text-sm sm:text-base text-slate-500 mt-1">
-                          Login with ITC SSO to check your XLR8 registration.
+                          Login with ITC SSO to check your certificate eligibility.
                         </p>
 
                       </div>
