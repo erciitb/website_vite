@@ -61,7 +61,7 @@ function App() {
               <Route path="/session4" element={<Session4 />} />
               <Route path="/session5" element={<Session5 />} />
               <Route path="/projects" element={<Projects />} />
-              <Route path="/matlab" element={<ProtectedRoute><Matlab /></ProtectedRoute>} />
+              <Route path="/matlab" element={<Matlab />}/>
             </Routes>
           </Suspense>
         </main>
