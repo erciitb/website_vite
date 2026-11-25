@@ -123,12 +123,12 @@ const Header = () => {
             */}
 
             {/* MATLAB — SSO Protected */}
-            <button
+            {/* <button
               onClick={handleMatlabClick}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
             >
               MATLAB
-            </button>
+            </button> */}
 
             {/* XLR8 — SSO Protected */}
             <button
