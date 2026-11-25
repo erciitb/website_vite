@@ -28,6 +28,8 @@ interface FormErrors {
   fremen   #6cc3e8  focus / secondary accent (blue-within-blue)
 */
 
+console.log('redirecting to:', SOR_SSO_URL)
+
 // Paste your deployed Google Apps Script web app URL here (ends with /exec)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZsla04zm5HtJbLMkFlGCoTb2ug5p6phLK7TySBzBkZyO6EOKeAmdZQwkGRIjI6u3fYg/exec"
 // Deterministic star field so it doesn't reshuffle on re-render
