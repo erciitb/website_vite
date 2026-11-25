@@ -12,7 +12,8 @@ import Session3 from './components/Session3';
 import Session4 from './components/Session4';
 import Session5 from './components/Session5.tsx';
 import Projects from './components/Projects.tsx';
-import Preloader from './components/Preloader.tsx'
+import Preloader from './components/Preloader.tsx';
+import Matlab from './components/Matlab.tsx';
 
 const XLR8Page = lazy(() => import('./components/XLR8Page.tsx'));
 const Events = lazy(() => import('./components/Events'));
@@ -60,6 +61,7 @@ function App() {
               <Route path="/session4" element={<Session4 />} />
               <Route path="/session5" element={<Session5 />} />
               <Route path="/projects" element={<Projects />} />
+              <Route path="/matlab" element={<ProtectedRoute><Matlab /></ProtectedRoute>} />
             </Routes>
           </Suspense>
         </main>

@@ -24,17 +24,34 @@ const Header = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const handleSorClick = () => {
+  // MATLAB — SSO PROTECTED
+  // Uses the SOR SSO project for now, but redirects to /matlab after login
+  const handleMatlabClick = () => {
     setIsMenuOpen(false);
 
     if (isLoggedIn) {
-      navigate('/sor');
+      navigate('/matlab');
       return;
     }
 
-    sessionStorage.setItem('redirectAfterLogin', '/sor');
+    sessionStorage.setItem('redirectAfterLogin', '/matlab');
     window.location.href = SOR_SSO_URL;
   };
+
+  // SOR — hidden for now. To bring it back, restore this handler and the
+  // SOR button below (it would also need its own SSO project, since the
+  // SOR SSO project is currently used for MATLAB).
+  // const handleSorClick = () => {
+  //   setIsMenuOpen(false);
+  //
+  //   if (isLoggedIn) {
+  //     navigate('/sor');
+  //     return;
+  //   }
+  //
+  //   sessionStorage.setItem('redirectAfterLogin', '/sor');
+  //   window.location.href = SOR_SSO_URL;
+  // };
 
   // XLR8 — ITC SSO LOGIN
   const handleXlr8Click = () => {
@@ -96,12 +113,21 @@ const Header = () => {
               </Link>
             ))}
 
-            {/* SOR */}
+            {/* SOR — hidden for now
             <button
               onClick={handleSorClick}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
             >
               SOR
+            </button>
+            */}
+
+            {/* MATLAB — SSO Protected */}
+            <button
+              onClick={handleMatlabClick}
+              className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
+            >
+              MATLAB
             </button>
 
             {/* XLR8 — SSO Protected */}
