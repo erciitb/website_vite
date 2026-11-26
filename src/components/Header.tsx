@@ -26,17 +26,17 @@ const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   // MATLAB — SSO PROTECTED (has its own SSO project)
-  // const handleMatlabClick = () => {
-  //   setIsMenuOpen(false);
+  const handleMatlabClick = () => {
+    setIsMenuOpen(false);
 
-  //   if (isLoggedIn) {
-  //     navigate('/matlab');
-  //     return;
-  //   }
+    if (isLoggedIn) {
+      navigate('/matlab');
+      return;
+    }
 
-  //   sessionStorage.setItem('redirectAfterLogin', '/matlab');
-  //   window.location.href = MATLAB_SSO_URL;
-  // };
+    sessionStorage.setItem('redirectAfterLogin', '/matlab');
+    window.location.href = MATLAB_SSO_URL;
+  };
 
   // SOR — hidden for now. To bring it back, restore this handler and the
   // SOR button below (it would also need its own SSO project, since the
@@ -122,13 +122,13 @@ const Header = () => {
             </button>
             */}
 
-            {/* MATLAB — SSO Protected */}
+            {/* MATLAB — SSO Protected
             <button
               onClick={handleMatlabClick}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
             >
               MATLAB
-            </button>
+            </button> */}
 
             {/* XLR8 — SSO Protected */}
             <button
