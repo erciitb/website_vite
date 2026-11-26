@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Users, Hash, Mail, Phone, GraduationCap, ArrowRight, CheckCircle2, AlertCircle, UserCheck } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { SOR_SSO_URL } from '../config/sso';
+import { MATLAB_SSO_URL } from '../config/sso';
 
 interface MemberData {
   name: string;
@@ -262,8 +262,7 @@ const Matlab: React.FC = () => {
   useEffect(() => {
     if (!isLoggedIn) {
       sessionStorage.setItem('redirectAfterLogin', '/matlab');
-      // Uses the SOR SSO project for now; the callback sends users back to /matlab
-      window.location.href = SOR_SSO_URL;
+      window.location.href = MATLAB_SSO_URL;
     }
   }, [isLoggedIn]);
 

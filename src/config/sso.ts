@@ -8,4 +8,5 @@ export const XLR8_SSO_URL ="https://sso.tech-iitb.org/project/7550c6cd-d62c-45f7
 
 export const SSO_USERDATA_URL = 'https://sso.tech-iitb.org/project/getuserdata'
 
-export const MATLAB_SSO_URL = ''
+// MATLAB
+export const MATLAB_SSO_URL = `https://sso.tech-iitb.org/project/89d183fc-e0f1-4e66-9646-178dfb8c6c97/ssocall/`

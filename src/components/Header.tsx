@@ -4,7 +4,8 @@ import { Menu, X } from 'lucide-react';
 import HeaderLogo from '../assets/header.png';
 import MobileMenu from '../MobileMenu';
 import { useAuth } from '../hooks/useAuth';
-import { SOR_SSO_URL, XLR8_SSO_URL } from '../config/sso';
+import { XLR8_SSO_URL, MATLAB_SSO_URL } from '../config/sso';
+// import { SOR_SSO_URL } from '../config/sso'; // needed again when the SOR button is restored
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,8 +25,7 @@ const Header = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // MATLAB — SSO PROTECTED
-  // Uses the SOR SSO project for now, but redirects to /matlab after login
+  // MATLAB — SSO PROTECTED (has its own SSO project)
   const handleMatlabClick = () => {
     setIsMenuOpen(false);
 
@@ -35,7 +35,7 @@ const Header = () => {
     }
 
     sessionStorage.setItem('redirectAfterLogin', '/matlab');
-    window.location.href = SOR_SSO_URL;
+    window.location.href = MATLAB_SSO_URL;
   };
 
   // SOR — hidden for now. To bring it back, restore this handler and the
@@ -123,12 +123,12 @@ const Header = () => {
             */}
 
             {/* MATLAB — SSO Protected */}
-            {/* <button
+            <button
               onClick={handleMatlabClick}
               className="px-4 py-2 bg-blue-600 hover:bg-orange-700 rounded-md transition-colors font-heading text-white"
             >
               MATLAB
-            </button> */}
+            </button>
 
             {/* XLR8 — SSO Protected */}
             <button
