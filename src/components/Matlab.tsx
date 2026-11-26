@@ -1,22 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Hash, Mail, GraduationCap, ArrowRight, CheckCircle2, AlertCircle, Lock, UserCheck } from 'lucide-react';
+import { User, Users, Hash, Mail, Phone, GraduationCap, ArrowRight, CheckCircle2, AlertCircle, UserCheck } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { SOR_SSO_URL } from '../config/sso';
 
-interface RegistrationFormData {
+interface MemberData {
   name: string;
   rollNumber: string;
   ldapEmail: string;
-  branch: string;
+  phone: string;
+  department: string;
 }
 
-interface FormErrors {
-  name?: string;
-  rollNumber?: string;
-  ldapEmail?: string;
-  branch?: string;
+interface RegistrationFormData {
+  teamName: string;
+  member1: MemberData;
+  member2: MemberData;
 }
+
+type MemberKey = 'member1' | 'member2';
+type FieldPath = 'teamName' | `${MemberKey}.${keyof MemberData}`;
+type FormErrors = Partial<Record<FieldPath, string>>;
+
+const path = (m: MemberKey, f: keyof MemberData): FieldPath => `${m}.${f}`;
+
+const emptyMember = (): MemberData => ({
+  name: '',
+  rollNumber: '',
+  ldapEmail: '',
+  phone: '',
+  department: '',
+});
+
+const ROLL_RE = /^[a-zA-Z0-9]{6,12}$/;
+const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@iitb\.ac\.in$/;
+
+// Keeps just the 10 digits (drops spaces, dashes, +91 / 0 prefix)
+const normalizePhone = (raw: string): string => {
+  let digits = raw.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  return digits;
+};
 
 /*
   Palette (Arrakis at dusk)
@@ -28,10 +53,9 @@ interface FormErrors {
   fremen   #6cc3e8  focus / secondary accent (blue-within-blue)
 */
 
-console.log('redirecting to:', SOR_SSO_URL)
+// Google Apps Script web app URL (ends with /exec)
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZsla04zm5HtJbLMkFlGCoTb2ug5p6phLK7TySBzBkZyO6EOKeAmdZQwkGRIjI6u3fYg/exec';
 
-// Paste your deployed Google Apps Script web app URL here (ends with /exec)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZsla04zm5HtJbLMkFlGCoTb2ug5p6phLK7TySBzBkZyO6EOKeAmdZQwkGRIjI6u3fYg/exec"
 // Deterministic star field so it doesn't reshuffle on re-render
 const STARS = (() => {
   let seed = 7;
@@ -220,12 +244,10 @@ const inputErr = 'border-red-400/70 focus:border-red-400 focus:ring-2 focus:ring
 const Matlab: React.FC = () => {
   const { user, isLoggedIn } = useAuth();
 
-  // Name, roll number and branch come from the ITC SSO session
   const [formData, setFormData] = useState<RegistrationFormData>({
-    name: user?.name ?? '',
-    rollNumber: user?.roll ?? '',
-    ldapEmail: '',
-    branch: user?.department ?? '',
+    teamName: '',
+    member1: emptyMember(),
+    member2: emptyMember(),
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -233,7 +255,8 @@ const Matlab: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  // roll = the roll number found in the sheet; fromSubmit = found when submitting (not on page load)
+  const [alreadyRegistered, setAlreadyRegistered] = useState<{ roll: string; fromSubmit: boolean } | null>(null);
 
   // Not logged in (e.g. opened /matlab directly) -> send through ITC SSO
   useEffect(() => {
@@ -244,7 +267,8 @@ const Matlab: React.FC = () => {
     }
   }, [isLoggedIn]);
 
-  // After SSO login, check the sheet for this roll number before showing the form
+  // After SSO login, check whether the logged-in roll number is already in the sheet
+  // (the script looks in both the Member 1 and Member 2 roll columns)
   useEffect(() => {
     if (!isLoggedIn || !user?.roll) {
       setIsChecking(false);
@@ -263,7 +287,7 @@ const Matlab: React.FC = () => {
         return res.json();
       })
       .then((data) => {
-        if (!cancelled && data.registered) setAlreadyRegistered(true);
+        if (!cancelled && data.registered) setAlreadyRegistered({ roll, fromSubmit: false });
       })
       .catch((err) => {
         // If the check fails we still show the form; the script rejects
@@ -279,40 +303,65 @@ const Matlab: React.FC = () => {
     };
   }, [isLoggedIn, user?.roll]);
 
+  const getValue = (fieldPath: FieldPath): string => {
+    if (fieldPath === 'teamName') return formData.teamName;
+    const [m, f] = fieldPath.split('.') as [MemberKey, keyof MemberData];
+    return formData[m][f];
+  };
+
+  const handleChange = (fieldPath: FieldPath, value: string) => {
+    setFormData((prev) => {
+      if (fieldPath === 'teamName') return { ...prev, teamName: value };
+      const [m, f] = fieldPath.split('.') as [MemberKey, keyof MemberData];
+      return { ...prev, [m]: { ...prev[m], [f]: value } };
+    });
+    if (errors[fieldPath]) {
+      setErrors((prev) => ({ ...prev, [fieldPath]: undefined }));
+    }
+  };
+
+  const validateMember = (m: MemberKey, member: MemberData, errs: FormErrors) => {
+    if (!member.name.trim()) errs[path(m, 'name')] = 'Please enter the full name.';
+
+    const roll = member.rollNumber.trim();
+    if (!roll) errs[path(m, 'rollNumber')] = 'Roll number is required.';
+    else if (!ROLL_RE.test(roll)) errs[path(m, 'rollNumber')] = 'Enter a valid IITB roll number (e.g., 25B1042).';
+
+    const email = member.ldapEmail.trim().toLowerCase();
+    if (!email) errs[path(m, 'ldapEmail')] = 'LDAP email is required.';
+    else if (!EMAIL_RE.test(email)) errs[path(m, 'ldapEmail')] = 'Use the official @iitb.ac.in LDAP email.';
+
+    if (!member.phone.trim()) errs[path(m, 'phone')] = 'Phone number is required.';
+    else if (!/^[6-9]\d{9}$/.test(normalizePhone(member.phone))) errs[path(m, 'phone')] = 'Enter a valid 10-digit phone number.';
+
+    if (!member.department.trim()) errs[path(m, 'department')] = 'Please enter the department.';
+  };
+
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Please enter your full name.';
-    }
+    if (!formData.teamName.trim()) newErrors.teamName = 'Please enter a team name.';
 
-    if (!formData.rollNumber.trim()) {
-      newErrors.rollNumber = 'Roll number is required.';
-    } else if (!/^[a-zA-Z0-9]{6,12}$/.test(formData.rollNumber.trim())) {
-      newErrors.rollNumber = 'Enter a valid IITB roll number (e.g., 25B1042).';
-    }
+    validateMember('member1', formData.member1, newErrors);
+    validateMember('member2', formData.member2, newErrors);
 
-    const email = formData.ldapEmail.trim().toLowerCase();
-    if (!email) {
-      newErrors.ldapEmail = 'LDAP email is required.';
-    } else if (!/^[a-zA-Z0-9._%+-]+@iitb\.ac\.in$/.test(email)) {
-      newErrors.ldapEmail = 'Please use your official @iitb.ac.in LDAP email.';
-    }
-
-    if (!formData.branch.trim()) {
-      newErrors.branch = 'Please enter your branch.';
+    const r1 = formData.member1.rollNumber.trim().toUpperCase();
+    const r2 = formData.member2.rollNumber.trim().toUpperCase();
+    if (r1 && r1 === r2 && !newErrors['member2.rollNumber']) {
+      newErrors['member2.rollNumber'] = 'Both members must have different roll numbers.';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (field: keyof RegistrationFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+  const cleanMember = (m: MemberData): MemberData => ({
+    name: m.name.trim(),
+    rollNumber: m.rollNumber.trim().toUpperCase(),
+    ldapEmail: m.ldapEmail.trim().toLowerCase(),
+    phone: normalizePhone(m.phone),
+    department: m.department.trim(),
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -321,10 +370,9 @@ const Matlab: React.FC = () => {
     setIsSubmitting(true);
 
     const payload: RegistrationFormData = {
-      name: formData.name.trim(),
-      rollNumber: formData.rollNumber.trim().toUpperCase(),
-      ldapEmail: formData.ldapEmail.trim().toLowerCase(),
-      branch: formData.branch.trim(),
+      teamName: formData.teamName.trim(),
+      member1: cleanMember(formData.member1),
+      member2: cleanMember(formData.member2),
     };
 
     try {
@@ -338,7 +386,7 @@ const Matlab: React.FC = () => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const result = await res.json();
       if (result.error === 'ALREADY_REGISTERED') {
-        setAlreadyRegistered(true);
+        setAlreadyRegistered({ roll: String(result.roll || ''), fromSubmit: true });
         return;
       }
       if (!result.success) throw new Error(result.error || 'Sheet write failed');
@@ -358,18 +406,16 @@ const Matlab: React.FC = () => {
   };
 
   const renderField = (
-    id: keyof RegistrationFormData,
+    fieldPath: FieldPath,
     label: string,
     Icon: React.ElementType,
     placeholder: string,
     type: string = 'text',
-    extraClass: string = '',
-    locked: boolean = false
+    extraClass: string = ''
   ) => (
     <div>
-      <label htmlFor={id} className="flex items-center gap-1.5 text-sm font-medium text-[#f1e3c6]/85 mb-2 dune-body">
+      <label htmlFor={fieldPath} className="block text-sm font-medium text-[#f1e3c6]/85 mb-2 dune-body">
         {label}
-        {locked && <Lock size={12} className="text-[#6cc3e8]/80" aria-label="Filled from your IITB SSO" />}
       </label>
       <div className="relative">
         <Icon
@@ -377,23 +423,37 @@ const Matlab: React.FC = () => {
           className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#e9a04b]/70 pointer-events-none"
         />
         <input
-          id={id}
+          id={fieldPath}
           type={type}
           placeholder={placeholder}
-          value={formData[id]}
-          onChange={(e) => handleChange(id, e.target.value)}
-          readOnly={locked}
-          aria-invalid={!!errors[id]}
-          className={`${inputBase} ${errors[id] ? inputErr : inputOk} ${extraClass} ${
-            locked ? 'opacity-70 cursor-not-allowed focus:ring-0' : ''
-          }`}
+          value={getValue(fieldPath)}
+          onChange={(e) => handleChange(fieldPath, e.target.value)}
+          aria-invalid={!!errors[fieldPath]}
+          className={`${inputBase} ${errors[fieldPath] ? inputErr : inputOk} ${extraClass}`}
         />
       </div>
-      {errors[id] && (
+      {errors[fieldPath] && (
         <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-300 dune-body">
-          <AlertCircle size={13} /> {errors[id]}
+          <AlertCircle size={13} /> {errors[fieldPath]}
         </p>
       )}
+    </div>
+  );
+
+  const renderMember = (m: MemberKey, title: string) => (
+    <div className="space-y-5">
+      <h2 className="dune-body text-sm font-semibold tracking-wide text-[#e9a04b] border-b border-[#e9a04b]/20 pb-2">
+        {title}
+      </h2>
+      {renderField(path(m, 'name'), 'Full name', User, 'Aarav Sharma')}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {renderField(path(m, 'rollNumber'), 'Roll number', Hash, '25B1042', 'text', 'uppercase placeholder:normal-case')}
+        {renderField(path(m, 'ldapEmail'), 'LDAP email', Mail, '25b1042@iitb.ac.in', 'email')}
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {renderField(path(m, 'phone'), 'Phone number', Phone, '9876543210', 'tel')}
+        {renderField(path(m, 'department'), 'Department', GraduationCap, 'e.g. Mechanical Engineering')}
+      </div>
     </div>
   );
 
@@ -421,6 +481,10 @@ const Matlab: React.FC = () => {
 
   /* ---------- Already registered page ---------- */
   if (alreadyRegistered) {
+    const isSelf =
+      !!alreadyRegistered.roll &&
+      alreadyRegistered.roll.toUpperCase() === (user?.roll ?? '').trim().toUpperCase();
+
     return (
       <section className="relative min-h-screen w-full flex items-center justify-center px-4 pt-36 pb-16 sm:pt-40 overflow-hidden text-[#f1e3c6]">
         <style>{fontStyles}</style>
@@ -435,22 +499,37 @@ const Matlab: React.FC = () => {
             Already registered
           </h1>
           <p className="dune-body text-[#f1e3c6]/70 mb-8">
-            {user?.name ? (
+            {isSelf ? (
               <>
-                <span className="text-[#e9a04b] font-semibold">{user.name}</span>
-                {` (${user.roll}), you've already registered for the MATLAB session. No need to register again.`}
+                <span className="text-[#e9a04b] font-semibold">{user?.name}</span>
+                {` (${user?.roll}), you're already registered for the MATLAB bootcamp as part of a team. No need to register again.`}
+              </>
+            ) : alreadyRegistered.roll ? (
+              <>
+                <span className="text-[#e9a04b] font-semibold">{alreadyRegistered.roll}</span>
+                {' is already registered with a team. Each person can only be in one team. If this looks wrong, please contact a convener.'}
               </>
             ) : (
-              "You've already registered for the MATLAB session. No need to register again."
+              'One of the roll numbers you entered is already registered with a team. If this looks wrong, please contact a convener.'
             )}
           </p>
 
-          <Link
-            to="/"
-            className="dune-body inline-block text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
-          >
-            Back to home
-          </Link>
+          {alreadyRegistered.fromSubmit ? (
+            <button
+              type="button"
+              onClick={() => setAlreadyRegistered(null)}
+              className="dune-body text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
+            >
+              Go back to the form
+            </button>
+          ) : (
+            <Link
+              to="/"
+              className="dune-body inline-block text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
+            >
+              Back to home
+            </Link>
+          )}
         </div>
       </section>
     );
@@ -503,22 +582,26 @@ const Matlab: React.FC = () => {
             Registration completed
           </h1>
           <p className="dune-body text-[#f1e3c6]/70 mb-8">
-            You're in for the MATLAB session, <span className="text-[#e9a04b] font-semibold">{formData.name}</span>.
+            Team <span className="text-[#e9a04b] font-semibold">{formData.teamName}</span> is registered for the MATLAB bootcamp.
             See you there.
           </p>
 
           <div className="rounded-2xl border border-[#e9a04b]/25 bg-[#120a12]/70 backdrop-blur-md p-5 text-left text-sm space-y-3 dune-body shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
             <div className="flex justify-between gap-4">
-              <span className="text-[#f1e3c6]/50">Roll number</span>
-              <span className="font-mono text-[#f1e3c6]">{formData.rollNumber}</span>
+              <span className="text-[#f1e3c6]/50">Team name</span>
+              <span className="text-[#f1e3c6] text-right">{formData.teamName}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-[#f1e3c6]/50">LDAP email</span>
-              <span className="text-[#f1e3c6] break-all text-right">{formData.ldapEmail}</span>
+              <span className="text-[#f1e3c6]/50">Member 1</span>
+              <span className="text-[#f1e3c6] text-right">
+                {formData.member1.name} <span className="font-mono text-[#f1e3c6]/60">({formData.member1.rollNumber})</span>
+              </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-[#f1e3c6]/50">Branch</span>
-              <span className="text-[#f1e3c6] text-right">{formData.branch}</span>
+              <span className="text-[#f1e3c6]/50">Member 2</span>
+              <span className="text-[#f1e3c6] text-right">
+                {formData.member2.name} <span className="font-mono text-[#f1e3c6]/60">({formData.member2.rollNumber})</span>
+              </span>
             </div>
           </div>
 
@@ -539,23 +622,23 @@ const Matlab: React.FC = () => {
       <style>{fontStyles}</style>
       <DuneBackdrop />
 
-      <div className="relative z-10 w-full max-w-lg dune-rise">
+      <div className="relative z-10 w-full max-w-2xl dune-rise">
         <div className="text-center mb-8">
           <h1 className="dune-heading text-3xl sm:text-5xl">
             MATLAB Bootcamp Registration
           </h1>
 
           <p className="dune-body text-[#f1e3c6]/65 text-sm sm:text-base max-w-md mx-auto mt-4">
-            Enter your institute details to register for the MATLAB session.
+            Register your team of two for the MATLAB bootcamp.
           </p>
         </div>
 
         <div className="rounded-2xl border border-[#e9a04b]/25 bg-[#150c14]/75 backdrop-blur-md p-6 sm:p-8 shadow-[0_24px_70px_rgba(0,0,0,0.6)]">
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {renderField('name', 'Full name', User, 'Aarav Sharma', 'text', '', !!user?.name)}
-            {renderField('rollNumber', 'Roll number', Hash, '25B1042', 'text', 'uppercase placeholder:normal-case', !!user?.roll)}
-            {renderField('ldapEmail', 'LDAP email', Mail, '25b1042@iitb.ac.in', 'email')}
-            {renderField('branch', 'Branch / department', GraduationCap, 'e.g. Mechanical Engineering', 'text', '', !!user?.department)}
+          <form onSubmit={handleSubmit} noValidate className="space-y-8">
+            {renderField('teamName', 'Team name', Users, 'e.g. Matrix Mavericks')}
+
+            {renderMember('member1', 'First member')}
+            {renderMember('member2', 'Second member')}
 
             <button
               type="submit"
