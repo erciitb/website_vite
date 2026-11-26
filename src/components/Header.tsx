@@ -26,17 +26,17 @@ const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   // MATLAB — SSO PROTECTED (has its own SSO project)
-  const handleMatlabClick = () => {
-    setIsMenuOpen(false);
+  // const handleMatlabClick = () => {
+  //   setIsMenuOpen(false);
 
-    if (isLoggedIn) {
-      navigate('/matlab');
-      return;
-    }
+  //   if (isLoggedIn) {
+  //     navigate('/matlab');
+  //     return;
+  //   }
 
-    sessionStorage.setItem('redirectAfterLogin', '/matlab');
-    window.location.href = MATLAB_SSO_URL;
-  };
+  //   sessionStorage.setItem('redirectAfterLogin', '/matlab');
+  //   window.location.href = MATLAB_SSO_URL;
+  // };
 
   // SOR — hidden for now. To bring it back, restore this handler and the
   // SOR button below (it would also need its own SSO project, since the
