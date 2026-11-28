@@ -4,6 +4,7 @@ import { Calendar, Clock, MapPin, Users, ArrowRight } from 'lucide-react';
 
 import itsp from '../assets/itsp_banner.png';
 import aiChipImg from '../assets/AI_ON_CHIP.png';
+import matlabPoster from '../assets/Matlab_bootcamp_poster.png';
 // import sor from '../assets/sor_banner.png';
 
 const eventsData = [
@@ -73,6 +74,55 @@ const Events = () => {
           </p>
         </div>
           
+        {/* ── MATLAB Bootcamp ── */}
+        <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
+          <div className="flex flex-col md:flex-row items-stretch">
+            <div className="md:w-1/2 p-8">
+              <div className="inline-flex items-center mb-4 px-3 py-1 bg-blue-500/20 rounded-full">
+                <Calendar size={16} className="text-blue-400 mr-2" />
+                <span className="text-sm text-blue-400">Upcoming Event</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3 font-heading text-white">MATLAB Bootcamp</h3>
+              <div className="flex items-center text-gray-300 mb-2">
+                <Calendar size={16} className="mr-2 text-gray-400" />
+                <span>5 Weeks Bootcamp</span>
+              </div>
+              <div className="flex items-center text-gray-300 mb-2">
+                <Clock size={16} className="mr-2 text-gray-400" />
+                <span>Registrations open</span>
+              </div>
+              <div className="flex items-center text-gray-300 mb-4">
+                <MapPin size={16} className="mr-2 text-gray-400" />
+                <span>MS Teams</span>
+              </div>
+              <p className="text-gray-300 mb-6">
+                <span className="font-bold">Dune and Dusted</span> is ERC's online MATLAB bootcamp, where the
+                desert is your lab and the code is your survival kit. Go from your first lines in the MATLAB
+                workspace to real robotics tools: plot live sensor data from your own phone, simulate physical
+                systems in Simulink, and pick up a new toolbox each week through hands-on projects. No prior
+                MATLAB experience needed, just curiosity and a willingness to get your hands dusty.
+                <span className="italic"> Because the spice must flow, and so must the code.</span>
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  to="/matlab"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-all inline-flex items-center"
+                >
+                  Register
+                  <ArrowRight size={16} className="ml-2" />
+                </Link>
+              </div>
+            </div>
+            <div className="md:w-1/2 h-64 md:h-auto relative bg-gray-950/50 flex items-center justify-center">
+              <img
+                src={matlabPoster}
+                alt="MATLAB Bootcamp"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* ── XLR8 Event ── */}
         <div className="bg-gradient-to-br from-blue-900/30 to-orange-900/30 rounded-xl overflow-hidden border border-blue-500/20 mb-8">
           <div className="flex flex-col md:flex-row items-stretch">
