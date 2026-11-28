@@ -4,6 +4,11 @@ import { User, Users, Hash, Mail, Phone, GraduationCap, ArrowRight, CheckCircle2
 import { useAuth } from '../hooks/useAuth';
 import { MATLAB_SSO_URL } from '../config/sso';
 
+// Assets live in src/assets. Importing them lets the bundler give a real URL,
+// which is required for the font to load from inside the injected <style>.
+import posterImg from '../assets/Matlab_bootcamp_poster.png';
+import duneRiseFont from '../assets/Dune_Rise.ttf';
+
 interface MemberData {
   name: string;
   rollNumber: string;
@@ -44,202 +49,121 @@ const normalizePhone = (raw: string): string => {
 };
 
 /*
-  Palette (Arrakis at dusk)
-  night    #120e24  deep violet sky
-  dusk     #3a1b25  horizon glow
-  dune     #1a0d0c  foreground sand shadow
-  sand     #f1e3c6  text
-  spice    #e9a04b  primary accent (melange)
-  fremen   #6cc3e8  focus / secondary accent (blue-within-blue)
+  Palette (sampled from the "Dune & Dusted" poster)
+  space    #000000  poster background
+  gold     #f2a516  title text / primary accent
+  ember    #ec5a24  peak orange
+  sun      #ffe2a6  sun glow / light text accent
+  matlab   #2f9bf0  peak blue / focus accent
+  sand     #f6ead0  body text
 */
 
 // Google Apps Script web app URL (ends with /exec)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZsla04zm5HtJbLMkFlGCoTb2ug5p6phLK7TySBzBkZyO6EOKeAmdZQwkGRIjI6u3fYg/exec';
 
-// Deterministic star field so it doesn't reshuffle on re-render
-const STARS = (() => {
-  let seed = 7;
-  const rand = () => {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  };
-  return Array.from({ length: 160 }, () => ({
-    left: rand() * 100,
-    top: rand() * 100,
-    size: rand() < 0.12 ? 2.5 : rand() < 0.45 ? 1.8 : 1.2,
-    opacity: 0.35 + rand() * 0.65,
-    twinkle: rand() < 0.75,
-    delay: rand() * 5,
-    duration: 2.5 + rand() * 3.5,
-  }));
-})();
+const POSTER_URL = posterImg;
 
 const fontStyles = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&display=swap');
-.dune-heading {
-  font-family: 'Cinzel', 'Times New Roman', serif;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-  padding-bottom: 0.1em;
-  background: linear-gradient(180deg, #fff1d0 0%, #f2cd8e 55%, #e9a04b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+@import url('https://fonts.googleapis.com/css2?family=Michroma&family=Quicksand:wght@400;500;600;700&display=swap');
+
+/* The poster title is set in "Dune Rise". The URL comes from the bundler via the
+   import above, so it resolves correctly. Until the file is present the browser
+   falls back to Michroma (closest Google Font). */
+@font-face {
+  font-family: 'Dune Rise';
+  src: url('${duneRiseFont}') format('truetype');
+  font-display: swap;
 }
-.dune-body { font-family: 'Hanken Grotesk', system-ui, sans-serif; }
+
+.dune-heading {
+  font-family: 'Dune Rise', 'Michroma', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  color: #f2a516;
+}
+.dune-body { font-family: 'Quicksand', system-ui, sans-serif; }
+
+/* Height of your site navbar, so the form can clear it. Change to match yours. */
+:root { --header-h: 1rem; }
+
+/* Solid base colour; also what shows behind a transparent navbar. */
+.poster-section { background-color: #000; }
+
+/* Tablet / desktop: PIN the poster.
+   background-attachment: fixed locks the poster to the viewport, so it stays
+   perfectly still while the form scrolls over it. The background is painted
+   only inside this section, so it never reaches the footer — when the form
+   ends, the footer scrolls in normally. The source is 16:9, so "cover" shows
+   almost the whole poster on a laptop. */
+@media (min-width: 768px) {
+  .poster-section {
+    background-image: url('${POSTER_URL}');
+    background-repeat: no-repeat;
+    background-position: center var(--header-h);
+    background-size: cover;
+    background-attachment: fixed;
+  }
+}
+
+/* Start the form well below the poster title (the title sits in the top ~25% of
+   the screen). On scroll, the translucent card slides up over the pinned art. */
+.poster-content { padding-top: calc(var(--header-h) + 26vh); }
+
+/* Phones ignore background-attachment: fixed, so there the poster is a normal
+   element at the top (.poster-mobile) and the form starts just below its title. */
+@media (max-width: 767px) {
+  .poster-content { padding-top: calc(var(--header-h) + 20vw); }
+}
+
 @keyframes dune-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes dune-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(233,160,75,0.35); } 50% { box-shadow: 0 0 0 16px rgba(233,160,75,0); } }
+@keyframes dune-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(242,165,22,0.35); } 50% { box-shadow: 0 0 0 16px rgba(242,165,22,0); } }
 .dune-rise { animation: dune-rise 0.6s ease-out both; }
 .dune-pulse { animation: dune-pulse 2.4s ease-out infinite; }
-@keyframes dune-twinkle { 0%,100% { opacity: var(--star-o); } 50% { opacity: 0.12; } }
-.dune-twinkle { animation: dune-twinkle var(--star-d) ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .dune-rise, .dune-pulse, .dune-twinkle { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dune-rise, .dune-pulse { animation: none; } }
 `;
 
-// Craters are placed in % of the moon's size: x/y = top-left, s = diameter
-interface Crater { x: number; y: number; s: number }
+/*
+  Shared page shell with a PINNED poster.
 
-const Moon: React.FC<{
-  className: string;
-  background: string;
-  glow: string;
-  craters: Crater[];
-}> = ({ className, background, glow, craters }) => (
-  <div
-    className={`absolute rounded-full overflow-hidden ${className}`}
-    style={{ background, boxShadow: glow }}
-  >
-    {craters.map((c, i) => (
-      <span
-        key={i}
-        className="absolute rounded-full"
-        style={{
-          left: `${c.x}%`,
-          top: `${c.y}%`,
-          width: `${c.s}%`,
-          aspectRatio: '1 / 1',
-          background:
-            'radial-gradient(circle at 60% 60%, rgba(110,84,50,0.42) 0%, rgba(130,100,62,0.3) 65%, rgba(150,120,80,0.12) 100%)',
-          boxShadow:
-            'inset 1px 1px 2px rgba(70,48,24,0.45), 0.5px 0.5px 1px rgba(255,246,222,0.45)',
-        }}
-      />
-    ))}
-    {/* soft shading on one side so the moon reads as a sphere */}
-    <span
-      className="absolute inset-0 rounded-full"
-      style={{
-        background:
-          'radial-gradient(circle at 30% 30%, transparent 45%, rgba(40,25,20,0.35) 100%)',
-      }}
-    />
-  </div>
-);
+  On tablet/desktop the poster is the section's own background with
+  background-attachment: fixed (see .poster-section). That locks it to the
+  viewport — it stays dead still while the form scrolls over it, there is no
+  black gap behind the form, and it is clipped to this section so the footer
+  below is never covered. When the form ends, scrolling becomes normal again.
 
-const BIG_MOON_CRATERS: Crater[] = [
-  { x: 18, y: 22, s: 20 },
-  { x: 55, y: 14, s: 12 },
-  { x: 62, y: 46, s: 24 },
-  { x: 28, y: 58, s: 14 },
-  { x: 44, y: 72, s: 10 },
-  { x: 74, y: 24, s: 8 },
-  { x: 12, y: 46, s: 8 },
-  { x: 78, y: 70, s: 9 },
-];
+  On phones (where fixed backgrounds are unreliable) the poster is instead a
+  normal element at the top that simply scrolls away.
+*/
+const PosterShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <section className="poster-section relative min-h-screen w-full text-[#f6ead0]">
+    <style>{fontStyles}</style>
 
-const SMALL_MOON_CRATERS: Crater[] = [
-  { x: 20, y: 25, s: 26 },
-  { x: 58, y: 20, s: 16 },
-  { x: 50, y: 56, s: 28 },
-  { x: 18, y: 62, s: 14 },
-];
-
-const DuneBackdrop: React.FC = () => (
-  <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-    {/* Sky: violet night fading into a burnt horizon */}
+    {/* Phone-only poster at the top */}
     <div
-      className="absolute inset-0"
-      style={{
-        background:
-          'linear-gradient(180deg, #0b0919 0%, #120e24 35%, #2a1530 62%, #4a2224 82%, #6b3320 100%)',
-      }}
-    />
-
-    {/* Stars */}
-    <div className="absolute inset-x-0 top-0 h-[75%]">
-      {STARS.map((st, idx) => (
-        <span
-          key={idx}
-          className={`absolute rounded-full bg-[#f6ead0] ${st.twinkle ? 'dune-twinkle' : ''}`}
-          style={
-            {
-              left: `${st.left}%`,
-              top: `${st.top}%`,
-              width: st.size,
-              height: st.size,
-              opacity: st.opacity,
-              boxShadow: st.size > 2 ? '0 0 6px rgba(246,234,208,0.7)' : undefined,
-              animationDelay: `${st.delay}s`,
-              '--star-o': st.opacity,
-              '--star-d': `${st.duration}s`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
+      className="poster-mobile md:hidden pointer-events-none absolute inset-x-0 top-0 z-0 bg-no-repeat bg-top bg-[length:100%_auto]"
+      style={{ backgroundImage: `url(${POSTER_URL})`, height: '56.22vw' }}
+      aria-hidden="true"
+    >
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-black" />
     </div>
 
-    {/* Arrakis' two moons */}
-    <Moon
-      className="top-[15%] right-[12%] h-16 w-16 sm:h-24 sm:w-24"
-      background="radial-gradient(circle at 35% 35%, #f6ead0 0%, #d9c39a 55%, #a88d63 100%)"
-      glow="0 0 60px rgba(241,227,198,0.25)"
-      craters={BIG_MOON_CRATERS}
-    />
-    <Moon
-      className="top-[27%] right-[27%] h-8 w-8 sm:h-11 sm:w-11"
-      background="radial-gradient(circle at 35% 35%, #efd9b0 0%, #c4a87a 60%, #8f7650 100%)"
-      glow="0 0 30px rgba(241,227,198,0.18)"
-      craters={SMALL_MOON_CRATERS}
-    />
-
-    {/* Sun-glow on the horizon */}
-    <div
-      className="absolute bottom-0 left-1/2 h-[420px] w-[900px] -translate-x-1/2 blur-[90px]"
-      style={{
-        background:
-          'radial-gradient(ellipse at 50% 100%, rgba(233,160,75,0.42) 0%, rgba(200,90,40,0.15) 50%, transparent 75%)',
-      }}
-    />
-
-    {/* Dunes */}
-    <svg
-      className="absolute bottom-0 left-0 w-full h-[34%] min-h-[180px]"
-      viewBox="0 0 1440 320"
-      preserveAspectRatio="none"
-    >
-      <path
-        d="M0 200 C 180 120, 340 150, 520 190 C 700 230, 820 110, 1020 120 C 1200 130, 1320 190, 1440 150 L1440 320 L0 320 Z"
-        fill="#3a1b1c"
-        opacity="0.85"
-      />
-      <path
-        d="M0 250 C 220 190, 380 240, 600 230 C 820 220, 960 160, 1160 190 C 1300 210, 1380 240, 1440 230 L1440 320 L0 320 Z"
-        fill="#241112"
-      />
-      <path
-        d="M0 290 C 260 250, 480 290, 720 280 C 960 270, 1180 250, 1440 285 L1440 320 L0 320 Z"
-        fill="#150a0a"
-      />
-    </svg>
-  </div>
+    {/* Form content, above the poster */}
+    <div className="poster-content relative z-10 flex items-start justify-center lg:justify-start px-4 pb-16">
+      <div className="w-full max-w-xl lg:max-w-none lg:w-[min(44vw,38rem)] lg:ml-[15vw]">
+        {children}
+      </div>
+    </div>
+  </section>
 );
 
 const inputBase =
-  'w-full rounded-lg border bg-[#120a12]/70 pl-10 pr-4 py-3 text-sm text-[#f1e3c6] placeholder-[#f1e3c6]/30 outline-none transition-colors duration-200 dune-body';
-const inputOk = 'border-[#e9a04b]/25 focus:border-[#6cc3e8] focus:ring-2 focus:ring-[#6cc3e8]/25';
+  'w-full rounded-lg border bg-black/55 pl-10 pr-4 py-3 text-sm text-[#f6ead0] placeholder-[#f6ead0]/30 outline-none transition-colors duration-200 dune-body';
+const inputOk = 'border-[#f2a516]/25 focus:border-[#2f9bf0] focus:ring-2 focus:ring-[#2f9bf0]/30';
 const inputErr = 'border-red-400/70 focus:border-red-400 focus:ring-2 focus:ring-red-400/20';
+
+const linkClass =
+  'dune-body text-sm text-[#2f9bf0] hover:text-[#7cc0f7] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2f9bf0]/50 rounded';
 
 const Matlab: React.FC = () => {
   const { user, isLoggedIn } = useAuth();
@@ -413,13 +337,13 @@ const Matlab: React.FC = () => {
     extraClass: string = ''
   ) => (
     <div>
-      <label htmlFor={fieldPath} className="block text-sm font-medium text-[#f1e3c6]/85 mb-2 dune-body">
+      <label htmlFor={fieldPath} className="block text-sm font-semibold text-[#f6ead0]/85 mb-2 dune-body">
         {label}
       </label>
       <div className="relative">
         <Icon
           size={17}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#e9a04b]/70 pointer-events-none"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#f2a516]/75 pointer-events-none"
         />
         <input
           id={fieldPath}
@@ -441,7 +365,7 @@ const Matlab: React.FC = () => {
 
   const renderMember = (m: MemberKey, title: string) => (
     <div className="space-y-5">
-      <h2 className="dune-body text-sm font-semibold tracking-wide text-[#e9a04b] border-b border-[#e9a04b]/20 pb-2">
+      <h2 className="dune-heading text-sm border-b border-[#f2a516]/20 pb-2">
         {title}
       </h2>
       {renderField(path(m, 'name'), 'Full name', User, 'Aarav Sharma')}
@@ -456,25 +380,24 @@ const Matlab: React.FC = () => {
     </div>
   );
 
+  const cardClass =
+    'rounded-2xl border border-[#f2a516]/25 bg-black/60 backdrop-blur-md shadow-[0_24px_70px_rgba(0,0,0,0.7)]';
+
   /* ---------- Waiting for SSO redirect ---------- */
   if (!isLoggedIn) {
     return (
-      <section className="relative min-h-screen w-full flex items-center justify-center px-4 overflow-hidden text-[#f1e3c6]">
-        <style>{fontStyles}</style>
-        <DuneBackdrop />
-        <p className="relative z-10 dune-body text-[#f1e3c6]/70">Redirecting to IITB SSO...</p>
-      </section>
+      <PosterShell>
+        <p className="dune-body text-center text-[#f6ead0]/75">Redirecting to IITB SSO...</p>
+      </PosterShell>
     );
   }
 
   /* ---------- Checking existing registration ---------- */
   if (isChecking) {
     return (
-      <section className="relative min-h-screen w-full flex items-center justify-center px-4 overflow-hidden text-[#f1e3c6]">
-        <style>{fontStyles}</style>
-        <DuneBackdrop />
-        <p className="relative z-10 dune-body text-[#f1e3c6]/70">Checking your registration...</p>
-      </section>
+      <PosterShell>
+        <p className="dune-body text-center text-[#f6ead0]/75">Checking your registration...</p>
+      </PosterShell>
     );
   }
 
@@ -485,27 +408,22 @@ const Matlab: React.FC = () => {
       alreadyRegistered.roll.toUpperCase() === (user?.roll ?? '').trim().toUpperCase();
 
     return (
-      <section className="relative min-h-screen w-full flex items-center justify-center px-4 pt-36 pb-16 sm:pt-40 overflow-hidden text-[#f1e3c6]">
-        <style>{fontStyles}</style>
-        <DuneBackdrop />
-
-        <div className="relative z-10 w-full max-w-md text-center dune-rise">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[#6cc3e8]/50 bg-[#6cc3e8]/10 text-[#6cc3e8]">
+      <PosterShell>
+        <div className={`${cardClass} p-8 text-center dune-rise`}>
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[#2f9bf0]/50 bg-[#2f9bf0]/10 text-[#2f9bf0]">
             <UserCheck size={38} />
           </div>
 
-          <h1 className="dune-heading text-3xl sm:text-5xl mb-3">
-            Already registered
-          </h1>
-          <p className="dune-body text-[#f1e3c6]/70 mb-8">
+          <h1 className="dune-heading text-2xl sm:text-3xl mb-3">Already registered</h1>
+          <p className="dune-body text-[#f6ead0]/75 mb-8">
             {isSelf ? (
               <>
-                <span className="text-[#e9a04b] font-semibold">{user?.name}</span>
+                <span className="text-[#f2a516] font-semibold">{user?.name}</span>
                 {` (${user?.roll}), you're already registered for the MATLAB bootcamp as part of a team. No need to register again.`}
               </>
             ) : alreadyRegistered.roll ? (
               <>
-                <span className="text-[#e9a04b] font-semibold">{alreadyRegistered.roll}</span>
+                <span className="text-[#f2a516] font-semibold">{alreadyRegistered.roll}</span>
                 {' is already registered with a team. Each person can only be in one team. If this looks wrong, please contact a convener.'}
               </>
             ) : (
@@ -514,158 +432,127 @@ const Matlab: React.FC = () => {
           </p>
 
           {alreadyRegistered.fromSubmit ? (
-            <button
-              type="button"
-              onClick={() => setAlreadyRegistered(null)}
-              className="dune-body text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
-            >
+            <button type="button" onClick={() => setAlreadyRegistered(null)} className={linkClass}>
               Go back to the form
             </button>
           ) : (
-            <Link
-              to="/"
-              className="dune-body inline-block text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
-            >
+            <Link to="/" className={`${linkClass} inline-block`}>
               Back to home
             </Link>
           )}
         </div>
-      </section>
+      </PosterShell>
     );
   }
 
   /* ---------- Registration failed page ---------- */
   if (isFailed) {
     return (
-      <section className="relative min-h-screen w-full flex items-center justify-center px-4 pt-36 pb-16 sm:pt-40 overflow-hidden text-[#f1e3c6]">
-        <style>{fontStyles}</style>
-        <DuneBackdrop />
-
-        <div className="relative z-10 w-full max-w-md text-center dune-rise">
+      <PosterShell>
+        <div className={`${cardClass} p-8 text-center dune-rise`}>
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-red-400/50 bg-red-500/10 text-red-300">
             <AlertCircle size={38} />
           </div>
 
-          <h1 className="dune-heading text-3xl sm:text-5xl mb-3">
-            Registration failed
-          </h1>
-          <p className="dune-body text-[#f1e3c6]/70 mb-8">
+          <h1 className="dune-heading text-2xl sm:text-3xl mb-3">Registration failed</h1>
+          <p className="dune-body text-[#f6ead0]/75 mb-8">
             We couldn't save your details. Please contact a convener to complete your registration.
           </p>
 
-          <button
-            type="button"
-            onClick={handleRetry}
-            className="dune-body text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
-          >
+          <button type="button" onClick={handleRetry} className={linkClass}>
             Go back to the form
           </button>
         </div>
-      </section>
+      </PosterShell>
     );
   }
 
   /* ---------- Registration completed page (form is gone) ---------- */
   if (isSubmitted) {
     return (
-      <section className="relative min-h-screen w-full flex items-center justify-center px-4 pt-36 pb-16 sm:pt-40 overflow-hidden text-[#f1e3c6]">
-        <style>{fontStyles}</style>
-        <DuneBackdrop />
-
-        <div className="relative z-10 w-full max-w-md text-center dune-rise">
-          <div className="dune-pulse mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[#e9a04b]/50 bg-[#e9a04b]/10 text-[#e9a04b]">
+      <PosterShell>
+        <div className={`${cardClass} p-8 text-center dune-rise`}>
+          <div className="dune-pulse mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[#f2a516]/50 bg-[#f2a516]/10 text-[#f2a516]">
             <CheckCircle2 size={38} />
           </div>
 
-          <h1 className="dune-heading text-3xl sm:text-5xl mb-3">
-            Registration completed
-          </h1>
-          <p className="dune-body text-[#f1e3c6]/70 mb-8">
-            Team <span className="text-[#e9a04b] font-semibold">{formData.teamName}</span> is registered for the MATLAB bootcamp.
+          <h1 className="dune-heading text-2xl sm:text-3xl mb-3">Registration completed</h1>
+          <p className="dune-body text-[#f6ead0]/75 mb-8">
+            Team <span className="text-[#f2a516] font-semibold">{formData.teamName}</span> is registered for the MATLAB bootcamp.
             See you there.
           </p>
 
-          <div className="rounded-2xl border border-[#e9a04b]/25 bg-[#120a12]/70 backdrop-blur-md p-5 text-left text-sm space-y-3 dune-body shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="rounded-xl border border-[#f2a516]/20 bg-black/50 p-5 text-left text-sm space-y-3 dune-body">
             <div className="flex justify-between gap-4">
-              <span className="text-[#f1e3c6]/50">Team name</span>
-              <span className="text-[#f1e3c6] text-right">{formData.teamName}</span>
+              <span className="text-[#f6ead0]/55">Team name</span>
+              <span className="text-[#f6ead0] text-right">{formData.teamName}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-[#f1e3c6]/50">Member 1</span>
-              <span className="text-[#f1e3c6] text-right">
-                {formData.member1.name} <span className="font-mono text-[#f1e3c6]/60">({formData.member1.rollNumber})</span>
+              <span className="text-[#f6ead0]/55">Member 1</span>
+              <span className="text-[#f6ead0] text-right">
+                {formData.member1.name} <span className="text-[#f6ead0]/60">({formData.member1.rollNumber})</span>
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-[#f1e3c6]/50">Member 2</span>
-              <span className="text-[#f1e3c6] text-right">
-                {formData.member2.name} <span className="font-mono text-[#f1e3c6]/60">({formData.member2.rollNumber})</span>
+              <span className="text-[#f6ead0]/55">Member 2</span>
+              <span className="text-[#f6ead0] text-right">
+                {formData.member2.name} <span className="text-[#f6ead0]/60">({formData.member2.rollNumber})</span>
               </span>
             </div>
           </div>
 
-          <Link
-            to="/"
-            className="dune-body mt-6 inline-block text-sm text-[#6cc3e8] hover:text-[#9fdcf5] underline underline-offset-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/50 rounded"
-          >
+          <Link to="/" className={`${linkClass} mt-6 inline-block`}>
             Back to home
           </Link>
         </div>
-      </section>
+      </PosterShell>
     );
   }
 
   /* ---------- Registration form ---------- */
   return (
-    <section className="relative min-h-screen w-full flex items-center justify-center px-4 pt-36 pb-16 sm:pt-40 overflow-hidden text-[#f1e3c6]">
-      <style>{fontStyles}</style>
-      <DuneBackdrop />
-
-      <div className="relative z-10 w-full max-w-2xl dune-rise">
-        <div className="text-center mb-8">
-          <h1 className="dune-heading text-3xl sm:text-5xl">
-            MATLAB Bootcamp Registration
-          </h1>
-
-          <p className="dune-body text-[#f1e3c6]/65 text-sm sm:text-base max-w-md mx-auto mt-4">
-            Register your team of two for the MATLAB bootcamp.
+    <PosterShell>
+      <div className={`${cardClass} p-6 sm:p-8 dune-rise`}>
+        {/* The poster already carries the event title, so the card only names the task */}
+        <div className="mb-7 text-center">
+          <h1 className="dune-heading text-xl sm:text-2xl">Team registration</h1>
+          <p className="dune-body text-[#f6ead0]/70 text-sm mt-2">
+            Register your team of two for the bootcamp.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#e9a04b]/25 bg-[#150c14]/75 backdrop-blur-md p-6 sm:p-8 shadow-[0_24px_70px_rgba(0,0,0,0.6)]">
-          <form onSubmit={handleSubmit} noValidate className="space-y-8">
-            {renderField('teamName', 'Team name', Users, 'e.g. Matrix Mavericks')}
+        <form onSubmit={handleSubmit} noValidate className="space-y-8">
+          {renderField('teamName', 'Team name', Users, 'e.g. Matrix Mavericks')}
 
-            {renderMember('member1', 'First member')}
-            {renderMember('member2', 'Second member')}
+          {renderMember('member1', 'First member')}
+          {renderMember('member2', 'Second member')}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="dune-body w-full mt-2 py-3.5 px-6 rounded-lg font-semibold text-sm text-[#1a0d0c]
-                bg-gradient-to-r from-[#f3c277] via-[#e9a04b] to-[#d9763a]
-                hover:from-[#f7cf8f] hover:to-[#e58a45]
-                shadow-[0_0_28px_rgba(233,160,75,0.3)] hover:shadow-[0_0_38px_rgba(233,160,75,0.5)]
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6cc3e8]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#150c14]
-                disabled:opacity-60 disabled:cursor-not-allowed
-                transition-all duration-300 flex items-center justify-center gap-2 group"
-            >
-              {isSubmitting ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-[#1a0d0c]/30 border-t-[#1a0d0c] rounded-full animate-spin" />
-                  <span>Registering...</span>
-                </>
-              ) : (
-                <>
-                  <span>Register for MATLAB</span>
-                  <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="dune-body w-full mt-2 py-3.5 px-6 rounded-lg font-bold text-sm text-black
+              bg-gradient-to-r from-[#ffcf5a] via-[#f2a516] to-[#ec5a24]
+              hover:from-[#ffd97a] hover:to-[#f26a35]
+              shadow-[0_0_28px_rgba(242,165,22,0.3)] hover:shadow-[0_0_38px_rgba(242,165,22,0.5)]
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2f9bf0]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black
+              disabled:opacity-60 disabled:cursor-not-allowed
+              transition-all duration-300 flex items-center justify-center gap-2 group"
+          >
+            {isSubmitting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <span>Registering...</span>
+              </>
+            ) : (
+              <>
+                <span>Register for MATLAB</span>
+                <ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </>
+            )}
+          </button>
+        </form>
       </div>
-    </section>
+    </PosterShell>
   );
 };
 
