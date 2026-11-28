@@ -4,7 +4,7 @@ import { Calendar, Clock, MapPin, Users, ArrowRight } from 'lucide-react';
 
 import itsp from '../assets/itsp_banner.png';
 import aiChipImg from '../assets/AI_ON_CHIP.png';
-import matlabPoster from '../assets/Matlab_bootcamp_poster.png';
+import matlabPoster from '../assets/matlab_cover.jpg';
 // import sor from '../assets/sor_banner.png';
 
 const eventsData = [
@@ -80,7 +80,7 @@ const Events = () => {
             <div className="md:w-1/2 p-8">
               <div className="inline-flex items-center mb-4 px-3 py-1 bg-blue-500/20 rounded-full">
                 <Calendar size={16} className="text-blue-400 mr-2" />
-                <span className="text-sm text-blue-400">Upcoming Event</span>
+                <span className="text-sm text-blue-400">Flagship Event</span>
               </div>
               <h3 className="text-2xl font-bold mb-3 font-heading text-white">MATLAB Bootcamp</h3>
               <div className="flex items-center text-gray-300 mb-2">
